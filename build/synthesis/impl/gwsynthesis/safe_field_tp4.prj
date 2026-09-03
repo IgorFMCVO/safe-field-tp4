@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-synthesis-project>
+<Project>
+    <Version>beta</Version>
+    <Device id="GW1NSR-4C" package="QFN48P" speed="6" partNumber="GW1NSR-LV4CQN48PC6/I5"/>
+    <FileList>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\rasp_to_tang.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_clock_gen.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_rx_24.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\audio_energy_detector.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4.v" type="verilog"/>
+    </FileList>
+    <OptionList>
+        <Option type="disable_insert_pad" value="0"/>
+        <Option type="global_freq" value="50.000"/>
+        <Option type="looplimit" value="2000"/>
+        <Option type="output_file" value="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\synthesis\impl\gwsynthesis\safe_field_tp4.vg"/>
+        <Option type="print_all_synthesis_warning" value="1"/>
+        <Option type="ram_rw_check" value="0"/>
+        <Option type="top_module" value="safe_field_tp4"/>
+        <Option type="vcc" value="1.2"/>
+        <Option type="verilog_language" value="verilog-2001"/>
+        <Option type="vhdl_language" value="vhdl-1993"/>
+    </OptionList>
+</Project>

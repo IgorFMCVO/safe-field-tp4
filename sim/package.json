@@ -1,0 +1,11 @@
+{
+  "name": "safe-field-tp4-simulation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node run-tests.mjs"
+  },
+  "dependencies": {
+    "@veriflow/iverilog-wasm": "0.1.4"
+  }
+}

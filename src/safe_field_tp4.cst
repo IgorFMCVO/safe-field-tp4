@@ -1,0 +1,20 @@
+// SAFE-FIELD TP4 physical constraints
+// Device: GW1NSR-LV4CQN48PC6/I5 (Tang Nano 4K)
+// Only pins verified from the validated local project or official Sipeed
+// Tang Nano 4K project are constrained here.
+
+// Official Sipeed Tang Nano 4K example: onboard 27 MHz oscillator.
+IO_LOC "sys_clk" 45;
+IO_PORT "sys_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+
+// Preserved from the physically validated SAFE-FIELD baseline.
+IO_LOC "pi_signal" 40;
+IO_PORT "pi_signal" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+
+// Preserved onboard LED pin and bank voltage from the validated build report.
+IO_LOC "led" 10;
+IO_PORT "led" IO_TYPE=LVCMOS18 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=1.8;
+
+// BLOCKED: do not invent the already-soldered INMP441 connection.
+// Add IO_LOC for i2s_sck, i2s_ws and i2s_sd only after physical continuity or
+// an as-built wiring record identifies their Tang Nano 4K package pin numbers.

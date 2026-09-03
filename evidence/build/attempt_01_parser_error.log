@@ -1,0 +1,15 @@
+SAFE-FIELD TP4 - Gowin synthesis attempt 01
+Command:
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gw_sh.exe' 'scripts\build_synthesis.tcl' 2>&1
+
+Result: FAIL (exit code 1)
+
+ERROR (EX3863): Syntax error near '&' at src/safe_field_tp4.v:23
+ERROR (EX3863): Syntax error near 'else' at src/safe_field_tp4.v:26
+ERROR (EX2656): Verilog 2001 keyword 'else' used in incorrect context
+ERROR (EX3928): Module safe_field_tp4 ignored due to previous errors
+
+Correction applied:
+The Gowin Verilog-2001 parser did not accept `if (!&por_counter)`. It was
+replaced with the equivalent explicit comparison
+`if (por_counter != {POR_BITS{1'b1}})`.

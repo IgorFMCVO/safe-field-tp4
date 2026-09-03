@@ -1,0 +1,28 @@
+SAFE-FIELD TP4 - simulator setup evidence
+Date: 2026-09-03
+
+Native tool inventory:
+iverilog.exe => NOT_FOUND
+vvp.exe => NOT_FOUND
+verilator.exe => NOT_FOUND
+ModelSim/Questa => NOT_FOUND
+
+Attempt 1:
+winget install --id Icarus.Verilog --exact --source winget --scope user --accept-package-agreements --accept-source-agreements --disable-interactivity
+Result: exit code 1
+Output: No applicable installer found; see logs for more details.
+
+Attempt 2:
+winget install --id Icarus.Verilog --exact --source winget --accept-package-agreements --accept-source-agreements --disable-interactivity
+Result: download and SHA-256 verification succeeded, but the native installer
+did not progress without elevation. It was interrupted; no Icarus install was
+found in Program Files, C:\iverilog or the registry.
+
+Portable fallback used inside the project:
+npm install --ignore-scripts
+
+Installed package: @veriflow/iverilog-wasm@0.1.4
+NPM audit: 0 vulnerabilities
+Upstream Icarus-derived source revision declared by the package:
+75c777c993c2bbc6ffe7f9138f25a76e14db5325
+Package integrity is pinned in sim/package-lock.json.

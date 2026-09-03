@@ -1,0 +1,55 @@
+SAFE-FIELD TP4 simulation
+started_utc=2026-09-03T21:32:16.152Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)
+success=true
+stage=run
+--- CLOCK GENERATOR ---
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS WS half-frame (32 SCK periods)                   expected=3200 (0x00000c80) obtained=3200 (0x00000c80)
+PASS WS full frame (64 SCK periods)                   expected=6400 (0x00001900) obtained=6400 (0x00001900)
+--- I2S RECEIVER ---
+PASS left channel signed sample                       expected=1193046 (0x00123456) obtained=1193046 (0x00123456)
+PASS left channel tag                                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS right channel negative sample                    expected=4294892731 (0xfffedcbb) obtained=4294892731 (0xfffedcbb)
+PASS right channel tag                                expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS skipped I2S bit error                            expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS mid-slot WS error                                expected=1 (0x00000001) obtained=1 (0x00000001)
+--- ENERGY DETECTOR AND FSM ---
+PASS silence average                                  expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS silence state QUIET                              expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS below-on-threshold average                       expected=600 (0x00000258) obtained=600 (0x00000258)
+PASS below-on-threshold remains QUIET                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS signal average uses absolute magnitude           expected=1500 (0x000005dc) obtained=1500 (0x000005dc)
+PASS signal crosses threshold -> ACTIVE               expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS hysteresis-band average                          expected=700 (0x000002bc) obtained=700 (0x000002bc)
+PASS hysteresis holds ACTIVE                          expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS below-off-threshold average                      expected=400 (0x00000190) obtained=400 (0x00000190)
+PASS below-off-threshold -> QUIET                     expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS most-negative boundary magnitude                 expected=8388608 (0x00800000) obtained=8388608 (0x00800000)
+PASS boundary signal -> ACTIVE                        expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS frame max selects right magnitude                expected=200 (0x000000c8) obtained=200 (0x000000c8)
+PASS one frame_valid pulse was generated              expected=1 (0x00000001) obtained=1 (0x00000001)
+--- SUMMARY ---
+checks=42 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_tp4.v:300: $finish called at 12100000 (1ps)

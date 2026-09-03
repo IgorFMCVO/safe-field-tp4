@@ -1,0 +1,3 @@
+2026-09-03T18:34:55-0300 SAFETY_GATE BLOCKED
+Missing verified IO_LOC: i2s_sck, i2s_ws, i2s_sd
+Refused Place & Route and bitstream generation.
