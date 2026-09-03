@@ -1,0 +1,37 @@
+//
+//Written by GowinSynthesis
+//Tool Version "V1.9.11.03 Education"
+//Wed Sep  2 15:03:37 2026
+
+//Source file index table:
+//file0 "\C:/SAFE-FIELD/fpga/safe_field_tang_blink/safe_field_tang_blink/src/led.v"
+//file1 "\C:/SAFE-FIELD/fpga/safe_field_tang_blink/safe_field_tang_blink/src/rasp_to_tang.v"
+`pragma protect begin_protected
+`pragma protect version="2.3"
+`pragma protect author="default"
+`pragma protect author_info="default"
+`pragma protect encrypt_agent="GOWIN"
+`pragma protect encrypt_agent_info="GOWIN Encrypt Version 2.3"
+
+`pragma protect encoding=(enctype="base64", line_length=76, bytes=256)
+`pragma protect key_keyowner="GOWIN",key_keyname="GWK2023-09",key_method="rsa"
+`pragma protect key_block
+Hh6x5Zg/LQsrHqGnU+yU0tL7OgepzKMMWD3ebYwroH53ED7v+e6ddzhSDct4zb5qTMuCxMUTT309
+YCxyP4i7LNGLxYqHG/r2WmCNCZMjehzWjfeu1f2t/wcb6ANHwg4zD4o9HrBbnRRkF6joVcJoGq8T
+uoZg247f5XMk2gPIdcDq/UiYYV9yu/qGu16wa8JissjtrLrhfdMDVIfIK1qIOmuttHqJJKPgarYw
+zgqph6X6ruHmTxk84w1WL4rC/MmHo0lERDf17ziUXq1a/09CCvoX7ciP0Aj18S2gOrDh33LS3xNv
+aDpU5Q9uHfZcJbMaacaoqP7soOV1lQ6B8y5HcQ==
+
+`pragma protect encoding=(enctype="base64", line_length=76, bytes=384)
+`pragma protect data_keyowner="default-ip-vendor"
+`pragma protect data_keyname="default-ip-key"
+`pragma protect data_method="aes128-cfb"
+`pragma protect data_block
+Fazwe4VbKTw6ivEr4IlixS0ydXH3A4CJrc1aTNQ4GbG66R+LH74n1txbBZL0MAp07tgyEkdS2vHH
+JlMN6qAoHgY6OHampK31o2Vp7+mwXuD5a+jxzb+rzIQJDFnja0PNA9zlG+wKRPCa+QDgVMZZGasq
+FOQ/V4frqWbUxFWrsZm3IgW3ZP+Y/o7aSe9tfQdkRgAtj1F0fRbC2SLKI50K+xxytM1Yqu0sFWQF
+tRLmrojQZbK4SDQyhcB0Ils6J/9jy2g4eC7ZavrfwCQTTKyjEFt1oQcXzsvLHDmDkg0yBqu+ckJw
+lQZxrrTauLdmuRykLRWYzqcnLIyZYIZC3djqUC0+UJogNlKvKx4wVr0ZHcbB8+CJeOV9EBgeLQC8
+nHlIz8SLjx3YzNZgT+C+RiH/gaAxUgRO3MSTg/4LOcQMpOQi5TzZZcpcFacXKBVxHDgQ+lytwgiT
+MDUMUwp7iem2Hon6ZB+I+CpDIHaiTcoS7OhYNKWVbVfZQJ/u2wtCWG/V
+`pragma protect end_protected
