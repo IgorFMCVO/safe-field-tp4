@@ -15,6 +15,17 @@ IO_PORT "pi_signal" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
 IO_LOC "led" 10;
 IO_PORT "led" IO_TYPE=LVCMOS18 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=1.8;
 
-// BLOCKED: do not invent the already-soldered INMP441 connection.
-// Add IO_LOC for i2s_sck, i2s_ws and i2s_sd only after physical continuity or
-// an as-built wiring record identifies their Tang Nano 4K package pin numbers.
+// INMP441 as-built confirmed on 03/09/2026 with boards de-energized.
+// Official Sipeed schematic: pins 41/42/43 are Bank 1 general-purpose IOT
+// pads (also routed to the passive camera connector as PCLK/HSYNC/VSYNC).
+IO_LOC "i2s_sck" 41;
+IO_PORT "i2s_sck" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+IO_LOC "i2s_ws" 42;
+IO_PORT "i2s_ws" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+
+IO_LOC "i2s_sd" 43;
+// INMP441 L/R=GND drives the left slot and tri-states SD in the right slot.
+// DOWN provides a defined idle value, consistent with the datasheet's
+// recommendation for an SD pull-down on a mono bus.
+IO_PORT "i2s_sd" IO_TYPE=LVCMOS33 PULL_MODE=DOWN BANK_VCCIO=3.3;

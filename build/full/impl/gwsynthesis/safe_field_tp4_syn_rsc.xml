@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="safe_field_tp4" Register="9" Alu="7" Lut="6" T_Register="147(9)" T_Alu="39(7)" T_Lut="275(6)">
+ <SubModule name="clock_master" Register="23" Lut="26" T_Register="23(23)" T_Lut="26(26)"/>
+ <SubModule name="receiver" Register="50" Lut="5" T_Register="50(50)" T_Lut="5(5)"/>
+ <SubModule name="detector" Register="65" Alu="32" Lut="238" T_Register="65(65)" T_Alu="32(32)" T_Lut="238(238)"/>
+</Module>

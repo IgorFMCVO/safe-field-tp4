@@ -40,3 +40,11 @@ Data local: 03/09/2026 (America/Sao_Paulo)
 - Arquivos comparados por SHA-256: 30/30 idênticos antes do desenvolvimento.
 - Repositório Git local inicializado na branch `tp4-audio-inmp441`.
 - Commit da baseline: `e5f232a` (`checkpoint: preserve physically validated GPIO17 to LED baseline`).
+
+## Revalidação após o build de áudio
+
+Em 03/09/2026, depois da geração do bitstream TP4, os quatro arquivos críticos
+da baseline foram novamente lidos e produziram exatamente os mesmos SHA-256
+listados acima. O `src/rasp_to_tang.v` no checkpoint também conserva o hash
+`1955AAE8CD8E7BC802A30CB56DD3B98BE140BA741DA014CF2D95DB11543D1E5B`.
+Nenhum arquivo da baseline física foi alterado ou sobrescrito.
