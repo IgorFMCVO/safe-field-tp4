@@ -37,4 +37,4 @@
 - [x] branch final commitada e tag local preparada;
 - [x] ARM->FPGA físico: 3/3 comandos, CRC=0 e perdas=0;
 - [x] vídeo gravado e registrado no YouTube;
-- [x] GitHub público acadêmico publicado e tag final registrada.
+- [x] GitHub Classroom oficial publicado e tag final registrada.

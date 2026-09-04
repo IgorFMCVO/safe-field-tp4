@@ -19,7 +19,7 @@ solicitado pelo operador.
 | checksum comprovado | PASS | CRC-8/ATM; `checksum_errors=0`; corrupção rejeitada em TB |
 | telemetria comprovada | PASS | state, energy, frame counter, flags e sequence recebidos no Pi |
 | vídeo registrado | PASS | https://youtu.be/1Ancm5QdG2E |
-| GitHub acessível | PASS | https://github.com/IgorFMCVO/safe-field-tp4, repositório público |
+| GitHub acessível | PASS | https://github.com/Prof-Dacio-INFNET/live-profdaciosouza-IgorFMCVO, GitHub Classroom oficial |
 | ZIP íntegro | PASS | estrutura aberta e conferida após compressão; manifesto interno SHA-256 |
 
 ## Validação bidirecional ARM <-> FPGA
@@ -50,5 +50,4 @@ solicitado pelo operador.
 
 **AUDITORIA: PASS. RUBRICA: 22/22 PASS.**
 
-Única providência do operador: substituir `PENDENTE_LINK_FINAL` pelo link do
-Google Drive antes da submissão na plataforma oficial.
+Pendência real: nenhuma.

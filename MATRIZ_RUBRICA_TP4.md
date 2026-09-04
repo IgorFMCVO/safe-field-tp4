@@ -31,6 +31,5 @@ relatório TP3; portanto não se inventam critérios adicionais.
 
 Resultado: **22/22 PASS**, 0 PARTIAL, 0 MISSING.
 
-Todos os 22 requisitos da matriz têm evidência objetiva. O link final do Google
-Drive permanece uma providência de submissão do operador, não um requisito
-técnico adicional desta matriz.
+Todos os 22 requisitos da matriz têm evidência objetiva. Não permanece item
+pendente nesta matriz.

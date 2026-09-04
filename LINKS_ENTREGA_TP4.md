@@ -1,15 +1,10 @@
-# Links e publicação SAFE-FIELD TP4
+# Links oficiais SAFE-FIELD TP4
 
-## Estado Git
+GitHub:
+https://github.com/Prof-Dacio-INFNET/live-profdaciosouza-IgorFMCVO
 
-- branch: `tp4-official-rubric-closeout`;
-- snapshot acadêmico público: `https://github.com/IgorFMCVO/safe-field-tp4`;
-- tag pública: `tp4-official-rubric-final`.
-
-## Vídeo
-
-- Vídeo TP4 — YouTube backup: https://youtu.be/1Ancm5QdG2E
-- Vídeo TP4 — Google Drive: PENDENTE_LINK_FINAL
+Vídeo TP4:
+https://youtu.be/1Ancm5QdG2E
 
 ## Artefatos locais
 

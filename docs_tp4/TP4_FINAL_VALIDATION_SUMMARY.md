@@ -167,5 +167,6 @@ Get-FileHash -Algorithm SHA256 build\safe_field_tp4_audio_stable_iter2\impl\pnr\
 - PDF definitivo: gerado após o PASS ARM -> FPGA;
 - ZIP definitivo: regenerado e verificado;
 - vídeo: https://youtu.be/1Ancm5QdG2E;
-- única providência externa restante: inserir o link final do Google Drive no
-  campo `PENDENTE_LINK_FINAL` antes da submissão na plataforma oficial.
+- GitHub Classroom oficial:
+  https://github.com/Prof-Dacio-INFNET/live-profdaciosouza-IgorFMCVO;
+- pendência real: nenhuma.
