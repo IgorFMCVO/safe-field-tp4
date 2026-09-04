@@ -1,3 +1,5 @@
 sim/node_modules/
 npm-debug.log*
 /tmp/
+__pycache__/
+*.pyc

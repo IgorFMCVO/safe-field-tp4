@@ -1,0 +1,9 @@
+started=2026-09-04T08:09:30.5669914-03:00
+rao=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\debug6_low_rate_i2s.rao
+prefix=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug6_low_rate_i2s\gate_a_initial
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug6_low_rate_i2s\gate_a_initial_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug6_low_rate_i2s\gate_a_initial_core1_window0.csv
+Running GAO analyzer complete.
+finished=2026-09-04T08:09:32.9944202-03:00
+exit_code=0

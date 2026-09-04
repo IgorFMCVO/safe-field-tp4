@@ -1,0 +1,8 @@
+started=2026-09-04T08:13:32.3712535-03:00
+rao=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug7_sd_slot_diagnostic_none\debug7_sd_slot_diagnostic.rao
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug7_sd_slot_diagnostic\pull_none_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug7_sd_slot_diagnostic\pull_none_core1_window0.csv
+Running GAO analyzer complete.
+finished=2026-09-04T08:13:36.2779177-03:00
+exit_code=0

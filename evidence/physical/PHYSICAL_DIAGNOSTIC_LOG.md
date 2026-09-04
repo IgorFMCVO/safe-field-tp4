@@ -215,3 +215,62 @@ ssh -tt -o StrictHostKeyChecking=accept-new safe-field@safe-field.local "pinctrl
 
 Resultado físico ainda não atribuído: aguardar as leituras LOW/HIGH nos pads
 SCK/WS. Não inferir continuidade a partir da simulação ou da programação.
+
+### Retorno físico do operador — 04/09/2026
+
+O operador informou explicitamente que DEBUG5 confirmou SCK e WS em LOW/HIGH
+nos pads do INMP441. Resultado registrado como PASS físico de fiação externa
+para SCK/WS. O relato não contém validação de SD e não foi extrapolado para
+“áudio operacional”.
+
+## 04/09/2026 — AUDIO ACCEPTANCE / DEBUG6 E DEBUG7
+
+Branch isolada: `tp4-audio-acceptance`, checkpoint inicial `7be7c02`.
+
+### DEBUG6_LOW_RATE_I2S / GATE A
+
+- Clock: SCK 500.000 Hz, WS 7.812,5 Hz, 64 SCK/frame, 32 SCK/slot.
+- Simulação: PASS, 14/14.
+- Síntese/P&R/STA: PASS, 0 violações setup/hold.
+- SRAM Program: PASS, operação 2, hash
+  `D930622FF7C1407D33C0EA0B2324B7DFB8892E6FDE08B98F2A4D40F603876105`.
+- GAO físico: 512 samples LEFT; `sample_valid` avançando; frame errors=0;
+  SD=LOW constante; 0 transições; 512/512 samples zero.
+- Resultado: GATE A FAIL. Processamento não iniciado.
+
+### DEBUG7_SD_SLOT_DIAGNOSTIC / GATE B
+
+Variante PULL NONE:
+
+- P&R confirma pin 43 `in`, LVCMOS33, PULL NONE.
+- SRAM Program PASS, hash
+  `3A6FD06F8B4515DEFF827F42EBC83D1FC56033DE817D147F567D3919C278AE7E`.
+- SD=HIGH em 4096/4096 clocks, 0 transições, nos slots LEFT e RIGHT.
+- 512/512 samples = -1; frame errors=0.
+
+Variante PULL UP, somente diagnóstico:
+
+- P&R confirma pin 43 `in`, LVCMOS33, PULL UP.
+- SRAM Program PASS, hash
+  `4C5ED5A0DE02ABCA1C6E2AF26039A469EF4F7E32958A018E434A798A04EE3DAC`.
+- Sem estímulo: SD=HIGH em 4096/4096 clocks, ambos os slots, 0 transições.
+- Com tom de 1 kHz a 12% digital: mesmo resultado; 512/512 samples=-1.
+- Interpretação: alta impedância/circuito aberto durante ambos os slots; não há
+  drive LEFT compatível com INMP441 operacional.
+
+Após as capturas, o DEBUG6 PULL DOWN foi restaurado por operação 2 em SRAM.
+Flash não foi acessada em nenhuma etapa.
+
+### Causa e parada
+
+DEBUG5 excluiu falha de chegada de SCK/WS aos pads. DEBUG6/7 excluem parser,
+threshold e FSM como causa do SD sem dados: a própria entrada física segue os
+pulls DOWN/NONE/UP. Conforme o critério do GATE B, o módulo INMP441/saída SD é
+o principal suspeito. A possibilidade residual é circuito aberto/solda entre o
+pad SD do módulo e o pin 43; distingui-los requer inspeção/continuidade física
+com o sistema desenergizado.
+
+GATES C–G foram bloqueados e não simulados como evidência física. Relatório e
+matriz completos em `AUDIO_ACCEPTANCE_REPORT.md`; CSVs, JSONs, PNG, logs de
+build, SRAM e GAO estão em `evidence/physical/debug6_low_rate_i2s/` e
+`evidence/physical/debug7_sd_slot_diagnostic/`.

@@ -1,0 +1,188 @@
+*** GOWIN Tcl Command Line Console  *** 
+current device: GW1NSR-4C  GW1NSR-LV4CQN48PC6/I5
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/rasp_to_tang.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/i2s_clock_gen.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/i2s_rx_24.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/debug6_low_rate_i2s.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/safe_field_debug.cst"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/debug6_low_rate_i2s.sdc"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/debug6_low_rate_i2s.rao"
+GowinSynthesis start
+Running parser ...
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\rasp_to_tang.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_clock_gen.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_rx_24.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\debug6_low_rate_i2s.v'
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_crc32.v'
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v'
+Analyzing included file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_init.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v'
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v":1256)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v":1256)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'
+Analyzing included file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_expression.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_parameter.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_0\gw_ao_init.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_crc32.v'
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v'
+Analyzing included file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_init.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v'
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v":1256)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v":1256)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'
+Analyzing included file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_expression.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_parameter.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_1\gw_ao_init.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v'
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_control\gw_con_top_define.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v":377)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v":377)
+Analyzing included file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\ao_control\gw_con_parameter.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v":377)
+Back to file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v":377)
+Analyzing Verilog file 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\gw_jtag.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\gw_gao_top.v'
+Compiling module 'debug6_low_rate_i2s'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\debug6_low_rate_i2s.v":5)
+Compiling module 'i2s_clock_gen(HALF_PERIOD_CLKS=27)'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_clock_gen.v":6)
+Compiling module 'i2s_rx_24'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_rx_24.v":6)
+Compiling module 'gw_gao'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\RTL_GAO\gw_gao_top.v":1)
+Compiling module 'GW_JTAG'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\gw_jtag.v":1)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_CON\gw_con_top.v":377)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_top.v":3042)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v":1256)
+Extracting RAM for identifier '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_mem_ctrl.v":1256)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_crc32.v":74)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_0\gw_ao_match.v":374)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_top.v":3042)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v":1256)
+Extracting RAM for identifier '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_mem_ctrl.v":1256)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_crc32.v":74)
+Compiling module '**'("C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\data\ipcores\GAO\GW_AO_1\gw_ao_match.v":374)
+Trying to combine GAO to RTL design
+NOTE  (EX0101) : Current top module is "debug6_low_rate_i2s"
+[5%] Running netlist conversion ...
+Running device independent optimization ...
+[10%] Optimizing Phase 0 completed
+[15%] Optimizing Phase 1 completed
+[25%] Optimizing Phase 2 completed
+Running inference ...
+[30%] Inferring Phase 0 completed
+[40%] Inferring Phase 1 completed
+[50%] Inferring Phase 2 completed
+[55%] Inferring Phase 3 completed
+Running technical mapping ...
+[60%] Tech-Mapping Phase 0 completed
+[65%] Tech-Mapping Phase 1 completed
+[75%] Tech-Mapping Phase 2 completed
+[80%] Tech-Mapping Phase 3 completed
+[90%] Tech-Mapping Phase 4 completed
+[95%] Generate netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s.vg" completed
+[100%] Generate report file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s_syn.rpt.html" completed
+GowinSynthesis finish
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er1'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'pause_dr'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'enable_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'n1288_21_SUM'(source:'n1288_s20') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_22_SUM'(source:'n1288_s21') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_23_SUM'(source:'n1288_s22') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_24_SUM'(source:'n1288_s23') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_25_SUM'(source:'n1288_s24') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_26_SUM'(source:'n1288_s25') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_27_SUM'(source:'n1288_s26') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_28_SUM'(source:'n1288_s27') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_29_SUM'(source:'n1288_s28') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1314_1_SUM'(source:'n1314_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1315_1_SUM'(source:'n1315_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1316_1_SUM'(source:'n1316_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1317_1_SUM'(source:'n1317_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[15]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[16]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[17]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[18]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[19]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[20]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[21]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[22]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[23]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[24]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[25]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[26]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[27]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[28]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[29]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[30]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[31]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'n3801_19_SUM'(source:'n3801_s18') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_20_SUM'(source:'n3801_s19') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_21_SUM'(source:'n3801_s20') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_22_SUM'(source:'n3801_s21') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_23_SUM'(source:'n3801_s22') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_24_SUM'(source:'n3801_s23') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_25_SUM'(source:'n3801_s24') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_26_SUM'(source:'n3801_s25') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3827_1_SUM'(source:'n3827_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3828_1_SUM'(source:'n3828_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3829_1_SUM'(source:'n3829_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3830_1_SUM'(source:'n3830_s0') in module 'ao_top_1' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_debug.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+WARN  (TA1117) : Can't calculate clocks' relationship between: "i2s_ws_clk" and "sys_clk"
+WARN  (TA1117) : Can't calculate clocks' relationship between: "sys_clk" and "i2s_ws_clk"
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.tr" completed
+Fri Sep  4 08:08:10 2026
+

@@ -1,0 +1,85 @@
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\gwsynthesis\debug6_low_rate_i2s.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er1'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'pause_dr'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'enable_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'n1288_21_SUM'(source:'n1288_s20') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_22_SUM'(source:'n1288_s21') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_23_SUM'(source:'n1288_s22') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_24_SUM'(source:'n1288_s23') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_25_SUM'(source:'n1288_s24') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_26_SUM'(source:'n1288_s25') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_27_SUM'(source:'n1288_s26') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_28_SUM'(source:'n1288_s27') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1288_29_SUM'(source:'n1288_s28') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1314_1_SUM'(source:'n1314_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1315_1_SUM'(source:'n1315_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1316_1_SUM'(source:'n1316_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1317_1_SUM'(source:'n1317_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[15]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[16]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[17]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[18]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[19]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[20]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[21]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[22]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[23]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[24]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[25]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[26]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[27]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[28]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[29]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[30]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[31]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'n3801_19_SUM'(source:'n3801_s18') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_20_SUM'(source:'n3801_s19') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_21_SUM'(source:'n3801_s20') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_22_SUM'(source:'n3801_s21') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_23_SUM'(source:'n3801_s22') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_24_SUM'(source:'n3801_s23') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_25_SUM'(source:'n3801_s24') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3801_26_SUM'(source:'n3801_s25') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3827_1_SUM'(source:'n3827_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3828_1_SUM'(source:'n3828_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3829_1_SUM'(source:'n3829_s0') in module 'ao_top_1' has no destination
+WARN  (PA1001) : Dangling net 'n3830_1_SUM'(source:'n3830_s0') in module 'ao_top_1' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_debug.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+WARN  (TA1117) : Can't calculate clocks' relationship between: "i2s_ws_clk" and "sys_clk"
+WARN  (TA1117) : Can't calculate clocks' relationship between: "sys_clk" and "i2s_ws_clk"
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_low_rate_i2s\impl\pnr\debug6_low_rate_i2s.tr" completed
+Fri Sep  4 08:08:10 2026
+

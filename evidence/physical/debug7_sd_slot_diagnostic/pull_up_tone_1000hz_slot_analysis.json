@@ -1,0 +1,50 @@
+{
+  "source": {
+    "kind": "physical GAO/JTAG capture",
+    "pull_mode": "UP",
+    "core0_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\debug7_sd_slot_diagnostic\\pull_up_tone_1000hz_core0_window0.csv",
+    "core1_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\debug7_sd_slot_diagnostic\\pull_up_tone_1000hz_core1_window0.csv"
+  },
+  "clocks": {
+    "sys_clk_hz": 27000000,
+    "sck_period_sysclks_mode": 54,
+    "sck_hz": 500000.0,
+    "ws_half_period_sysclks_mode": 1728,
+    "ws_hz": 7812.5,
+    "sck_periods_per_frame": 64.0
+  },
+  "raw_sd": {
+    "rows": 4096,
+    "transitions": 0,
+    "all_low": false,
+    "all_high": true,
+    "left_ws0": {
+      "rows": 1728,
+      "low_rows": 0,
+      "high_rows": 1728,
+      "high_fraction": 1.0,
+      "transitions_within_slot": 0
+    },
+    "right_ws1": {
+      "rows": 2368,
+      "low_rows": 0,
+      "high_rows": 2368,
+      "high_fraction": 1.0,
+      "transitions_within_slot": 0
+    },
+    "counter_first": 1,
+    "counter_last": 1
+  },
+  "samples": {
+    "count": 512,
+    "zero": 0,
+    "nonzero": 512,
+    "min": -1,
+    "max": -1
+  },
+  "frame_errors": {
+    "counter_first": 0,
+    "counter_last": 0
+  },
+  "classification": "high_z_or_disconnected_in_both_slots"
+}

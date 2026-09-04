@@ -1,0 +1,8 @@
+started=2026-09-04T08:14:40.3255901-03:00
+stimulus=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\stimuli\tone_1000hz.wav amplitude_fraction_full_scale=0.12 looping=true
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug7_sd_slot_diagnostic\pull_up_tone_1000hz_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\debug7_sd_slot_diagnostic\pull_up_tone_1000hz_core1_window0.csv
+Running GAO analyzer complete.
+finished=2026-09-04T08:14:44.7157521-03:00
+exit_code=0

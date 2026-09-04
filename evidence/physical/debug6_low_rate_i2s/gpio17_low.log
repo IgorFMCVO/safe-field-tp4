@@ -1,0 +1,6 @@
+SAFE-FIELD AUDIO ACCEPTANCE pre-programming GPIO17 check
+timestamp=2026-09-04T08:09:04-03:00
+host=safe-field.local
+command=pinctrl set 17 op dl; pinctrl get 17; date --iso-8601=seconds
+result=17: op -- pd | lo // GPIO17 = output
+password=entered_interactively_not_recorded

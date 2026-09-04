@@ -9,8 +9,10 @@ SCK/WS, `sample_valid`, magnitude/média, FSM com histerese e integração com o
 caminho GPIO17 -> LED preexistente. Simulação, síntese, Place & Route, STA e
 geração do `.fs` passaram. O build final abaixo permanece byte a byte intacto.
 Em 03/09/2026, o checkpoint separado `tp4-physical-validation` programou apenas
-SRAM com GAO/JTAG e localizou a falha física na camada SD: o input do pin 43
-permaneceu LOW e todos os samples reais capturados foram zero.
+SRAM com GAO/JTAG e localizou a falha física na camada SD. Em 04/09/2026, a
+branch `tp4-audio-acceptance` confirmou SCK/WS em baixa velocidade e demonstrou
+que SD segue o pull interno do FPGA, permanecendo sem saída I2S do microfone.
+O INMP441/estágio SD é o principal suspeito; áudio ainda não está operacional.
 
 Bitstream revisado:
 `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\full\impl\pnr\safe_field_tp4.fs`
@@ -24,7 +26,7 @@ Bitstream GAO atualmente recomendado para diagnóstico em SRAM:
 SHA-256 GAO:
 `64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56`
 
-## DEBUG5_EXTERNAL_WIRING_LEVELS — programado em SRAM, medição pendente
+## DEBUG5_EXTERNAL_WIRING_LEVELS — PASS físico informado pelo operador
 
 Em 04/09/2026 foi criada uma variante isolada para comprovar continuidade
 externa de SCK/WS até os pads do INMP441. Nenhum fonte, bitstream ou diretório
@@ -58,9 +60,24 @@ Bitstream DEBUG5 realmente programado:
 SHA-256 DEBUG5:
 `712A05C5102B2D61895761769C386D6521D34BBFBB386F7B33A6B9294380C3D6`
 
-Estado físico: **PENDENTE** de medição pelo responsável nos pads SCK e WS do
-INMP441. Programação SRAM PASS não é evidência de que os níveis chegaram ao
-módulo; nenhum PASS físico de continuidade foi declarado.
+Estado físico: **PASS informado explicitamente pelo operador em 04/09/2026**.
+SCK e WS foram observados alternando LOW/HIGH nos pads do próprio INMP441. Esta
+evidência confirma somente os caminhos externos de SCK/WS; não valida SD.
+
+## Aceitação de áudio DEBUG6/DEBUG7 — bloqueada em SD
+
+- DEBUG6: SCK=500.000 Hz, WS=7.812,5 Hz, 64 SCK/frame e 0 frame errors.
+- GATE A: FAIL; pull-down resultou em 512/512 samples zero e 0 transições SD.
+- DEBUG7 NONE: SD HIGH constante nos dois slots, 0 transições, 512 samples -1.
+- DEBUG7 UP: SD HIGH constante nos dois slots, 0 transições, 512 samples -1.
+- DEBUG7 UP + tom 1 kHz: resultado idêntico; nenhuma resposta acústica.
+- Diagnóstico: SD está em alta impedância contínua ou circuito aberto, em vez
+  de ser dirigido no slot LEFT. O módulo INMP441/saída SD é o principal
+  suspeito; continuidade física de SD ainda é alternativa não distinguível.
+- GATES C–G não foram executados porque dependem de samples reais.
+- Nenhuma calibração ou threshold foi inventado.
+- Após o teste UP, DEBUG6 com pull-down foi restaurado somente em SRAM.
+- Relatório completo: `AUDIO_ACCEPTANCE_REPORT.md`.
 
 ## Validação física executada em 03/09/2026
 
@@ -124,20 +141,22 @@ módulo; nenhum PASS físico de continuidade foi declarado.
 
 ## PENDENTE
 
-- Medir SCK/WS nos pads do INMP441 e SD no pad/pin 43 com instrumento adequado,
-  sem curto-circuitar os sinais.
-- Com todo o hardware desenergizado, verificar continuidade, orientação e
-  soldas do módulo; substituir/retrabalhar apenas após decisão do responsável.
+- Com todo o hardware desenergizado, verificar continuidade entre o pad SD do
+  INMP441 e o package pin 43, além de orientação e soldas do módulo.
+- Se a continuidade SD passar, substituir o módulo INMP441/avaliar seu estágio
+  de saída; qualquer retrabalho depende da decisão física do responsável.
 - Depois que SD apresentar transições e samples não-zero, repetir as capturas
-  GAO e então calibrar `THRESHOLD_ON/OFF` com ambiente e voz reais.
+  DEBUG6/GAO e então executar GATES C–G e calibrar `THRESHOLD_ON/OFF` com dados
+  acústicos reais.
 
 ## BLOQUEADO
 
-A validação ponta a ponta para na camada B: `i2s_sd` é LOW constante no input
-buffer da FPGA. Determinar se SCK/WS chegam fisicamente ao microfone ou se há
-falha de continuidade/solda/módulo exige medição ou inspeção física. Essas ações
-estão fora da autorização de software e o hardware deve permanecer intocado.
-Não há PASS físico de áudio, nem calibração válida de threshold.
+A validação ponta a ponta para na camada B. DEBUG5 confirmou fisicamente SCK/WS
+nos pads, mas SD segue o pull do FPGA: LOW com PULL DOWN e HIGH com NONE/UP,
+sempre sem transições nos slots LEFT/RIGHT, inclusive sob tom de 1 kHz. Isso é
+alta impedância contínua/circuito aberto, não saída I2S. Distinguir módulo
+INMP441 defeituoso de descontinuidade no caminho SD exige teste físico com o
+sistema desenergizado. Não há PASS físico de áudio nem calibração válida.
 
 ## Pinout final usado
 

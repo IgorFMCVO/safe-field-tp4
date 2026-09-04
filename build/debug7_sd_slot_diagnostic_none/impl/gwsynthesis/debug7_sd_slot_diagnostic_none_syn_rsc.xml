@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="debug6_low_rate_i2s" Register="95" Alu="82" Lut="53" T_Register="1129(95)" T_Alu="115(82)" T_Lut="996(53)" T_Bsram="7(0)">
+ <SubModule name="clock_master" Register="23" Lut="25" T_Register="23(23)" T_Lut="25(25)"/>
+ <SubModule name="receiver" Register="58" Alu="6" Lut="15" T_Register="58(58)" T_Alu="6(6)" T_Lut="15(15)"/>
+ <SubModule name="gw_gao_inst_0" Register="953" Alu="27" Lut="903" Bsram="7" T_Register="953(953)" T_Alu="27(27)" T_Lut="903(903)" T_Bsram="7(7)"/>
+</Module>

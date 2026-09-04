@@ -1,0 +1,52 @@
+SAFE-FIELD TP4 DEBUG7 simulations
+started_utc=2026-09-04T11:12:10.718Z
+===== DEBUG7 PULL_NONE =====
+constraint=src/debug7_sd_none.cst
+pin43_input_constraint=true
+pull_mode_constraint=true
+simulation_success=true
+--- DEBUG6_LOW_RATE_I2S ---
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS WS half-frame is 32 SCK periods                              expected=1920 obtained=1920
+PASS WS full frame is 64 SCK periods                              expected=3840 obtained=3840
+PASS at least two LEFT samples captured                           expected=1 obtained=1
+PASS decoded LEFT sample is exact                                 expected=1193046 obtained=1193046
+PASS nonzero LEFT counter advances                                expected=1 obtained=1
+PASS zero LEFT counter remains zero                               expected=0 obtained=0
+PASS raw SD transitions observed                                  expected=1 obtained=1
+PASS no frame errors                                              expected=0 obtained=0
+PASS nonzero sample drives diagnostic LED                         expected=1 obtained=1
+PASS GPIO17 HIGH override preserved                               expected=1 obtained=1
+checks=14 errors=0 left=2 zero=0 nonzero=2 sd_edges=40 frame_errors=0
+TEST_RESULT: PASS
+tb/tb_debug6_low_rate_i2s.v:134: $finish called at 5801000 (1ps)
+
+VARIANT_RESULT: PASS
+===== DEBUG7 PULL_UP =====
+constraint=src/debug7_sd_up.cst
+pin43_input_constraint=true
+pull_mode_constraint=true
+simulation_success=true
+--- DEBUG6_LOW_RATE_I2S ---
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS SCK period is 6 sys_clk cycles                               expected=60 obtained=60
+PASS WS half-frame is 32 SCK periods                              expected=1920 obtained=1920
+PASS WS full frame is 64 SCK periods                              expected=3840 obtained=3840
+PASS at least two LEFT samples captured                           expected=1 obtained=1
+PASS decoded LEFT sample is exact                                 expected=1193046 obtained=1193046
+PASS nonzero LEFT counter advances                                expected=1 obtained=1
+PASS zero LEFT counter remains zero                               expected=0 obtained=0
+PASS raw SD transitions observed                                  expected=1 obtained=1
+PASS no frame errors                                              expected=0 obtained=0
+PASS nonzero sample drives diagnostic LED                         expected=1 obtained=1
+PASS GPIO17 HIGH override preserved                               expected=1 obtained=1
+checks=14 errors=0 left=2 zero=0 nonzero=2 sd_edges=40 frame_errors=0
+TEST_RESULT: PASS
+tb/tb_debug6_low_rate_i2s.v:134: $finish called at 5801000 (1ps)
+
+VARIANT_RESULT: PASS

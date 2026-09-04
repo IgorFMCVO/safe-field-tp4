@@ -1,0 +1,164 @@
+SAFE-FIELD TP4 simulation
+started_utc=2026-09-04T11:20:21.364Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)
+===== TEST unit_and_protocol =====
+success=true
+stage=run
+--- CLOCK GENERATOR ---
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS SCK half-period (5 sys_clk cycles)               expected=50 (0x00000032) obtained=50 (0x00000032)
+PASS WS half-frame (32 SCK periods)                   expected=3200 (0x00000c80) obtained=3200 (0x00000c80)
+PASS WS full frame (64 SCK periods)                   expected=6400 (0x00001900) obtained=6400 (0x00001900)
+--- I2S RECEIVER ---
+PASS left channel signed sample                       expected=1193046 (0x00123456) obtained=1193046 (0x00123456)
+PASS left channel tag                                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS right channel negative sample                    expected=4294892731 (0xfffedcbb) obtained=4294892731 (0xfffedcbb)
+PASS right channel tag                                expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS skipped I2S bit error                            expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS mid-slot WS error                                expected=1 (0x00000001) obtained=1 (0x00000001)
+--- ENERGY DETECTOR AND FSM ---
+PASS silence average                                  expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS silence state QUIET                              expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS below-on-threshold average                       expected=600 (0x00000258) obtained=600 (0x00000258)
+PASS below-on-threshold remains QUIET                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS signal average uses absolute magnitude           expected=1500 (0x000005dc) obtained=1500 (0x000005dc)
+PASS signal crosses threshold -> ACTIVE               expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS hysteresis-band average                          expected=700 (0x000002bc) obtained=700 (0x000002bc)
+PASS hysteresis holds ACTIVE                          expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS below-off-threshold average                      expected=400 (0x00000190) obtained=400 (0x00000190)
+PASS below-off-threshold -> QUIET                     expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS most-negative boundary magnitude                 expected=8388608 (0x00800000) obtained=8388608 (0x00800000)
+PASS boundary signal -> ACTIVE                        expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS frame max selects right magnitude                expected=200 (0x000000c8) obtained=200 (0x000000c8)
+PASS one frame_valid pulse was generated              expected=1 (0x00000001) obtained=1 (0x00000001)
+--- SUMMARY ---
+checks=42 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_tp4.v:300: $finish called at 12100000 (1ps)
+
+===== TEST end_to_end_top =====
+success=true
+stage=run
+--- END-TO-END TOP ---
+PASS energy update reached before timeout                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS end-to-end energy                                    expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS silence leaves audio state QUIET                     expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS silence with GPIO17 LOW leaves LED off               expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS left sample_valid reached before timeout             expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS generated-clock I2S sample recovery                  expected=1193046 (0x00123456) obtained=1193046 (0x00123456)
+PASS energy update reached before timeout                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS end-to-end energy                                    expected=1500 (0x000005dc) obtained=1500 (0x000005dc)
+PASS signal drives FSM ACTIVE                             expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS audio event drives LED with GPIO17 LOW               expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS energy update reached before timeout                 expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS end-to-end energy                                    expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS return to silence drives FSM QUIET                   expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS return to silence clears audio LED                   expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS well-formed stream has no frame error                expected=0 (0x00000000) obtained=0 (0x00000000)
+PASS GPIO17 HIGH override drives LED                      expected=1 (0x00000001) obtained=1 (0x00000001)
+PASS GPIO17 LOW returns control to quiet audio            expected=0 (0x00000000) obtained=0 (0x00000000)
+--- END-TO-END SUMMARY ---
+checks=17 errors=0
+TEST_RESULT: PASS
+tb/tb_end_to_end.v:161: $finish called at 76157000 (1ps)
+
+===== TEST debug1_i2s_internal_activity =====
+success=true
+stage=run
+--- DEBUG 1 I2S_INTERNAL_ACTIVITY ---
+PASS frame-derived LED first half-period before timeout   expected=0 obtained=0
+PASS LED toggled ON                                       expected=1 obtained=1
+PASS at least two LEFT samples advanced                   expected=1 obtained=1
+PASS at least two RIGHT samples completed frames          expected=1 obtained=1
+PASS frame-derived LED second half-period before timeout  expected=0 obtained=0
+PASS LED toggled OFF                                      expected=0 obtained=0
+PASS GPIO17 HIGH override preserved                       expected=1 obtained=1
+DEBUG1_COUNTS left=4 right=4
+checks=7 errors=0
+TEST_RESULT: PASS
+tb/tb_debug1_i2s_internal_activity.v:90: $finish called at 24916000 (1ps)
+
+===== TEST debug2_sd_transition_detect =====
+success=true
+stage=run
+--- DEBUG 2 SD_TRANSITION_DETECT ---
+PASS LED stays off during startup gate                    expected=0 obtained=0
+PASS raw SD activity detected before timeout              expected=0 obtained=0
+PASS activity sets LED hold                               expected=1 obtained=1
+PASS LED remains held after transitions stop              expected=1 obtained=1
+PASS LED hold eventually expires                          expected=0 obtained=0
+PASS LED returns OFF                                      expected=0 obtained=0
+PASS GPIO17 HIGH override preserved                       expected=1 obtained=1
+checks=7 errors=0
+TEST_RESULT: PASS
+tb/tb_debug2_sd_transition_detect.v:99: $finish called at 1366000 (1ps)
+
+===== TEST debug3_nonzero_sample =====
+success=true
+stage=run
+--- DEBUG 3 NONZERO_SAMPLE ---
+PASS zero LEFT samples counted before timeout             expected=0 obtained=0
+PASS zero sample counter advanced                         expected=1 obtained=1
+PASS no nonzero samples yet                               expected=0 obtained=0
+PASS zero samples below threshold leave LED off           expected=0 obtained=0
+PASS magnitude 513 detected before timeout                expected=0 obtained=0
+PASS sample reconstructed exactly                         expected=513 obtained=513
+PASS nonzero sample counter advanced                      expected=1 obtained=1
+PASS sample over 512 sets LED hold                        expected=1 obtained=1
+PASS LED remains held after triggering sample             expected=1 obtained=1
+PASS LED hold expires after source returns zero           expected=0 obtained=0
+DEBUG3_SAMPLE_COUNTS zero=2 nonzero=1
+checks=10 errors=0
+TEST_RESULT: PASS
+tb/tb_debug3_nonzero_sample.v:113: $finish called at 15955000 (1ps)
+
+===== TEST debug4_low_threshold_audio =====
+success=true
+stage=run
+--- DEBUG 4 LOW_THRESHOLD_AUDIO ---
+PASS silence keeps low-threshold pipeline off             expected=0 obtained=0
+PASS 3000 average crosses ON=2000 before timeout          expected=0 obtained=0
+PASS low-threshold pipeline LED turns on                  expected=1 obtained=1
+PASS silence crosses OFF=1000 before timeout              expected=0 obtained=0
+PASS low-threshold pipeline LED turns off                 expected=0 obtained=0
+checks=5 errors=0
+TEST_RESULT: PASS
+tb/tb_debug4_low_threshold_audio.v:106: $finish called at 76115000 (1ps)
+
+===== TEST gao_physical_instrumentation =====
+success=true
+stage=run
+PASS left sample counter advances                         expected=1 obtained=1
+PASS captured LEFT sample                                 expected=1193046 obtained=1193046
+PASS nonzero LEFT counter                                 expected=1 obtained=1
+PASS zero LEFT counter initially                          expected=0 obtained=0
+PASS sample-valid event toggle                            expected=1 obtained=1
+PASS raw SD transitions observed                          expected=1 obtained=1
+PASS no frame errors                                      expected=0 obtained=0
+PASS instrumented production FSM reaches ACTIVE           expected=1 obtained=1
+PASS instrumentation preserves audio LED                  expected=1 obtained=1
+PASS energy update toggle changes                         expected=1 obtained=1
+PASS GPIO17 HIGH override preserved                       expected=1 obtained=1
+--- GAO INSTRUMENTATION SUMMARY ---
+checks=11 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_tp4_gao.v:122: $finish called at 24961000 (1ps)

@@ -1,0 +1,14 @@
+// DEBUG7_SD_SLOT_DIAGNOSTIC / variant 1: SD has no internal pull.
+// The physical pinout is unchanged; camera remains physically disconnected.
+IO_LOC "sys_clk" 45;
+IO_PORT "sys_clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC "pi_signal" 40;
+IO_PORT "pi_signal" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC "led" 10;
+IO_PORT "led" IO_TYPE=LVCMOS18 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=1.8;
+IO_LOC "i2s_sck" 41;
+IO_PORT "i2s_sck" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+IO_LOC "i2s_ws" 42;
+IO_PORT "i2s_ws" IO_TYPE=LVCMOS33 PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;
+IO_LOC "i2s_sd" 43;
+IO_PORT "i2s_sd" IO_TYPE=LVCMOS33 PULL_MODE=NONE BANK_VCCIO=3.3;
