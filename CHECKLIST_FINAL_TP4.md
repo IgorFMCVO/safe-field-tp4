@@ -12,7 +12,7 @@
 - [x] VCD e PNG de waveform;
 - [x] síntese, P&R e STA PASS;
 - [x] 56 warnings classificados, nenhum ocultado;
-- [x] `.fs` acadêmico separado e não programado;
+- [x] `.fs` acadêmico corrigido separado, programado somente em SRAM;
 - [x] UART RX pin 46 documentado e constrained como input;
 - [x] CRC-8/ATM e três vetores Pi->Tang simulados;
 - [x] FPGA->Pi físico PASS preservado.
@@ -36,5 +36,5 @@
 - [x] ZIP acadêmico novo, sem substituir ZIP de engenharia;
 - [x] branch final commitada e tag local preparada;
 - [x] ARM->FPGA físico: 3/3 comandos, CRC=0 e perdas=0;
-- [ ] vídeo: precisa de gravação humana;
-- [ ] GitHub: não há remote configurado; publicação pendente.
+- [x] vídeo gravado e registrado no YouTube;
+- [x] GitHub público acadêmico publicado e tag final registrada.

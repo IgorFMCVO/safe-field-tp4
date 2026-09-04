@@ -209,7 +209,7 @@ def build_pdf():
     story += [P(styles, "Relatorio Tecnico - TP4 de Sistemas Digitais Embarcados", "SubtitleSF")]
     story += [Spacer(1, 0.6 * cm), ArchitectureDiagram(W), Spacer(1, 0.55 * cm)]
     summary = [
-        ["Resultado da rubrica", "20/22 PASS | 2 PARTIAL | 0 MISSING"],
+        ["Resultado da rubrica", "22/22 PASS | 0 PARTIAL | 0 MISSING"],
         ["FPGA", "Tang Nano 4K - GW1NSR-4C - clock 27 MHz"],
         ["Processador", "Raspberry Pi 4 Model B - AArch64 real"],
         ["Build academico", "P&R PASS | STA PASS | 1 DSP | 1 BSRAM"],
@@ -217,9 +217,9 @@ def build_pdf():
     ]
     story += [table(summary, [5.0 * cm, W - 5.0 * cm], header=False, font_size=8.5)]
     story += [Spacer(1, 0.55 * cm), P(styles,
-        "Baseline fisica preservada. O bitstream academico e independente e nao foi programado. "
-        "A comunicacao FPGA -> Raspberry esta fisicamente aprovada; o sentido Raspberry -> FPGA "
-        "aguarda somente a nova ligacao com as placas desenergizadas.", "CalloutSF")]
+        "Baseline fisica preservada. O build academico corrigido foi programado somente em SRAM. "
+        "FPGA -> Raspberry e Raspberry -> FPGA foram aprovados fisicamente, com tres de tres "
+        "respostas numericas corretas, zero erro de checksum e zero perda de sequence.", "CalloutSF")]
     story += [Spacer(1, 0.3 * cm), P(styles, "Aluno: Igor de Freitas Monteiro", "SubtitleSF")]
     story += [PageBreak()]
 
@@ -266,8 +266,8 @@ def build_pdf():
     story += [Spacer(1, 0.2 * cm), table(pinout, [4.0 * cm, 2.0 * cm, 5.0 * cm, W - 11.0 * cm])]
     story += [P(styles,
         "O package pin 46 foi selecionado no esquematico oficial Sipeed 3603: IOT13B, Bank 1 em "
-        "3,3 V e net CAMERA_SDA. A camera permanece desconectada. A ligacao fisica ainda nao foi "
-        "executada e o novo build nao foi programado.", "SmallSF")]
+        "3,3 V e net CAMERA_SDA. A camera permaneceu desconectada. A ligacao fisica foi executada "
+        "com as placas desenergizadas e o build foi programado exclusivamente em SRAM.", "SmallSF")]
 
     # 3 - Physical audio
     story += [PageBreak(), P(styles, "3. Captacao de audio fisica", "H1SF")]
@@ -348,6 +348,18 @@ def build_pdf():
         "Os comandos implementados sao: 0x01 square16 via DSP, 0x02 leitura da BSRAM e 0x03 "
         "media mais recente. A resposta usa o TX aprovado, preserva sequence, marca response e "
         "propaga erro em flags. Tres vetores passaram e um CRC corrompido foi rejeitado.")]
+    physical_vectors = [
+        ["Input", "Expected", "Actual", "Resultado"],
+        ["123", "15129", "15129", "PASS"],
+        ["-123", "15129", "15129", "PASS"],
+        ["32767", "1073676289", "1073676289", "PASS"],
+    ]
+    story += [P(styles, "5.1 Validacao bidirecional ARM <-> FPGA", "H2SF")]
+    story += [table(physical_vectors, [3.0 * cm, 4.0 * cm, 4.0 * cm, W - 11.0 * cm], font_size=8)]
+    story += [P(styles,
+        "Resultado fisico: 3/3 PASS, checksum errors = 0, sequence losses = 0 e response errors = 0. "
+        "A arbitragem foi corrigida para manter event_valid ate event_ready; a regressao permaneceu "
+        "40/40 PASS sem alterar audio, DSP ou BSRAM.", "CalloutSF")]
     uart_wave = ROOT / "evidence/official_tp4/waveforms/uart_command_crc_waveform.png"
     story += [P(styles, "Figura 5 - Comandos UART e rejeicao de checksum", "SmallSF")]
     story += [scaled_image(uart_wave, W, 10.0 * cm)]
@@ -393,19 +405,19 @@ def build_pdf():
     story += [table(sim, [9.0 * cm, 3.0 * cm, W - 12.0 * cm], font_size=8)]
     pnr = [
         ["Recurso/STA", "Uso/resultado"],
-        ["Logic", "1068/4608 (24%)"],
+        ["Logic", "1065/4608 (24%)"],
         ["Registers", "833/3573 (24%)"],
-        ["CLS", "823/2304 (36%)"],
+        ["CLS", "827/2304 (36%)"],
         ["BSRAM", "1/10; SDPB = 1"],
         ["DSP", "MULT18X18 = 1"],
         ["Setup/Hold violations", "0/0; TNS = 0/0"],
-        ["Fmax", "37,778 MHz para requisito 27 MHz"],
+        ["Fmax", "38,297 MHz para requisito 27 MHz"],
     ]
     story += [Spacer(1, 0.25 * cm), table(pnr, [7.0 * cm, W - 7.0 * cm], font_size=8)]
     story += [P(styles,
-        "Bitstream academico: safe_field_tp4_official.fs. SHA-256 "
-        "0460826C112FFF69A83E6420BDD28657AE5265EFD5E7D96BE457B9CBA1581A73. "
-        "O arquivo e separado e nao foi programado.", "CalloutSF")]
+        "Bitstream academico: safe_field_tp4_official_bidirectional.fs. SHA-256 "
+        "6E4C460162816C54EE38B11CDA246004C05FE07CEC4C1FA963FDBB36092E172F. "
+        "O arquivo e separado e foi programado somente em SRAM.", "CalloutSF")]
 
     # 8 - warnings/performance
     story += [PageBreak(), P(styles, "8. Warnings e desempenho", "H1SF")]
@@ -437,11 +449,11 @@ def build_pdf():
         ("Conversao inteiro/float", "PASS"), ("Lookup table", "PASS"),
         ("Masks/shifts/rotates", "PASS"), ("NEON inteiro", "PASS"),
         ("NEON float", "PASS"), ("Benchmark", "PASS"),
-        ("Arquitetura", "PASS"), ("ARM -> FPGA", "PARTIAL"),
+        ("Arquitetura", "PASS"), ("ARM -> FPGA", "PASS"),
         ("FPGA -> ARM", "PASS"), ("Checksum", "PASS"),
         ("Telemetria", "PASS"), ("Desempenho/latencia", "PASS"),
         ("Documentacao", "PASS"), ("PDF", "PASS"),
-        ("ZIP", "PASS"), ("Video", "PARTIAL"),
+        ("ZIP", "PASS"), ("Video", "PASS"),
     ]
     rubric = [["#", "Requisito", "Status"]] + [[str(i), n, s] for i, (n, s) in enumerate(rubric_items, 1)]
     rt = table(rubric, [1.0 * cm, W - 4.2 * cm, 3.2 * cm], font_size=6.6)
@@ -449,37 +461,36 @@ def build_pdf():
         ("TOPPADDING", (0, 0), (-1, -1), 2),
         ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
         ("TEXTCOLOR", (2, 1), (2, 22), GREEN),
-        ("TEXTCOLOR", (2, 14), (2, 14), AMBER),
-        ("TEXTCOLOR", (2, 22), (2, 22), AMBER),
         ("FONTNAME", (2, 1), (2, 22), "Helvetica-Bold"),
     ]))
     story += [rt, Spacer(1, 0.2 * cm), P(styles,
-        "Resultado: 20/22 PASS, 2 PARTIAL, 0 MISSING. Os itens parciais exigem acao fisica/humana: "
-        "ligacao RX Pi -> Tang e gravacao do video.", "CalloutSF")]
+        "Resultado: 22/22 PASS, 0 PARTIAL, 0 MISSING. O video foi gravado e publicado no YouTube.",
+        "CalloutSF")]
 
     # 10 - limitations and closeout
     story += [PageBreak(), P(styles, "10. Limitacoes, entrega e conclusao", "H1SF")]
     story += [P(styles, "10.1 Limitacoes honestas", "H2SF")]
     limitations = [
         ["Item", "Estado"],
-        ["Pi -> Tang fisico", "requer fio adicional com placas desenergizadas"],
-        ["Video", "roteiro pronto; gravacao humana pendente"],
+        ["Pi -> Tang fisico", "PASS; 3/3 respostas corretas; checksum=0; perdas=0"],
+        ["Video", "gravado; https://youtu.be/1Ancm5QdG2E"],
         ["FSM refinada", "replay sobre dados fisicos; nao nova captura GAO"],
-        ["GitHub", "nenhum remote configurado; publicacao pendente"],
+        ["Google Drive", "link final pendente de fornecimento pelo operador"],
         ["TP3/enunciado PDF", "nao localizados no workspace; criterios nao inventados"],
     ]
     story += [table(limitations, [5.0 * cm, W - 5.0 * cm], font_size=8)]
-    story += [P(styles, "10.2 Intervencao fisica restante", "H2SF")]
+    story += [P(styles, "10.2 Validacao bidirecional ARM <-> FPGA", "H2SF")]
     story += [P(styles,
-        "Com todas as placas desenergizadas e a camera desconectada, ligar Raspberry physical pin 8 "
-        "(GPIO14/TXD) ao Tang Nano 4K package pin 46 (CAMERA_SDA/IOT13B). Manter o GND compartilhado "
-        "ja existente. Somente depois da confirmacao da ligacao, programar o build academico em SRAM "
-        "e executar o teste bidirecional. Nao gravar Flash.", "CalloutSF")]
+        "A ligacao Raspberry physical pin 8 (GPIO14/TXD) -> Tang package pin 46 foi feita com as "
+        "placas desenergizadas, camera desconectada e GND compartilhado. O ensaio em SRAM retornou "
+        "123 -> 15129, -123 -> 15129 e 32767 -> 1073676289, todos expected = actual, com zero erro "
+        "de checksum e zero perda de sequence. Nenhuma Flash foi gravada.", "CalloutSF")]
     story += [P(styles, "10.3 Integridade", "H2SF")]
     integrity = [
         ["Artefato", "SHA-256 / estado"],
         ["safe_field_tp4_validated.fs", "5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181"],
         ["safe_field_tp4_official.fs", "0460826C112FFF69A83E6420BDD28657AE5265EFD5E7D96BE457B9CBA1581A73"],
+        ["safe_field_tp4_official_bidirectional.fs", "6E4C460162816C54EE38B11CDA246004C05FE07CEC4C1FA963FDBB36092E172F"],
         ["ZIP academico", "hash publicado em HASHES_SHA256.txt e ZIP_SHA256.txt"],
     ]
     story += [table(integrity, [5.0 * cm, W - 5.0 * cm], font_size=7.2)]
@@ -487,8 +498,9 @@ def build_pdf():
     story += [P(styles,
         "O TP4 fecha com cadeia fisica de audio e telemetria aprovadas, recursos academicos reais "
         "de DSP e BSRAM comprovados pela ferramenta, 40/40 checks de simulacao, P&R e STA aprovados, "
-        "e rotinas AArch64/NEON executadas no Raspberry Pi 4. A comunicacao ARM -> FPGA esta pronta "
-        "em RTL, constraints, protocolo, CRC, testbench e bitstream, aguardando exclusivamente a ligacao fisica.")]
+        "e rotinas AArch64/NEON executadas no Raspberry Pi 4. As duas direcoes UART passaram em "
+        "hardware, com CRC e sequence verificados. A rubrica fecha em 22/22 PASS e o video esta "
+        "publicado em https://youtu.be/1Ancm5QdG2E.")]
     story += [P(styles, "Referencias", "H2SF")]
     refs = [
         "1. Sipeed, Tang Nano 4K schematic 3603.",

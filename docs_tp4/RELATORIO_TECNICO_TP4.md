@@ -173,18 +173,17 @@ PCM integral permanecem explicitamente fora do fechamento.
 
 ## 16. Limitações
 
-- o vídeo de cinco minutos requer gravação humana;
 - a última iteração de estabilidade FSM tem regressão sobre dados físicos, mas
   não uma nova recaptura GAO;
-- não há remote Git configurado;
 - o PDF separado do enunciado e o relatório TP3 não estavam no workspace.
 
 ## 17. Conclusão
 
-Foram atendidos 21 dos 22 itens: 21 PASS, 1 PARTIAL e zero MISSING. DSP e BRAM
+Foram atendidos 22 dos 22 itens: 22 PASS, zero PARTIAL e zero MISSING. DSP e BRAM
 são recursos reais comprovados pela síntese, ARM64/NEON foi executado no Pi 4 e
-as duas direções UART foram fisicamente aceitas. O único PARTIAL é a gravação
-humana do vídeo de demonstração.
+as duas direções UART foram fisicamente aceitas. O vídeo foi gravado e publicado
+em https://youtu.be/1Ancm5QdG2E. O link final do Google Drive é apenas uma
+providência de submissão do operador.
 
 ## Referências
 

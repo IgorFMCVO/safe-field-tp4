@@ -3,22 +3,13 @@
 ## Estado Git
 
 - branch: `tp4-official-rubric-closeout`;
-- origem: commit `a6342e5`;
-- remote Git: **não configurado**;
-- GitHub: **PENDENTE**, nenhum link foi inventado.
+- snapshot acadêmico público: `https://github.com/IgorFMCVO/safe-field-tp4`;
+- tag pública: `tp4-official-rubric-final`.
 
-Depois que o operador configurar um remote autorizado, execute:
+## Vídeo
 
-```powershell
-git push -u origin tp4-official-rubric-closeout
-git push origin tp4-official-rubric-final
-```
-
-Se ainda não existir `origin`, primeiro use a URL real fornecida pelo operador:
-
-```powershell
-git remote add origin URL_REAL_DO_REPOSITORIO
-```
+- Vídeo TP4 — YouTube backup: https://youtu.be/1Ancm5QdG2E
+- Vídeo TP4 — Google Drive: PENDENTE_LINK_FINAL
 
 ## Artefatos locais
 

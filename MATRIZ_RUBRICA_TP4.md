@@ -27,9 +27,10 @@ relatório TP3; portanto não se inventam critérios adicionais.
 | 19 | documentação | PASS | arquitetura, build, warnings, protocolos, resultados |
 | 20 | PDF | PASS | `docs_tp4/output/pdf/RELATORIO_TECNICO_SAFE_FIELD_TP4.pdf` |
 | 21 | ZIP | PASS | `Igor_Monteiro_PB_TP4.ZIP` com hashes verificados |
-| 22 | vídeo | PARTIAL | roteiro de 5 min pronto; gravação humana pendente |
+| 22 | vídeo | PASS | gravação publicada: https://youtu.be/1Ancm5QdG2E |
 
-Resultado: **21/22 PASS**, 1 PARTIAL, 0 MISSING.
+Resultado: **22/22 PASS**, 0 PARTIAL, 0 MISSING.
 
-O único item PARTIAL exige ação humana e não pode ser convertido em PASS por
-software: gravação do vídeo.
+Todos os 22 requisitos da matriz têm evidência objetiva. O link final do Google
+Drive permanece uma providência de submissão do operador, não um requisito
+técnico adicional desta matriz.

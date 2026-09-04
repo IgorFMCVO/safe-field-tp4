@@ -49,6 +49,6 @@
 
 - mostrar `08_FINAL_RESULTS.md`;
 - mostrar a rubrica e o hash do `.fs` exibidos nessa tela;
-- encerrar com 21/22 PASS e a única pendência humana: gravação deste vídeo.
+- encerrar com 22/22 PASS e informar o link do vídeo publicado.
 
-Gravação humana: **PENDENTE**. Este roteiro não é evidência de vídeo gravado.
+Vídeo gravado: https://youtu.be/1Ancm5QdG2E

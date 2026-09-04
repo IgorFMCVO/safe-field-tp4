@@ -1,3 +1,5 @@
+param([switch]$ReplaceExisting)
+
 $ErrorActionPreference = 'Stop'
 
 $repo = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
@@ -9,11 +11,23 @@ $deliveryRoot = 'C:\SAFE-FIELD\TP4_ACADEMIC_FINAL'
 $packageRoot = Join-Path $deliveryRoot 'Igor_Monteiro_PB_TP4'
 $zipPath = 'C:\SAFE-FIELD\Igor_Monteiro_PB_TP4.ZIP'
 
-if ((Test-Path -LiteralPath $deliveryRoot) -or (Test-Path -LiteralPath $zipPath)) {
-    throw 'Academic delivery target already exists; refusing to overwrite.'
+if ((Test-Path -LiteralPath $packageRoot) -or (Test-Path -LiteralPath $zipPath)) {
+    if (-not $ReplaceExisting) {
+        throw 'Academic delivery target already exists; use -ReplaceExisting after preserving the prior ZIP.'
+    }
+    if ($packageRoot -ne 'C:\SAFE-FIELD\TP4_ACADEMIC_FINAL\Igor_Monteiro_PB_TP4' -or
+        $zipPath -ne 'C:\SAFE-FIELD\Igor_Monteiro_PB_TP4.ZIP') {
+        throw 'Refusing to replace unexpected paths.'
+    }
+    if (Test-Path -LiteralPath $packageRoot) {
+        Remove-Item -LiteralPath $packageRoot -Recurse -Force
+    }
+    if (Test-Path -LiteralPath $zipPath) {
+        Remove-Item -LiteralPath $zipPath -Force
+    }
 }
 
-New-Item -ItemType Directory -Path $deliveryRoot, $packageRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $deliveryRoot, $packageRoot | Out-Null
 
 function Copy-TreeFiltered {
     param(
@@ -45,7 +59,10 @@ $rootFiles = @(
     'LINKS_ENTREGA_TP4.md',
     'MANIFESTO_TP4.md',
     'MATRIZ_RUBRICA_TP4.md',
-    'ROTEIRO_VIDEO_TP4_5MIN.md'
+    'ROTEIRO_VIDEO_TP4_5MIN.md',
+    'TP4_FINAL_VALIDATION_SUMMARY.md',
+    'README.md',
+    'AUDITORIA_PRE_SUBMISSAO_TP4.md'
 )
 foreach ($name in $rootFiles) {
     Copy-Item -LiteralPath (Join-Path $repo $name) -Destination $packageRoot -Force
@@ -78,6 +95,9 @@ try {
         'verilog_tp4/rtl/safe_field_energy_bram.v',
         'assembly_tp4/safe_field_arm64.S',
         'docs_tp4/output/pdf/RELATORIO_TECNICO_SAFE_FIELD_TP4.pdf',
+        'AUDITORIA_PRE_SUBMISSAO_TP4.md',
+        'MATRIZ_RUBRICA_TP4.md',
+        'LINKS_ENTREGA_TP4.md',
         'HASHES_SHA256.txt'
     )
     foreach ($requiredName in $required) {
@@ -87,6 +107,9 @@ try {
     }
     if ($names -match '(^|/)(\.git|__pycache__|\.pytest_cache|\.cache)(/|$)') {
         throw 'ZIP contains a forbidden cache or Git path.'
+    }
+    if ($names -match '\.(mp4|mov|avi|mkv|webm)$') {
+        throw 'ZIP contains a video file; only delivery links are allowed.'
     }
     $entryCount = $entries.Count
 }

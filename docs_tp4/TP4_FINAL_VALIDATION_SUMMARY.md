@@ -1,18 +1,34 @@
 # SAFE-FIELD TP4 — final validation summary
 
 Data: 04/09/2026, fuso America/Sao_Paulo. Branch:
-`tp4-retest-after-contact-fix`.
+`tp4-official-rubric-closeout`.
 
 ## Conclusão
 
 **AUDIO PHYSICAL CHAIN = PASS. I2S DECODING = PASS. AUDIO ENERGY = PASS.
 FSM FUNCTION = PASS. FSM STABILITY = RESIDUAL. GPIO17 INTEGRATION = PASS.**
 
+**FPGA -> ARM = PASS FÍSICO. ARM -> FPGA = PASS FÍSICO. UART
+BIDIRECIONAL = PASS. RUBRICA ACADÊMICA = 22/22 PASS.**
+
 `RESIDUAL` é usado por rigor: a segunda e última iteração passou nas duas
 regressões baseadas em capturas físicas e foi programada em SRAM, mas a nova
 captura GAO após essa programação não foi executada. A última captura física
 sincronizada foi da iteração 1 e ainda apresentou 6 transições para 2 eventos.
 Não se declara PASS físico com base somente no replay.
+
+## Validação bidirecional ARM <-> FPGA
+
+| Input | Expected | Actual |
+|---:|---:|---:|
+| 123 | 15129 | 15129 |
+| -123 | 15129 | 15129 |
+| 32767 | 1073676289 | 1073676289 |
+
+- checksum errors: 0;
+- sequence losses: 0;
+- response errors: 0;
+- evidência: `evidence/official_tp4/arm_to_fpga_physical/06_FPGA_PI_BIDIRECTIONAL.log`.
 
 ## Matriz final
 
@@ -130,7 +146,7 @@ comandado LOW -> HIGH -> LOW e restaurado a LOW.
 | Gowin | síntese, P&R, pin report, recursos, timing e logs | entregue em `build/safe_field_tp4_audio_stable_iter2/impl/` |
 | GAO | configurações, CSVs, JSONs, gráficos e logs físicos | entregue em `evidence/physical/` |
 | áudio | silêncio, voz, palmas, estatísticas e waveforms físicos | entregue em `evidence/physical/retest_after_contact_fix/` |
-| Raspberry | evidência GPIO17 LOW/HIGH/LOW e retorno a LOW | entregue; aplicação/binário ARM64 não existe no workspace |
+| Raspberry | GPIO17, UART bidirecional, aplicação, Assembly/NEON e binário ARM64 | entregue em `assembly_tp4/` e evidências físicas |
 | reprodução | comandos de simulação, build, hash e SRAM | entregue em `README_TP4_DELIVERY.md` |
 | relatórios | status, aceitação acústica e resumo final | entregue |
 
@@ -145,17 +161,11 @@ node sim\run-final-stable.mjs
 Get-FileHash -Algorithm SHA256 build\safe_field_tp4_audio_stable_iter2\impl\pnr\safe_field_tp4_validated.fs
 ```
 
-## Itens objetivos ainda pendentes para a entrega acadêmica
+## Fechamento da entrega acadêmica
 
-1. Se o avaliador exigir `FSM STABILITY = PASS` físico, executar uma única
-   captura GAO curta com o `M=82` já programado; o replay não substitui essa
-   evidência física.
-2. Anexar o enunciado/rubrica oficial do TP4 ao pacote; ele não está em
-   `C:\SAFE-FIELD`, portanto a conformidade formal item a item não pôde ser auditada.
-3. Incluir fonte/binário e instruções ARM64 da Raspberry, caso sejam exigidos;
-   nenhum artefato ARM64 existe no diretório auditado.
-4. Montar o arquivo final de submissão (ZIP/PDF/apresentação conforme a rubrica)
-   com este resumo, RTL, testbenches, constraints, scripts, `.fs`, relatórios e
-   evidências. O pacote de submissão propriamente dito ainda não foi solicitado.
-5. Se a rubrica exigir frequência acústica medida, repetir tons somente com
-   confirmação física de emissão; os WAVs antigos não são evidência válida.
+- rubrica: 22/22 PASS;
+- PDF definitivo: gerado após o PASS ARM -> FPGA;
+- ZIP definitivo: regenerado e verificado;
+- vídeo: https://youtu.be/1Ancm5QdG2E;
+- única providência externa restante: inserir o link final do Google Drive no
+  campo `PENDENTE_LINK_FINAL` antes da submissão na plataforma oficial.

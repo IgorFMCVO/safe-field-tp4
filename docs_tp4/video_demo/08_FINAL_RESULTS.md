@@ -1,6 +1,6 @@
 # SAFE-FIELD TP4 — resultados finais
 
-- Rubrica: **21/22 PASS**, 1 PARTIAL, 0 MISSING;
+- Rubrica: **22/22 PASS**, 0 PARTIAL, 0 MISSING;
 - áudio físico INMP441 -> Tang: PASS;
 - DSP dedicado: **1 MULT18X18**;
 - BSRAM funcional: **1 SDPB**;
@@ -11,7 +11,7 @@
 - FPGA -> ARM: PASS físico, 3.264 mensagens, perdas=0;
 - ARM -> FPGA: **PASS físico, 3/3 comandos**;
 - checksum errors / sequence losses / response errors: **0 / 0 / 0**;
-- vídeo: roteiro e telas prontos; gravação humana pendente.
+- vídeo: gravado e publicado em https://youtu.be/1Ancm5QdG2E.
 
 ## Três vetores físicos
 
