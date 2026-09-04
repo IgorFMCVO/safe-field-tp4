@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="debug_nonzero_sample" Register="24" Lut="62" T_Register="106(24)" T_Alu="7(0)" T_Lut="97(62)">
+ <SubModule name="por" Register="9" Alu="7" Lut="5" T_Register="9(9)" T_Alu="7(7)" T_Lut="5(5)"/>
+ <SubModule name="clock_master" Register="23" Lut="25" T_Register="23(23)" T_Lut="25(25)"/>
+ <SubModule name="receiver" Register="50" Lut="5" T_Register="50(50)" T_Lut="5(5)"/>
+</Module>

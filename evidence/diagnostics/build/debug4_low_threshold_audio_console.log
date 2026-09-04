@@ -1,0 +1,76 @@
+*** GOWIN Tcl Command Line Console  *** 
+current device: GW1NSR-4C  GW1NSR-LV4CQN48PC6/I5
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/rasp_to_tang.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/i2s_clock_gen.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/i2s_rx_24.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/audio_energy_detector.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/safe_field_tp4.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/audio_debug_variants.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/safe_field_debug.cst"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/src/safe_field_debug.sdc"
+GowinSynthesis start
+Running parser ...
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\rasp_to_tang.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_clock_gen.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_rx_24.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\audio_energy_detector.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\audio_debug_variants.v'
+Compiling module 'debug_low_threshold_audio'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\audio_debug_variants.v":280)
+Compiling module 'safe_field_tp4(THRESHOLD_ON=24'b000000000000011111010000,THRESHOLD_OFF=24'b000000000000001111101000)'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4.v":3)
+Compiling module 'i2s_clock_gen'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_clock_gen.v":6)
+Compiling module 'i2s_rx_24'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\i2s_rx_24.v":6)
+Compiling module 'audio_energy_detector(THRESHOLD_ON=24'b000000000000011111010000,THRESHOLD_OFF=24'b000000000000001111101000)'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\audio_energy_detector.v":8)
+Compiling module 'rasp_to_tang'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\rasp_to_tang.v":1)
+NOTE  (EX0101) : Current top module is "debug_low_threshold_audio"
+[5%] Running netlist conversion ...
+Running device independent optimization ...
+[10%] Optimizing Phase 0 completed
+[15%] Optimizing Phase 1 completed
+[25%] Optimizing Phase 2 completed
+Running inference ...
+[30%] Inferring Phase 0 completed
+[40%] Inferring Phase 1 completed
+[50%] Inferring Phase 2 completed
+[55%] Inferring Phase 3 completed
+Running technical mapping ...
+[60%] Tech-Mapping Phase 0 completed
+[65%] Tech-Mapping Phase 1 completed
+[75%] Tech-Mapping Phase 2 completed
+[80%] Tech-Mapping Phase 3 completed
+[90%] Tech-Mapping Phase 4 completed
+WARN  (NL0002) : The module "rasp_to_tang" instantiated to "gpio17_baseline" is swept in optimizing("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4.v":85)
+[95%] Generate netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\gwsynthesis\debug4_low_threshold_audio.vg" completed
+[100%] Generate report file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\gwsynthesis\debug4_low_threshold_audio_syn.rpt.html" completed
+GowinSynthesis finish
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\gwsynthesis\debug4_low_threshold_audio.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\gwsynthesis\debug4_low_threshold_audio.vg" completed
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_debug.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug4_low_threshold_audio\impl\pnr\debug4_low_threshold_audio.tr" completed
+Thu Sep  3 21:59:16 2026
+

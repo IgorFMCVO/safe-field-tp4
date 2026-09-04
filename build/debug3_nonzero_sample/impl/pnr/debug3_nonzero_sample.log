@@ -1,0 +1,31 @@
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\gwsynthesis\debug3_nonzero_sample.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\gwsynthesis\debug3_nonzero_sample.vg" completed
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_debug.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug3_nonzero_sample\impl\pnr\debug3_nonzero_sample.tr" completed
+Thu Sep  3 21:59:15 2026
+

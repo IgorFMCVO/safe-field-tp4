@@ -27,6 +27,54 @@ const tests = [
       'tb/tb_end_to_end.v',
     ],
   },
+  {
+    name: 'debug1_i2s_internal_activity',
+    sources: [
+      'src/rasp_to_tang.v',
+      'src/i2s_clock_gen.v',
+      'src/i2s_rx_24.v',
+      'src/audio_energy_detector.v',
+      'src/safe_field_tp4.v',
+      'src/audio_debug_variants.v',
+      'tb/tb_debug1_i2s_internal_activity.v',
+    ],
+  },
+  {
+    name: 'debug2_sd_transition_detect',
+    sources: [
+      'src/rasp_to_tang.v',
+      'src/i2s_clock_gen.v',
+      'src/i2s_rx_24.v',
+      'src/audio_energy_detector.v',
+      'src/safe_field_tp4.v',
+      'src/audio_debug_variants.v',
+      'tb/tb_debug2_sd_transition_detect.v',
+    ],
+  },
+  {
+    name: 'debug3_nonzero_sample',
+    sources: [
+      'src/rasp_to_tang.v',
+      'src/i2s_clock_gen.v',
+      'src/i2s_rx_24.v',
+      'src/audio_energy_detector.v',
+      'src/safe_field_tp4.v',
+      'src/audio_debug_variants.v',
+      'tb/tb_debug3_nonzero_sample.v',
+    ],
+  },
+  {
+    name: 'debug4_low_threshold_audio',
+    sources: [
+      'src/rasp_to_tang.v',
+      'src/i2s_clock_gen.v',
+      'src/i2s_rx_24.v',
+      'src/audio_energy_detector.v',
+      'src/safe_field_tp4.v',
+      'src/audio_debug_variants.v',
+      'tb/tb_debug4_low_threshold_audio.v',
+    ],
+  },
 ];
 
 const results = [];
