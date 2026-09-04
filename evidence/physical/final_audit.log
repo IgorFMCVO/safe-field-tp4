@@ -1,0 +1,8 @@
+capture=silence clock_generation=PASS sample_valid=PASS frame_errors=0 sd_activity=FAIL samples_nonzero=FAIL
+capture=tone_500hz clock_generation=PASS sample_valid=PASS frame_errors=0 sd_activity=FAIL samples_nonzero=FAIL
+capture=tone_1000hz clock_generation=PASS sample_valid=PASS frame_errors=0 sd_activity=FAIL samples_nonzero=FAIL
+capture=tone_2000hz clock_generation=PASS sample_valid=PASS frame_errors=0 sd_activity=FAIL samples_nonzero=FAIL
+capture=pulses_1000hz clock_generation=PASS sample_valid=PASS frame_errors=0 sd_activity=FAIL samples_nonzero=FAIL
+production_fs_sha256=0B04C9DF3F51B408932ED75B754F7F180001F02C50594B14CC685B4CE1BFFE8B
+gao_fs_sha256=64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56
+PHYSICAL_EVIDENCE_AUDIT=PASS (evidence consistent; audio path fails at SD activity)

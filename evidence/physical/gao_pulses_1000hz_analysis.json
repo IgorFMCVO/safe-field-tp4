@@ -1,0 +1,91 @@
+{
+  "source": {
+    "core0_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\gao_pulses_1000hz_core0_window0.csv",
+    "core1_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\gao_pulses_1000hz_core1_window0.csv",
+    "kind": "physical GAO/JTAG capture"
+  },
+  "core0": {
+    "rows": 1025,
+    "sck_transitions": 205,
+    "sck_rising_edges": 103,
+    "sck_rising_interval_sysclk_samples": {
+      "count": 102,
+      "min": 7,
+      "max": 10,
+      "mean": 9.970588235294118
+    },
+    "sck_rising_interval_mode_sysclk_samples": 10,
+    "ws_transitions": 4,
+    "ws_half_period_sysclk_samples": {
+      "count": 3,
+      "min": 182,
+      "max": 320,
+      "mean": 274.0
+    },
+    "ws_half_period_mode_sysclk_samples": 320,
+    "sd_transitions": 0,
+    "sample_valid_high_samples": 3,
+    "frame_error_high_samples": 0
+  },
+  "derived_clocks": {
+    "assumed_sys_clk_hz": 27000000,
+    "sck_hz_from_measured_divider": 2700000.0,
+    "ws_hz_from_measured_half_divider": 42187.5
+  },
+  "core1": {
+    "rows": 513,
+    "sample": {
+      "count": 512,
+      "min": 0,
+      "max": 0,
+      "mean": 0.0
+    },
+    "sample_nonzero_rows": 0,
+    "sample_mean_abs": 0.0,
+    "sample_rms": 0.0,
+    "magnitude": {
+      "count": 512,
+      "min": 0,
+      "max": 0,
+      "mean": 0.0
+    },
+    "energy": {
+      "count": 512,
+      "min": 0,
+      "max": 0,
+      "mean": 0.0
+    },
+    "sound_active_high_rows": 0,
+    "sound_active_transitions": 0,
+    "sample_valid_toggle_transitions": 511,
+    "frame_valid_toggle_transitions": 511,
+    "energy_update_toggle_transitions": 2,
+    "counters": {
+      "left_sample_count[15:0]": {
+        "first": 65535,
+        "last": 65535,
+        "max": 65535
+      },
+      "zero_left_count[15:0]": {
+        "first": 65535,
+        "last": 65535,
+        "max": 65535
+      },
+      "nonzero_left_count[15:0]": {
+        "first": 0,
+        "last": 0,
+        "max": 0
+      },
+      "frame_error_count[15:0]": {
+        "first": 0,
+        "last": 0,
+        "max": 0
+      },
+      "sd_transition_count[15:0]": {
+        "first": 0,
+        "last": 0,
+        "max": 0
+      }
+    }
+  }
+}

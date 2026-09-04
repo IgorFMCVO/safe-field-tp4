@@ -1,0 +1,5 @@
+command=ssh -tt -o StrictHostKeyChecking=accept-new safe-field@safe-field.local "pinctrl set 17 op dl; pinctrl get 17; date --iso-8601=seconds"
+authentication=password entered interactively; credential not persisted
+17: op -- pd | lo // GPIO17 = output
+2026-09-03T22:18:36-03:00
+result=PASS GPIO17 configured output LOW

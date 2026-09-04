@@ -1,0 +1,14 @@
+started_local=2026-09-03T22:23:39.7742882-03:00
+amplitude_fraction_full_scale=0.12
+capture=GAO/JTAG physical hardware
+stimulus_start name=silence local=2026-09-03T22:23:40.2959599-03:00
+stimulus_finish name=silence local=2026-09-03T22:23:42.7771945-03:00 core0=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_silence_core0_window0.csv core1=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_silence_core1_window0.csv
+stimulus_start name=tone_500hz local=2026-09-03T22:23:44.8297938-03:00
+stimulus_finish name=tone_500hz local=2026-09-03T22:23:47.3703625-03:00 core0=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_500hz_core0_window0.csv core1=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_500hz_core1_window0.csv
+stimulus_start name=tone_1000hz local=2026-09-03T22:23:49.2269238-03:00
+stimulus_finish name=tone_1000hz local=2026-09-03T22:23:51.7591549-03:00 core0=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_1000hz_core0_window0.csv core1=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_1000hz_core1_window0.csv
+stimulus_start name=tone_2000hz local=2026-09-03T22:23:53.6083073-03:00
+stimulus_finish name=tone_2000hz local=2026-09-03T22:23:56.1435089-03:00 core0=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_2000hz_core0_window0.csv core1=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_tone_2000hz_core1_window0.csv
+stimulus_start name=pulses_1000hz local=2026-09-03T22:23:57.6235752-03:00
+stimulus_finish name=pulses_1000hz local=2026-09-03T22:24:00.1860696-03:00 core0=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_pulses_1000hz_core0_window0.csv core1=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\gao_pulses_1000hz_core1_window0.csv
+finished_local=2026-09-03T22:24:00.6982492-03:00

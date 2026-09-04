@@ -7,13 +7,38 @@ Atualizado em 03/09/2026, fuso America/Sao_Paulo.
 O checkpoint `tp4-audio-inmp441` contém receptor I2S de 24 bits, geração de
 SCK/WS, `sample_valid`, magnitude/média, FSM com histerese e integração com o
 caminho GPIO17 -> LED preexistente. Simulação, síntese, Place & Route, STA e
-geração do `.fs` passaram. A Tang Nano 4K **não foi programada**.
+geração do `.fs` passaram. O build final abaixo permanece byte a byte intacto.
+Em 03/09/2026, o checkpoint separado `tp4-physical-validation` programou apenas
+SRAM com GAO/JTAG e localizou a falha física na camada SD: o input do pin 43
+permaneceu LOW e todos os samples reais capturados foram zero.
 
 Bitstream revisado:
 `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\full\impl\pnr\safe_field_tp4.fs`
 
 SHA-256:
 `0B04C9DF3F51B408932ED75B754F7F180001F02C50594B14CC685B4CE1BFFE8B`
+
+Bitstream GAO atualmente recomendado para diagnóstico em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\physical_gao\impl\pnr\safe_field_tp4_physical_gao.fs`
+
+SHA-256 GAO:
+`64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56`
+
+## Validação física executada em 03/09/2026
+
+- JTAG: PASS, GW1NSR-4C ID `0x0100981B` detectado.
+- Raspberry: PASS, GPIO17 configurado e lido como output LOW.
+- GAO build: simulação/P&R/STA PASS, 0 violações setup/hold.
+- SRAM Program: PASS pela operação 2 (exit 0) e captura GAO subsequente; a
+  tentativa anterior “Program and Verify” teve readback FAIL e foi preservada.
+- SCK/WS internos: PASS, 2,700 MHz e 42,1875 kHz.
+- `sample_valid` e janela de 256 frames: PASS, avançando sem erro de frame.
+- `i2s_sd` no input do pin 43: FAIL, zero transições.
+- Samples reais: FAIL, 0/512 não-zero em silêncio, 500 Hz, 1 kHz, 2 kHz e
+  pulsos de 1 kHz; magnitude=0, energia=0, FSM=QUIET.
+- Nenhum dos quatro bitstreams de LED foi necessário/programado: GAO forneceu
+  evidência direta e mais forte da camada que falhou.
+- Log completo: `evidence/physical/PHYSICAL_DIAGNOSTIC_LOG.md`.
 
 ## CONCLUÍDO
 
@@ -61,22 +86,20 @@ SHA-256:
 
 ## PENDENTE
 
-- Programar a Tang somente após a autorização/revisão física solicitada.
-- Com a placa desenergizada, confirmar que não há módulo/driver no conector DVP
-  compartilhado com 41/42/43 e verificar se o módulo INMP441 possui o pull-down
-  de 100 kOhm recomendado em SD.
-- Após energizar, medir SCK e WS; verificar 2,700 MHz e 42,1875 kHz, aguardar
-  pelo menos ~100 ms de startup do INMP441 e capturar SD/amostras/LED como
-  evidência física.
-- Calibrar `THRESHOLD_ON/OFF` com ruído ambiente e voz reais. Os valores atuais
-  passaram em simulação, mas ainda não têm calibração acústica física.
+- Medir SCK/WS nos pads do INMP441 e SD no pad/pin 43 com instrumento adequado,
+  sem curto-circuitar os sinais.
+- Com todo o hardware desenergizado, verificar continuidade, orientação e
+  soldas do módulo; substituir/retrabalhar apenas após decisão do responsável.
+- Depois que SD apresentar transições e samples não-zero, repetir as capturas
+  GAO e então calibrar `THRESHOLD_ON/OFF` com ambiente e voz reais.
 
 ## BLOQUEADO
 
-A validação física do novo caminho de áudio está bloqueada deliberadamente pela
-ordem **NÃO programar a Tang ainda**. Não há afirmação de PASS físico para áudio.
-A única evidência física existente continua sendo a baseline GPIO17 LOW/HIGH
-informada e previamente validada pelo responsável.
+A validação ponta a ponta para na camada B: `i2s_sd` é LOW constante no input
+buffer da FPGA. Determinar se SCK/WS chegam fisicamente ao microfone ou se há
+falha de continuidade/solda/módulo exige medição ou inspeção física. Essas ações
+estão fora da autorização de software e o hardware deve permanecer intocado.
+Não há PASS físico de áudio, nem calibração válida de threshold.
 
 ## Pinout final usado
 
@@ -108,6 +131,11 @@ cd 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441'
 & 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gw_sh.exe' 'scripts\build_synthesis.tcl' 2>&1
 & 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gw_sh.exe' 'scripts\build_all_after_pinout.tcl' 2>&1 | Tee-Object -FilePath 'evidence\build\final_build_console.log'
 Get-FileHash -Algorithm SHA256 -LiteralPath 'build\full\impl\pnr\safe_field_tp4.fs'
+ssh -tt -o StrictHostKeyChecking=accept-new safe-field@safe-field.local "pinctrl set 17 op dl; pinctrl get 17; date --iso-8601=seconds"
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gw_sh.exe' 'scripts\build_physical_gao.tcl'
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\Programmer\bin\programmer_cli.exe' --device GW1NSR-4C --operation_index 2 --frequency 2.5MHz --fsFile 'build\physical_gao\impl\pnr\ao_0.fs' --cable-index 1
+& 'scripts\run_physical_audio_stimuli.ps1'
+& 'scripts\verify_physical_evidence.ps1'
 ```
 
 ## Evidências principais
@@ -121,6 +149,12 @@ Get-FileHash -Algorithm SHA256 -LiteralPath 'build\full\impl\pnr\safe_field_tp4.
 - `build/full/impl/pnr/safe_field_tp4.rpt.txt`
 - `build/full/impl/pnr/safe_field_tp4.tr`
 - `build/full/impl/pnr/safe_field_tp4.fs`
+- `evidence/physical/PHYSICAL_DIAGNOSTIC_LOG.md`
+- `evidence/physical/final_audit.log`
+- `evidence/physical/gao_*_core0_window0.csv`
+- `evidence/physical/gao_*_core1_window0.csv`
+- `evidence/physical/gao_*_analysis.json`
+- `build/physical_gao/impl/pnr/safe_field_tp4_physical_gao.fs`
 
 ## Referências técnicas primárias
 

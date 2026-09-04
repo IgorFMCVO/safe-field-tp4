@@ -75,6 +75,17 @@ const tests = [
       'tb/tb_debug4_low_threshold_audio.v',
     ],
   },
+  {
+    name: 'gao_physical_instrumentation',
+    sources: [
+      'src/rasp_to_tang.v',
+      'src/i2s_clock_gen.v',
+      'src/i2s_rx_24.v',
+      'src/audio_energy_detector.v',
+      'src/safe_field_tp4_gao.v',
+      'tb/tb_safe_field_tp4_gao.v',
+    ],
+  },
 ];
 
 const results = [];
