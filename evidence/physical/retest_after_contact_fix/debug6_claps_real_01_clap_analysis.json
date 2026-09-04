@@ -1,0 +1,21 @@
+{
+  "evidence_kind": "physical GAO/JTAG clap capture",
+  "operator_confirmed_three_claps": true,
+  "algorithm": "60 ms rolling AC-RMS; strongest peaks at least 550 ms apart",
+  "event_times_seconds_from_trigger": [
+    0.021504,
+    1.098752,
+    1.965056
+  ],
+  "event_ac_rms": [
+    34564.129993021066,
+    34953.19030573025,
+    62034.99514776489
+  ],
+  "event_intervals_seconds": [
+    1.077248,
+    0.866304
+  ],
+  "pass": true,
+  "note": "Only the three strongest separated events in the instructed 0..3 s interval are classified; later sounds are left unclassified."
+}

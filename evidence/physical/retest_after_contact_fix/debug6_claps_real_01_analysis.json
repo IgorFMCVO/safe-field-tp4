@@ -1,0 +1,51 @@
+{
+  "evidence_kind": "physical GAO/JTAG continuous capture",
+  "source_core0": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\debug6_claps_real_01_core0_window0.csv",
+  "effective_sample_rate_hz": 976.5625,
+  "decimation_factor": 8,
+  "gao_observation_lsb_bits_discarded": 10,
+  "trigger_index": 1022,
+  "capture_duration_seconds": 8.388608,
+  "pre_trigger": {
+    "count": 1022,
+    "minimum": -10240,
+    "maximum": 31744,
+    "mean": 1871.655577299413,
+    "mean_absolute": 4364.52446183953,
+    "rms": 6164.339458124465,
+    "peak": 31744,
+    "standard_deviation": 5873.328388141958,
+    "unique_sample_values": 36,
+    "zero_samples": 92,
+    "nonzero_samples": 930
+  },
+  "voice_window": {
+    "count": 4883,
+    "minimum": -111616,
+    "maximum": 65536,
+    "mean": -1573.6424329305755,
+    "mean_absolute": 13762.241245136187,
+    "rms": 21992.457539163715,
+    "peak": 111616,
+    "standard_deviation": 21936.085295813362,
+    "unique_sample_values": 163,
+    "zero_samples": 132,
+    "nonzero_samples": 4751
+  },
+  "post_voice": {
+    "count": 2287,
+    "minimum": -9216,
+    "maximum": 10240,
+    "mean": 219.39658941845212,
+    "mean_absolute": 3584.6716222125056,
+    "rms": 4261.459162864795,
+    "peak": 10240,
+    "standard_deviation": 4255.807718085472,
+    "unique_sample_values": 20,
+    "zero_samples": 175,
+    "nonzero_samples": 2112
+  },
+  "frame_error_latched": 0,
+  "voice_to_pre_rms_ratio": 3.5676908594282777,
+  "acoustic_response_pass": true
+}

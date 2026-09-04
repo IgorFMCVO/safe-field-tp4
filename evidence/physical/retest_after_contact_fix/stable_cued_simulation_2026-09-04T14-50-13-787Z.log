@@ -1,0 +1,19 @@
+SAFE-FIELD TP4 stable cued capture simulation
+started_utc=2026-09-04T14:50:13.787Z
+success=true
+stage=run
+--- SAFE_FIELD_STABLE_CUED_CAPTURE ---
+PASS two-window attack entered ACTIVE                                 expected=1 obtained=1
+PASS receiver reconstructed LEFT samples                              expected=1 obtained=1
+FAIL GAO emitted completed-energy observations                        expected=1 obtained=0
+PASS completed energy observation is exact                            expected=256 obtained=256
+PASS audio ACTIVE hidden from cue-only LED                            expected=0 obtained=0
+PASS minimum hold plus qualified release returned QUIET               expected=0 obtained=0
+PASS ACTIVE persisted for hold/release frame budget                   expected=1 obtained=1
+PASS no observation overflow                                          expected=0 obtained=0
+PASS no frame error                                                   expected=0 obtained=0
+PASS GPIO17 marker drives cue-only LED                                expected=1 obtained=1
+PASS GPIO17 LOW restores cue-only LED LOW                             expected=0 obtained=0
+checks=11 errors=1
+TEST_RESULT: FAIL
+tb/tb_safe_field_stable_cued_capture.v:59: $finish called at 122502000 (1ps)

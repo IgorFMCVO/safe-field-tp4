@@ -21,7 +21,7 @@ GAO = Path(r"C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe")
 RAO = PROJECT / "build" / "debug6_retest_after_contact_fix" / "debug6_retest_after_contact_fix.rao"
 DEFAULT_AMPLITUDE = 0.12
 OUTPUT_SAMPLE_RATE = 48_000
-CAPTURE_COUNT = 4
+DEFAULT_CAPTURE_COUNT = 4
 
 
 def timestamp() -> str:
@@ -53,9 +53,12 @@ def main() -> int:
     )
     parser.add_argument("--label", help="distinct evidence prefix; defaults to the stimulus name")
     parser.add_argument("--amplitude", type=float, default=DEFAULT_AMPLITUDE)
+    parser.add_argument("--capture-count", type=int, default=DEFAULT_CAPTURE_COUNT)
     args = parser.parse_args()
     if not 0.01 <= args.amplitude <= 0.5:
         parser.error("--amplitude must remain in the moderate 0.01..0.5 range")
+    if not 1 <= args.capture_count <= 64:
+        parser.error("--capture-count must be in the 1..64 range")
     label = args.label or args.stimulus
     frequency = {
         "silence": 0.0,
@@ -76,7 +79,7 @@ def main() -> int:
         f"evidence_label={label}",
         f"stimulus_frequency_hz={frequency}",
         f"wav_amplitude_fraction_full_scale={args.amplitude}",
-        f"capture_count={CAPTURE_COUNT}",
+        f"capture_count={args.capture_count}",
         "samples_per_capture=1024 LEFT frames",
         f"rao={RAO}",
     ]
@@ -93,7 +96,7 @@ def main() -> int:
         time.sleep(0.5)
 
     try:
-        for capture_index in range(1, CAPTURE_COUNT + 1):
+        for capture_index in range(1, args.capture_count + 1):
             prefix = EVIDENCE / f"debug6_{label}_capture{capture_index:02d}"
             command = [
                 str(GAO), "-gao", str(RAO), "-out", str(prefix),

@@ -1,0 +1,150 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\energy_calibration_labeled_fast_01_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 49.71026962962963,
+  "energy_lsb": 16,
+  "overall": {
+    "count": 4096,
+    "minimum": 752,
+    "maximum": 22832,
+    "mean": 3876.81640625,
+    "median": 3152.0,
+    "p90": 7256.0,
+    "p95": 9152.0,
+    "p99": 14034.400000000009
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 0,
+  "gpio_high_intervals": 5,
+  "operator_confirmed_sync": false,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 330,
+        "minimum": 832,
+        "maximum": 12208,
+        "mean": 2975.1272727272726,
+        "median": 2552.0,
+        "p90": 5539.200000000001,
+        "p95": 6384.0,
+        "p99": 7855.039999999995
+      },
+      "adjacent_low": {
+        "count": 660,
+        "minimum": 784,
+        "maximum": 16720,
+        "mean": 3471.2727272727275,
+        "median": 2824.0,
+        "p90": 6417.600000000004,
+        "p95": 7985.5999999999985,
+        "p99": 11685.279999999993
+      },
+      "mean_ratio": 0.8570710245128849,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 2,
+      "marked_high": {
+        "count": 330,
+        "minimum": 816,
+        "maximum": 12704,
+        "mean": 3596.848484848485,
+        "median": 3096.0,
+        "p90": 6720.000000000004,
+        "p95": 8280.8,
+        "p99": 10075.36
+      },
+      "adjacent_low": {
+        "count": 660,
+        "minimum": 816,
+        "maximum": 16720,
+        "mean": 3902.4242424242425,
+        "median": 3296.0,
+        "p90": 7472.0,
+        "p95": 9225.599999999991,
+        "p99": 12929.919999999984
+      },
+      "mean_ratio": 0.9216959155148315,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 3,
+      "marked_high": {
+        "count": 330,
+        "minimum": 864,
+        "maximum": 22080,
+        "mean": 5298.860606060606,
+        "median": 4152.0,
+        "p90": 10625.6,
+        "p95": 12536.8,
+        "p99": 16927.519999999997
+      },
+      "adjacent_low": {
+        "count": 660,
+        "minimum": 784,
+        "maximum": 22832,
+        "mean": 4512.775757575758,
+        "median": 3544.0,
+        "p90": 9000.000000000005,
+        "p95": 12224.8,
+        "p99": 17341.439999999988
+      },
+      "mean_ratio": 1.174190983712235,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 4,
+      "marked_high": {
+        "count": 330,
+        "minimum": 816,
+        "maximum": 11136,
+        "mean": 3493.9636363636364,
+        "median": 3152.0,
+        "p90": 6001.6,
+        "p95": 6778.400000000001,
+        "p99": 8890.879999999997
+      },
+      "adjacent_low": {
+        "count": 660,
+        "minimum": 752,
+        "maximum": 22832,
+        "mean": 4618.20606060606,
+        "median": 3432.0,
+        "p90": 9721.600000000002,
+        "p95": 13126.399999999994,
+        "p99": 18756.799999999985
+      },
+      "mean_ratio": 0.7565629576747629,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 5,
+      "marked_high": {
+        "count": 330,
+        "minimum": 800,
+        "maximum": 9584,
+        "mean": 3315.9757575757576,
+        "median": 2904.0,
+        "p90": 6144.0,
+        "p95": 6904.8,
+        "p99": 8012.959999999996
+      },
+      "adjacent_low": {
+        "count": 660,
+        "minimum": 752,
+        "maximum": 22384,
+        "mean": 3987.539393939394,
+        "median": 3152.0,
+        "p90": 7649.6,
+        "p95": 9155.199999999997,
+        "p99": 15773.279999999968
+      },
+      "mean_ratio": 0.8315844509563124,
+      "energy_separation_pass": false
+    }
+  ],
+  "repeatability_result": "INCONCLUSIVE"
+}

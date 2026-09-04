@@ -1,0 +1,200 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_01_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 99.42053925925926,
+  "energy_lsb": 16,
+  "threshold_on": 12000,
+  "threshold_off": 6000,
+  "overall": {
+    "count": 8192,
+    "minimum": 720,
+    "maximum": 35472,
+    "mean": 3994.638671875,
+    "median": 3296.0,
+    "p90": 7262.400000000009,
+    "p95": 9287.199999999997,
+    "p99": 14304.0
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 1675,
+  "sound_active_transition_count": 58,
+  "gpio_high_intervals": 6,
+  "operator_confirmed_sync": true,
+  "marker_active_level": 0,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 27,
+        "minimum": 944,
+        "maximum": 11488,
+        "mean": 4373.333333333333,
+        "median": 3824.0,
+        "p90": 8371.200000000003,
+        "p95": 9260.8,
+        "p99": 10951.359999999997
+      },
+      "adjacent_low": {
+        "count": 27,
+        "minimum": 1440,
+        "maximum": 12960,
+        "mean": 6125.62962962963,
+        "median": 6096.0,
+        "p90": 9398.400000000005,
+        "p95": 11435.199999999999,
+        "p99": 12639.679999999998
+      },
+      "mean_ratio": 0.7139402147625036,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": false,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": false
+    },
+    {
+      "cycle": 2,
+      "marked_high": {
+        "count": 249,
+        "minimum": 800,
+        "maximum": 28880,
+        "mean": 5747.40562248996,
+        "median": 4224.0,
+        "p90": 11785.600000000002,
+        "p95": 15436.8,
+        "p99": 23505.280000000013
+      },
+      "adjacent_low": {
+        "count": 498,
+        "minimum": 736,
+        "maximum": 12960,
+        "mean": 4125.622489959839,
+        "median": 3752.0,
+        "p90": 6980.8,
+        "p95": 7799.199999999999,
+        "p99": 10720.96
+      },
+      "mean_ratio": 1.3931002258391092,
+      "energy_separation_pass": true,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 3,
+      "marked_high": {
+        "count": 249,
+        "minimum": 880,
+        "maximum": 12640,
+        "mean": 4173.751004016064,
+        "median": 3456.0,
+        "p90": 7795.200000000002,
+        "p95": 8793.599999999999,
+        "p99": 11189.120000000003
+      },
+      "adjacent_low": {
+        "count": 498,
+        "minimum": 832,
+        "maximum": 13024,
+        "mean": 4038.6506024096384,
+        "median": 3728.0,
+        "p90": 7118.400000000001,
+        "p95": 7890.4,
+        "p99": 10230.719999999994
+      },
+      "mean_ratio": 1.0334518667016699,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 4,
+      "marked_high": {
+        "count": 248,
+        "minimum": 768,
+        "maximum": 15568,
+        "mean": 4327.1612903225805,
+        "median": 3296.0,
+        "p90": 9518.400000000001,
+        "p95": 11507.999999999998,
+        "p99": 14706.880000000001
+      },
+      "adjacent_low": {
+        "count": 496,
+        "minimum": 816,
+        "maximum": 13024,
+        "mean": 3385.935483870968,
+        "median": 2944.0,
+        "p90": 6040.0,
+        "p95": 7256.0,
+        "p99": 9744.8
+      },
+      "mean_ratio": 1.2779810220647079,
+      "energy_separation_pass": true,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 5,
+      "marked_high": {
+        "count": 249,
+        "minimum": 864,
+        "maximum": 14928,
+        "mean": 4630.81124497992,
+        "median": 3968.0,
+        "p90": 9136.000000000004,
+        "p95": 11244.8,
+        "p99": 14383.360000000008
+      },
+      "adjacent_low": {
+        "count": 498,
+        "minimum": 800,
+        "maximum": 28240,
+        "mean": 4272.481927710844,
+        "median": 3216.0,
+        "p90": 8572.800000000001,
+        "p95": 12434.4,
+        "p99": 18778.399999999976
+      },
+      "mean_ratio": 1.0838691241605944,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 6,
+      "marked_high": {
+        "count": 5927,
+        "minimum": 720,
+        "maximum": 35472,
+        "mean": 3851.5215117259995,
+        "median": 3200.0,
+        "p90": 7008.0,
+        "p95": 8672.0,
+        "p99": 13371.839999999997
+      },
+      "adjacent_low": {
+        "count": 2265,
+        "minimum": 736,
+        "maximum": 28880,
+        "mean": 4369.144370860927,
+        "median": 3552.0,
+        "p90": 8160.0,
+        "p95": 10720.0,
+        "p99": 15631.360000000022
+      },
+      "mean_ratio": 0.8815276367182778,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": false,
+      "fsm_transition_pair_pass": false
+    }
+  ],
+  "repeatability_result": "FAIL",
+  "fsm_transition_pairs_passed": 4,
+  "fsm_transition_repeatability_result": "FAIL",
+  "fsm_stability_result": "FAIL"
+}

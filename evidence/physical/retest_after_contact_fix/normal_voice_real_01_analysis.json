@@ -1,0 +1,52 @@
+{
+  "evidence_kind": "physical GAO/JTAG continuous capture",
+  "source_core0": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\normal_voice_real_01_core0_window0.csv",
+  "effective_sample_rate_hz": 659.1796875,
+  "decimation_factor": 64,
+  "gao_observation_lsb_bits_discarded": 10,
+  "trigger_index": 1022,
+  "trigger_source": "Raspberry GPIO17 software pulse",
+  "capture_duration_seconds": 12.427567407407407,
+  "pre_trigger": {
+    "count": 1022,
+    "minimum": -58368,
+    "maximum": 68608,
+    "mean": -1365.6673189823875,
+    "mean_absolute": 20837.698630136987,
+    "rms": 26018.42440255346,
+    "peak": 68608,
+    "standard_deviation": 25982.558787872546,
+    "unique_sample_values": 113,
+    "zero_samples": 16,
+    "nonzero_samples": 1006
+  },
+  "voice_window": {
+    "count": 3296,
+    "minimum": -61440,
+    "maximum": 47104,
+    "mean": -1306.0970873786407,
+    "mean_absolute": 11897.786407766991,
+    "rms": 16226.093428831384,
+    "peak": 61440,
+    "standard_deviation": 16173.441759857611,
+    "unique_sample_values": 104,
+    "zero_samples": 77,
+    "nonzero_samples": 3219
+  },
+  "post_voice": {
+    "count": 3874,
+    "minimum": -76800,
+    "maximum": 84992,
+    "mean": -964.5265875064533,
+    "mean_absolute": 14593.71812080537,
+    "rms": 21100.996603778924,
+    "peak": 84992,
+    "standard_deviation": 21078.940820987256,
+    "unique_sample_values": 151,
+    "zero_samples": 88,
+    "nonzero_samples": 3786
+  },
+  "frame_error_latched": 0,
+  "voice_to_pre_rms_ratio": 0.6236385869406814,
+  "acoustic_response_pass": false
+}

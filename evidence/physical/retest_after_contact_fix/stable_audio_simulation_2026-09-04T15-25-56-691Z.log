@@ -1,0 +1,18 @@
+SAFE-FIELD TP4 stable functional audio simulation
+started_utc=2026-09-04T15:25:56.691Z
+success=true
+stage=run
+--- SAFE_FIELD_STABLE_AUDIO ---
+PASS silence starts QUIET                                             expected=0 obtained=0
+PASS silence and GPIO17 LOW keep LED off                              expected=0 obtained=0
+PASS qualified audio reaches ACTIVE                                   expected=1 obtained=1
+PASS qualified audio drives functional LED                            expected=1 obtained=1
+PASS receiver reconstructed LEFT samples                              expected=1 obtained=1
+PASS qualified silence returns QUIET                                  expected=0 obtained=0
+PASS qualified silence clears LED                                     expected=0 obtained=0
+PASS well-formed I2S has no frame error                               expected=0 obtained=0
+PASS GPIO17 HIGH override drives LED                                  expected=1 obtained=1
+PASS GPIO17 LOW returns audio control                                 expected=0 obtained=0
+checks=10 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_stable_audio.v:57: $finish called at 137862000 (1ps)

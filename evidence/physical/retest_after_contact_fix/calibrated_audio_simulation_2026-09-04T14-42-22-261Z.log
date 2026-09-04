@@ -1,0 +1,16 @@
+SAFE-FIELD TP4 calibrated cued capture simulation
+started_utc=2026-09-04T14:42:22.261Z
+success=true
+stage=run
+--- SAFE_FIELD_CALIBRATED_CUED_CAPTURE ---
+PASS receiver reconstructed at least eight LEFT samples               expected=1 obtained=1
+PASS GAO emitted a completed-energy observation                       expected=1 obtained=1
+PASS completed energy observation is exact                            expected=256 obtained=256
+PASS audio FSM entered ACTIVE                                         expected=1 obtained=1
+PASS no observation overflow                                          expected=0 obtained=0
+PASS no frame error                                                   expected=0 obtained=0
+FAIL ACTIVE drives LED                                                expected=1 obtained=Z
+FAIL GPIO17 override drives LED                                       expected=1 obtained=Z
+checks=8 errors=2
+TEST_RESULT: FAIL
+tb/tb_safe_field_calibrated_cued_capture.v:32: $finish called at 32251000 (1ps)

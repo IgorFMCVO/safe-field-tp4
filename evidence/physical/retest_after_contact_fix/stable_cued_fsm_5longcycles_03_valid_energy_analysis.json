@@ -1,0 +1,144 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_03_valid_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 99.42053925925926,
+  "energy_lsb": 16,
+  "threshold_on": 12000,
+  "threshold_off": 6000,
+  "overall": {
+    "count": 8192,
+    "minimum": 704,
+    "maximum": 212336,
+    "mean": 5910.09375,
+    "median": 4032.0,
+    "p90": 10958.400000000009,
+    "p95": 15415.199999999997,
+    "p99": 32687.840000000026
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 2976,
+  "sound_active_transition_count": 86,
+  "gpio_high_intervals": 4,
+  "operator_confirmed_sync": false,
+  "marker_active_level": 1,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 413,
+        "minimum": 848,
+        "maximum": 212336,
+        "mean": 17900.242130750605,
+        "median": 6928.0,
+        "p90": 39078.4,
+        "p95": 85670.4,
+        "p99": 184603.51999999996
+      },
+      "adjacent_low": {
+        "count": 608,
+        "minimum": 784,
+        "maximum": 23312,
+        "mean": 5691.921052631579,
+        "median": 4496.0,
+        "p90": 11268.800000000001,
+        "p95": 15031.199999999995,
+        "p99": 19899.359999999964
+      },
+      "mean_ratio": 3.1448507393606033,
+      "energy_separation_pass": true,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 2,
+      "marked_high": {
+        "count": 413,
+        "minimum": 816,
+        "maximum": 21984,
+        "mean": 5339.351089588377,
+        "median": 4848.0,
+        "p90": 9676.8,
+        "p95": 12214.4,
+        "p99": 17795.839999999997
+      },
+      "adjacent_low": {
+        "count": 826,
+        "minimum": 816,
+        "maximum": 24544,
+        "mean": 4857.665859564165,
+        "median": 4048.0,
+        "p90": 8704.0,
+        "p95": 10964.0,
+        "p99": 18124.0
+      },
+      "mean_ratio": 1.0991598113064593,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 3,
+      "marked_high": {
+        "count": 413,
+        "minimum": 848,
+        "maximum": 32464,
+        "mean": 5702.779661016949,
+        "median": 4208.0,
+        "p90": 12124.800000000001,
+        "p95": 17699.199999999997,
+        "p99": 27992.319999999992
+      },
+      "adjacent_low": {
+        "count": 826,
+        "minimum": 768,
+        "maximum": 24544,
+        "mean": 4304.949152542373,
+        "median": 3824.0,
+        "p90": 7360.0,
+        "p95": 9036.0,
+        "p99": 14208.0
+      },
+      "mean_ratio": 1.324703140256386,
+      "energy_separation_pass": true,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 4,
+      "marked_high": {
+        "count": 413,
+        "minimum": 784,
+        "maximum": 86784,
+        "mean": 7439.186440677966,
+        "median": 3904.0,
+        "p90": 14864.000000000002,
+        "p95": 30319.999999999996,
+        "p99": 67490.55999999995
+      },
+      "adjacent_low": {
+        "count": 826,
+        "minimum": 768,
+        "maximum": 38448,
+        "mean": 5580.106537530266,
+        "median": 3824.0,
+        "p90": 11984.0,
+        "p95": 16092.0,
+        "p99": 33216.0
+      },
+      "mean_ratio": 1.3331620804448874,
+      "energy_separation_pass": true,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    }
+  ],
+  "repeatability_result": "INCONCLUSIVE",
+  "fsm_transition_pairs_passed": 4,
+  "fsm_transition_repeatability_result": "INCONCLUSIVE",
+  "fsm_stability_result": "INCONCLUSIVE"
+}

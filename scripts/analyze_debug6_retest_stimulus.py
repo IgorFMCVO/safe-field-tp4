@@ -86,6 +86,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("stimulus")
     parser.add_argument("--expected-hz", type=float, default=0.0)
+    parser.add_argument("--captures", type=int, default=4)
     args = parser.parse_args()
 
     all_samples: list[int] = []
@@ -95,7 +96,7 @@ def main() -> int:
     ws_modes: list[int] = []
     frame_error_max = 0
 
-    for capture_index in range(1, 5):
+    for capture_index in range(1, args.captures + 1):
         prefix = EVIDENCE / f"debug6_{args.stimulus}_capture{capture_index:02d}"
         core0 = read_gao_csv(Path(f"{prefix}_core0_window0.csv"))
         core1 = read_gao_csv(Path(f"{prefix}_core1_window0.csv"))
@@ -124,8 +125,9 @@ def main() -> int:
         ]
         frame_error_max = max(frame_error_max, max(errors, default=0))
 
-    if len(all_samples) < 4096:
-        raise RuntimeError(f"expected at least 4096 real samples, obtained {len(all_samples)}")
+    expected_samples = args.captures * 1024
+    if len(all_samples) < expected_samples:
+        raise RuntimeError(f"expected at least {expected_samples} real samples, obtained {len(all_samples)}")
 
     frequency_segments = [estimate_frequency(segment) for segment in segments]
     fft_values = [item["fft_hz"] for item in frequency_segments if item["fft_hz"] is not None]
@@ -146,7 +148,7 @@ def main() -> int:
         "stimulus": args.stimulus,
         "expected_frequency_hz": args.expected_hz,
         "sample_rate_hz": INPUT_SAMPLE_RATE,
-        "captures": 4,
+        "captures": args.captures,
         "total_samples": len(all_samples),
         "zero_samples": sum(value == 0 for value in all_samples),
         "nonzero_samples": sum(value != 0 for value in all_samples),
@@ -156,6 +158,8 @@ def main() -> int:
         "mean_abs": statistics.fmean(abs(value) for value in all_samples),
         "rms": rms,
         "ac_rms": ac_rms,
+        "standard_deviation": statistics.pstdev(all_samples),
+        "unique_sample_values": len(set(all_samples)),
         "peak_abs": max(abs(value) for value in all_samples),
         "full_scale_fraction": max(abs(value) for value in all_samples) / FULL_SCALE,
         "clipped_samples": sum(abs(value) >= FULL_SCALE for value in all_samples),
@@ -172,7 +176,7 @@ def main() -> int:
         "frame_integrity_pass": frame_error_max == 0,
     }
 
-    samples_csv = EVIDENCE / f"debug6_{args.stimulus}_samples_4096.csv"
+    samples_csv = EVIDENCE / f"debug6_{args.stimulus}_samples_{len(all_samples)}.csv"
     with samples_csv.open("w", newline="", encoding="utf-8") as output:
         writer = csv.writer(output)
         writer.writerow(("sample_index", "capture_index", "sample_in_capture", "signed24"))
@@ -182,14 +186,14 @@ def main() -> int:
                 writer.writerow((absolute_index, capture_index, sample_index, value))
                 absolute_index += 1
 
-    json_path = EVIDENCE / f"debug6_{args.stimulus}_analysis_4096.json"
+    json_path = EVIDENCE / f"debug6_{args.stimulus}_analysis_{len(all_samples)}.json"
     json_path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
 
     first = np.asarray(segments[0], dtype=np.float64)
     centered = first - first.mean()
     spectrum = np.abs(np.fft.rfft(centered * np.hanning(len(first))))
     frequencies = np.fft.rfftfreq(len(first), d=1.0 / INPUT_SAMPLE_RATE)
-    figure, axes = plt.subplots(2, 1, figsize=(11, 7), constrained_layout=True)
+    figure, axes = plt.subplots(3, 1, figsize=(11, 10), constrained_layout=True)
     time_ms = np.arange(len(first)) * 1000.0 / INPUT_SAMPLE_RATE
     axes[0].plot(time_ms, first, linewidth=0.8)
     axes[0].set(title=f"DEBUG6 {args.stimulus} — waveform física", xlabel="tempo (ms)", ylabel="sample signed 24-bit")
@@ -198,6 +202,9 @@ def main() -> int:
     axes[1].set_xlim(0, INPUT_SAMPLE_RATE / 2)
     axes[1].set(title=f"Espectro — pico mediano {fft_estimate:.2f} Hz", xlabel="frequência (Hz)", ylabel="amplitude FFT")
     axes[1].grid(True, alpha=0.3)
+    axes[2].hist(all_samples, bins=80)
+    axes[2].set(title="Distribuição de amplitude", xlabel="sample signed 24-bit", ylabel="contagem")
+    axes[2].grid(True, alpha=0.3)
     plot_path = EVIDENCE / f"debug6_{args.stimulus}_waveform_spectrum.png"
     figure.savefig(plot_path, dpi=160)
     plt.close(figure)

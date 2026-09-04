@@ -1,0 +1,22 @@
+-d C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_acoustic_capture\impl\gwsynthesis\debug6_acoustic_capture.vg
+-p GW1NSR-4C-QFN48P-6
+-pn GW1NSR-LV4CQN48PC6/I5
+-cst C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_debug.cst
+-cfg C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_acoustic_capture\impl\pnr\device.cfg
+-sdc C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\debug6_acoustic_capture.sdc
+-gao_crc 0110011001100010
+-bit
+-tr
+-ph
+-warning_all
+-tt
+-timing
+-cst_error
+-convert_sdp32_36_to_sdp16_18
+-place_option 0
+-route_option 0
+-clock_route_order 0
+-correct_hold 1
+-route_maxfan 23
+-global_freq 50.000
+-rtl_gao

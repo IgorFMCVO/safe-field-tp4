@@ -14,10 +14,16 @@ e 43. O reteste isolado `tp4-retest-after-contact-fix` demonstrou que SD voltou
 a apresentar transições e que o receptor captura PCM LEFT signed não-zero sem
 frame errors. A suspeita anterior de INMP441 defeituoso está superada.
 
-A cadeia completa ainda não está aceita: os tons enviados pelo endpoint Realtek
-não foram reconhecidos espectralmente, e a própria matriz de microfones do Razer
-também não testemunhou o tom. O próximo gate é confirmar com o operador que o
-estímulo é audível; não há autorização técnica para calibrar FSM antes disso.
+A cadeia acústica de aquisição está aceita em baixa velocidade e na taxa normal:
+voz humana produziu RMS 4,99 vezes o silêncio e três palmas foram distinguidas
+temporalmente, com zero frame errors. Os antigos tons do Razer não contam como
+ensaio porque a emissão física não foi confirmada. A FSM temporal reconheceu
+atividade e retorno a QUIET em todas as nove janelas completas da última
+captura, mas ainda apresentou chatter. O operador confirmou a fala com ressalva
+de possível ciclo pulado; a aceitação completa aguarda estabilização da FSM e
+três restarts SRAM.
+
+> Após reparo dos contatos dos pins 41 e 43, SD voltou a transmitir dados e o diagnóstico anterior de falha do INMP441 foi invalidado.
 
 Bitstream revisado:
 `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\full\impl\pnr\safe_field_tp4.fs`
@@ -25,11 +31,11 @@ Bitstream revisado:
 SHA-256:
 `0B04C9DF3F51B408932ED75B754F7F180001F02C50594B14CC685B4CE1BFFE8B`
 
-Bitstream GAO atualmente recomendado para diagnóstico em SRAM:
-`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\physical_gao\impl\pnr\safe_field_tp4_physical_gao.fs`
+Bitstream funcional temporal atualmente carregado em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\stable_audio_candidate\impl\pnr\safe_field_stable_audio.fs`
 
-SHA-256 GAO:
-`64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56`
+SHA-256 funcional temporal:
+`D5F94C664BB1882437CA3BD235A70913F00E1419C17C7943A33CEA64D80E7858`
 
 ## Reteste após correção física — status vigente
 
@@ -51,13 +57,20 @@ SHA-256 GAO:
   frame errors=0.
 - Silêncio em 4096 samples: 4095 não-zero, min=-13616, max=6912,
   AC RMS=3959,67, pico=13616, clipping=0 e frame errors=0.
-- Tons 500/1000/2000 Hz: periodicidade esperada ainda FAIL. A matriz de
-  microfones do Razer também não captou o 1 kHz enviado ao endpoint Realtek,
-  logo a emissão acústica precisa de confirmação do operador.
+- Voz física em baixa taxa: RMS 14216,89 contra 4557,35 antes da fala,
+  razão 3,120; cinco ciclos voz/silêncio PASS com razões 2,124 a 2,777.
+- Taxa normal: silêncio RMS 4010,69; voz RMS 20023,63, razão 4,993; três
+  palmas distinguíveis em 0,666/1,810/2,810 s; sempre zero frame errors.
+- FSM original 50000/30000 entrou ACTIVE somente por ~0,558 s; limiares
+  físicos candidatos 16000/8000 foram implementados em build separado.
+- FSM 16000/8000: 8/10 pares e 130 transições; não aceita como estável.
+- FSM temporal 12000/6000: simulação 11/11 PASS, P&R/STA PASS; 9/9 pares
+  completos observados, frame errors=0, mas 100 transições em 99,42 s;
+  detecção PASS preliminar e estabilidade FAIL.
 
-Conclusão vigente: **SD e PCM físico PASS; resposta acústica conhecida ainda
-PENDENTE/BLOQUEADA por observabilidade do estímulo.** Não atribuir defeito ao
-INMP441 e não usar os resultados anteriores ao reparo como estado atual.
+Conclusão vigente: **SD, PCM e resposta acústica física PASS em baixa taxa e
+taxa normal.** Ainda não declarar todos os GATES A–G PASS até concluir FSM
+10/10, estabilidade/restarts e integração GPIO17.
 
 ## DEBUG5_EXTERNAL_WIRING_LEVELS — PASS físico informado pelo operador
 
@@ -174,20 +187,18 @@ evidência confirma somente os caminhos externos de SCK/WS; não valida SD.
 
 ## PENDENTE
 
-- Operador confirmar se o tom de 1 kHz do Razer é audível no ambiente, sem
-  mover fios ou alterar a montagem.
-- Depois de confirmar o estímulo: repetir 500/1000/2000 Hz e pulsos, exigir
-  frequência compatível, então avançar à taxa normal, magnitude, janela de 256,
-  thresholds físicos, FSM, 10 ciclos, voz, 60 s, três SRAM restarts e GPIO17.
-- Não calibrar `THRESHOLD_ON/OFF` com os tons atuais porque a emissão acústica
-  não foi testemunhada.
+- Eliminar o chatter antes de aceitar a FSM; a fala foi confirmada pelo
+  operador, com ressalva de possível ciclo pulado, e o resultado é 9/9.
+- Executar três ciclos SRAM/restart. A aquisição contínua e GPIO17 HIGH/LOW já
+  foram observados por 99,42 s sem frame error.
+- Teste de frequência com fonte acústica cuja emissão no ar seja confirmada;
+  os antigos WAVs do Razer permanecem inválidos para essa finalidade.
 
 ## BLOQUEADO
 
-O gate de resposta acústica aguarda uma única observação humana: confirmar se o
-tom emitido pelo Razer é audível. O caminho digital não está bloqueado em SD:
-o GAO pós-reparo já provou transições e samples PCM reais. Nenhuma alteração
-física, ressolda ou substituição do INMP441 é indicada pelos dados atuais.
+Não há ação física indispensável para comprovar a aquisição: ela já é PASS.
+O refinamento restante é de software/FSM e três restarts SRAM; nenhuma
+alteração de fios, alimentação, solda ou câmera é necessária.
 
 ## Pinout final usado
 

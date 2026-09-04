@@ -1,0 +1,275 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\calibrated_fsm_10cycles_02_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 49.71026962962963,
+  "energy_lsb": 16,
+  "overall": {
+    "count": 4096,
+    "minimum": 768,
+    "maximum": 69376,
+    "mean": 9560.8984375,
+    "median": 7136.0,
+    "p90": 19776.0,
+    "p95": 26280.0,
+    "p99": 39765.60000000008
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 1059,
+  "gpio_high_intervals": 10,
+  "operator_confirmed_sync": true,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 166,
+        "minimum": 800,
+        "maximum": 32288,
+        "mean": 8169.253012048192,
+        "median": 7040.0,
+        "p90": 15328.0,
+        "p95": 17856.0,
+        "p99": 31337.6
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 960,
+        "maximum": 48496,
+        "mean": 9622.4578313253,
+        "median": 8408.0,
+        "p90": 17116.800000000003,
+        "p95": 19817.6,
+        "p99": 35361.759999999995
+      },
+      "mean_ratio": 0.8489777929141666,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 2,
+      "marked_high": {
+        "count": 166,
+        "minimum": 768,
+        "maximum": 38688,
+        "mean": 10434.506024096385,
+        "median": 9032.0,
+        "p90": 21240.0,
+        "p95": 25108.0,
+        "p99": 30180.79999999996
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 944,
+        "maximum": 24080,
+        "mean": 9067.518072289156,
+        "median": 8552.0,
+        "p90": 15771.200000000008,
+        "p95": 17278.4,
+        "p99": 21288.64
+      },
+      "mean_ratio": 1.1507565731779261,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 3,
+      "marked_high": {
+        "count": 166,
+        "minimum": 768,
+        "maximum": 31840,
+        "mean": 7550.168674698795,
+        "median": 6328.0,
+        "p90": 13216.0,
+        "p95": 16972.0,
+        "p99": 28979.19999999999
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 784,
+        "maximum": 26080,
+        "mean": 7584.481927710844,
+        "median": 6176.0,
+        "p90": 14953.600000000002,
+        "p95": 18374.39999999999,
+        "p99": 23348.48
+      },
+      "mean_ratio": 0.9954758606666751,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 4,
+      "marked_high": {
+        "count": 166,
+        "minimum": 832,
+        "maximum": 17648,
+        "mean": 4278.361445783133,
+        "median": 3800.0,
+        "p90": 7200.0,
+        "p95": 8848.0,
+        "p99": 14329.599999999984
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 784,
+        "maximum": 43984,
+        "mean": 8907.132530120482,
+        "median": 6320.0,
+        "p90": 21892.800000000003,
+        "p95": 24868.0,
+        "p99": 36528.95999999999
+      },
+      "mean_ratio": 0.48032982907971417,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 5,
+      "marked_high": {
+        "count": 165,
+        "minimum": 864,
+        "maximum": 49168,
+        "mean": 7928.727272727273,
+        "median": 6032.0,
+        "p90": 14268.799999999997,
+        "p95": 19756.799999999963,
+        "p99": 46196.47999999998
+      },
+      "adjacent_low": {
+        "count": 330,
+        "minimum": 880,
+        "maximum": 69376,
+        "mean": 13279.321212121213,
+        "median": 9896.0,
+        "p90": 28601.600000000017,
+        "p95": 34324.8,
+        "p99": 53855.19999999995
+      },
+      "mean_ratio": 0.5970732348495359,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 6,
+      "marked_high": {
+        "count": 166,
+        "minimum": 768,
+        "maximum": 47872,
+        "mean": 8258.602409638554,
+        "median": 5984.0,
+        "p90": 16960.0,
+        "p95": 27956.0,
+        "p99": 43068.799999999996
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 880,
+        "maximum": 69376,
+        "mean": 12044.289156626506,
+        "median": 8624.0,
+        "p90": 25038.400000000016,
+        "p95": 32078.399999999994,
+        "p99": 53808.799999999996
+      },
+      "mean_ratio": 0.6856861623165905,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 7,
+      "marked_high": {
+        "count": 166,
+        "minimum": 960,
+        "maximum": 34752,
+        "mean": 10484.048192771084,
+        "median": 8312.0,
+        "p90": 21368.0,
+        "p95": 26576.0,
+        "p99": 33578.399999999994
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 1136,
+        "maximum": 43616,
+        "mean": 10662.265060240963,
+        "median": 8632.0,
+        "p90": 20628.800000000014,
+        "p95": 26596.799999999996,
+        "p99": 35916.799999999996
+      },
+      "mean_ratio": 0.9832852713318448,
+      "energy_separation_pass": false
+    },
+    {
+      "cycle": 8,
+      "marked_high": {
+        "count": 166,
+        "minimum": 960,
+        "maximum": 39696,
+        "mean": 13866.313253012047,
+        "median": 9512.0,
+        "p90": 30680.0,
+        "p95": 33708.0,
+        "p99": 37656.799999999996
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 896,
+        "maximum": 43616,
+        "mean": 10235.710843373494,
+        "median": 7648.0,
+        "p90": 21622.400000000016,
+        "p95": 29351.199999999986,
+        "p99": 36754.88
+      },
+      "mean_ratio": 1.354699587082315,
+      "energy_separation_pass": true
+    },
+    {
+      "cycle": 9,
+      "marked_high": {
+        "count": 166,
+        "minimum": 896,
+        "maximum": 57328,
+        "mean": 10146.698795180722,
+        "median": 7408.0,
+        "p90": 18120.0,
+        "p95": 27220.0,
+        "p99": 54496.79999999998
+      },
+      "adjacent_low": {
+        "count": 332,
+        "minimum": 800,
+        "maximum": 38912,
+        "mean": 6843.084337349397,
+        "median": 5248.0,
+        "p90": 13494.400000000003,
+        "p95": 17197.59999999999,
+        "p99": 34331.2
+      },
+      "mean_ratio": 1.4827668774736962,
+      "energy_separation_pass": true
+    },
+    {
+      "cycle": 10,
+      "marked_high": {
+        "count": 165,
+        "minimum": 912,
+        "maximum": 42416,
+        "mean": 9284.557575757575,
+        "median": 6720.0,
+        "p90": 19004.8,
+        "p95": 24409.59999999998,
+        "p99": 38129.27999999996
+      },
+      "adjacent_low": {
+        "count": 330,
+        "minimum": 800,
+        "maximum": 39552,
+        "mean": 8432.921212121211,
+        "median": 6448.0,
+        "p90": 17148.800000000007,
+        "p95": 22975.200000000004,
+        "p99": 33241.91999999999
+      },
+      "mean_ratio": 1.1009894842148233,
+      "energy_separation_pass": false
+    }
+  ],
+  "repeatability_result": "FAIL"
+}

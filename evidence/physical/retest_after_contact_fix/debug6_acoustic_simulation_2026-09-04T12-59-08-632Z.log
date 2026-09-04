@@ -1,0 +1,18 @@
+SAFE-FIELD TP4 DEBUG6 continuous acoustic capture simulation
+started_utc=2026-09-04T12:59:08.632Z
+success=true
+stage=run
+--- DEBUG6_ACOUSTIC_CAPTURE ---
+PASS sixteen LEFT samples captured                                    expected=16 obtained=16
+PASS decimator emits two capture clocks                               expected=2 obtained=2
+PASS signed sample compression keeps 0x001000 >>> 10                  expected=4 obtained=4
+PASS sub-threshold input leaves voice trigger LOW                     expected=0 obtained=0
+PASS no frame error latched                                           expected=0 obtained=0
+PASS LED remains LOW without audio trigger or GPIO17                  expected=0 obtained=0
+PASS above-threshold LEFT sample raises trigger                       expected=1 obtained=1
+PASS audio trigger is observable on LED                               expected=1 obtained=1
+PASS decimated voice sample equals 0x010000 >>> 10                    expected=64 obtained=64
+PASS GPIO17 HIGH override remains integrated                          expected=1 obtained=1
+checks=10 errors=0 left_samples=17 decimated_edges=2
+TEST_RESULT: PASS
+tb/tb_debug6_acoustic_capture.v:132: $finish called at 62991000 (1ps)

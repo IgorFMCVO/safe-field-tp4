@@ -1,0 +1,50 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\energy_calibration_5cycles_01_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 99.42053925925926,
+  "energy_lsb": 16,
+  "overall": {
+    "count": 8192,
+    "minimum": 736,
+    "maximum": 62112,
+    "mean": 5482.7265625,
+    "median": 4096.0,
+    "p90": 11456.0,
+    "p95": 15056.0,
+    "p99": 22913.440000000002
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 4,
+  "gpio_high_intervals": 1,
+  "operator_confirmed_sync": false,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 17,
+        "minimum": 848,
+        "maximum": 13072,
+        "mean": 6605.176470588235,
+        "median": 6432.0,
+        "p90": 11734.400000000001,
+        "p95": 12931.2,
+        "p99": 13043.84
+      },
+      "adjacent_low": {
+        "count": 34,
+        "minimum": 1024,
+        "maximum": 19744,
+        "mean": 7963.294117647059,
+        "median": 6720.0,
+        "p90": 17956.8,
+        "p95": 18540.0,
+        "p99": 19363.840000000004
+      },
+      "mean_ratio": 0.829452783358941,
+      "energy_separation_pass": false
+    }
+  ],
+  "repeatability_result": "INCONCLUSIVE"
+}

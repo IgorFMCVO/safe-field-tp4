@@ -7,18 +7,18 @@ inalterados. Todas as programações desta rodada usaram somente operação 2,
 
 ## Veredito
 
-**GATE A passou após o reparo dos contatos; a cadeia completa ainda não está
-aceita.** O GAO agora observa transições reais em SD, `sample_valid`, 1024/1024
-samples LEFT não-zero e zero frame errors. A conclusão anterior de SD morto e
-INMP441 suspeito está formalmente superada e não descreve a montagem atual.
+**A captação acústica física passou em baixa velocidade e na taxa normal; a
+aceitação completa até o GATE G ainda está em andamento.** O GAO observou voz
+humana com RMS 4,99 vezes o silêncio e três palmas distintas nas duas taxas,
+sempre sem frame errors. O pipeline normal também entrou em ACTIVE com os
+limiares originais, mas por apenas aproximadamente 0,56 s, confirmando que
+50000/30000 é excessivamente conservador para voz normal.
 
-Os testes acústicos automatizados ainda não provaram periodicidade: 500 Hz,
-1 kHz e 2 kHz não apareceram nos FFTs do INMP441. Uma testemunha independente
-com a matriz de microfones do Razer também não captou o tom enviado ao endpoint
-Realtek. Portanto o bloqueio atual é confirmar que o estímulo realmente foi
-irradiado no ambiente, e não uma falha demonstrada do I2S ou do INMP441.
+Os antigos testes de tons do Razer permanecem inválidos como ensaio acústico:
+não houve confirmação de emissão física e o microfone-testemunha também não os
+captou. Eles não contam como FAIL do INMP441 nem como teste de frequência.
 
-> O reteste ocorreu após correção física dos contatos dos pins 41 e 43.
+> Após reparo dos contatos dos pins 41 e 43, SD voltou a transmitir dados e o diagnóstico anterior de falha do INMP441 foi invalidado.
 
 ## Matriz de aceitação
 
@@ -28,17 +28,83 @@ irradiado no ambiente, e não uma falha demonstrada do I2S ou do INMP441.
 | clocks | PASS | SCK=500.000 Hz; WS=7.812,5 Hz; 64 SCK/frame; 32 SCK/slot | GAO físico pós-reparo | `evidence/physical/retest_after_contact_fix/debug6_environment_01_analysis.json` |
 | fiação externa SCK/WS | PASS | DEBUG5 alternância LOW/HIGH observada nos pads SCK/WS | evidência física explicitamente informada pelo operador em 04/09/2026 | `evidence/physical/PHYSICAL_DIAGNOSTIC_LOG.md` |
 | SD | PASS | 8 transições na janela bruta inicial; 44 em quatro janelas de silêncio | GAO/JTAG pós-reparo | `evidence/physical/retest_after_contact_fix/GATE_A_RESULT.md` |
-| decoding | PASS preliminar | 1024/1024 LEFT não-zero, signed positivos e negativos, frame errors=0 | PCM real reconstruído | `evidence/physical/retest_after_contact_fix/debug6_environment_01_core1_window0.csv` |
-| samples | PASS preliminar | silêncio: 4096 samples, min=-13616, max=6912, AC RMS=3959,7 | quatro capturas GAO independentes | `evidence/physical/retest_after_contact_fix/debug6_silence_analysis_4096.json` |
-| resposta acústica | BLOQUEADO | WAVs executaram, mas nem INMP441 nem microfone-testemunha captaram periodicidade | estímulo acústico não confirmado no ar | `evidence/physical/retest_after_contact_fix/razer_mic_witness_1000hz_analysis.json` |
-| frequência acústica | FAIL atual | estimativas não acompanham 500/1000/2000 Hz | critério de periodicidade não atendido | `evidence/physical/retest_after_contact_fix/debug6_tone_*_analysis_4096.json` |
-| magnitude/energia | PENDENTE | noise floor preliminar disponível; sem tom validado para calibração | não inventar thresholds | este relatório |
-| FSM QUIET/ACTIVE | PENDENTE | não executada após o reparo | depende de estímulo acústico confirmado | este relatório |
-| estabilidade 60 s/restarts | PENDENTE | não executada após o reparo | depende do GATE D | este relatório |
-| integração Raspberry | PARCIAL | GPIO17 LOW confirmado; HIGH/LOW final ainda pendente | baseline preservada | `evidence/physical/retest_after_contact_fix/ssh_gpio17_attempt.log` |
+| decoding | PASS | 8192 samples contínuos na taxa normal, signed positivos e negativos, frame errors=0 | PCM real reconstruído | `evidence/physical/retest_after_contact_fix/normal_voice_real_01_continuous_samples.csv` |
+| samples | PASS | silêncio normal RMS=4010,69; voz RMS=20023,63; pico de voz=84992 | capturas GAO físicas independentes | `evidence/physical/retest_after_contact_fix/normal_voice_vs_silence_comparison.json` |
+| resposta acústica | PASS | voz/silêncio RMS=4,993 e média absoluta=4,373; três palmas distintas em baixa e normal | voz humana e palmas informadas pelo operador e medidas no FPGA | `evidence/physical/retest_after_contact_fix/normal_voice_vs_silence_comparison.json` |
+| frequência acústica | PENDENTE | tons anteriores não são ensaios válidos porque a emissão no ar não foi confirmada | não classificar ausência espectral como falha do INMP441 | `evidence/physical/retest_after_contact_fix/razer_mic_witness_1000hz_analysis.json` |
+| magnitude/energia | PASS de observação | energia física por 256 frames: 8192 pontos, min=736, mediana=4096, máx=62112; overflow=0 | GAO direto no detector | `evidence/physical/retest_after_contact_fix/energy_calibration_5cycles_01_energy_analysis.json` |
+| FSM QUIET/ACTIVE | PARCIAL | ON=16000/OFF=8000 obteve 8/10; variante temporal ON=12000/OFF=6000 observou ACTIVE e retorno a QUIET em 9/9 janelas completas | fala confirmada pelo operador, com ressalva de possível ciclo pulado; estabilidade ainda FAIL | `evidence/physical/retest_after_contact_fix/OPERATOR_CONFIRMATION_10CYCLES.md` |
+| estabilidade 60 s/restarts | FAIL da FSM / PASS da aquisição | aquisição contínua 99,42 s e frame errors=0; FSM temporal ainda apresentou 100 transições | GAO profundo real | `evidence/physical/retest_after_contact_fix/stable_cued_fsm_10cycles_04_valid_core0_window0.csv` |
+| integração Raspberry | PASS de instrumentação | GPIO17 HIGH acende e LOW apaga o LED, alternou durante aquisição sem frame error | nível físico confirmado pelo operador e GAO simultâneo | `evidence/physical/retest_after_contact_fix/stable_cued_fsm_10cycles_04_valid_core0_window0.csv` |
 
 O status acima é o vigente. Os resultados abaixo são preservados como histórico
 anterior ao reparo e não devem ser usados para diagnosticar o hardware atual.
+
+## Captação acústica real pós-reparo
+
+### DEBUG6, 500 kHz / 7,8125 kHz
+
+- Silêncio contínuo: 8192 samples LEFT, min=-16882, max=8542,
+  média absoluta=4681,39, RMS=5587,06, desvio padrão=5107,71, 5411 valores
+  distintos, zero frame errors.
+- Voz humana: RMS=14216,89 contra 4557,35 antes da fala, razão=3,120;
+  pico=86016 e zero frame errors. PASS físico.
+- Três palmas: picos em 0,0215 s, 1,0988 s e 1,9651 s; intervalos de 1,077 s
+  e 0,866 s, zero frame errors. PASS físico.
+- Distância: a captura próxima teve bloco RMS máximo 12058,7 contra 10791,9
+  a aproximadamente 1 m. Tendência próxima > distante confirmada, com margem
+  modesta e sem calibração SPL.
+- Repetibilidade: cinco pares voz/silêncio PASS, razões RMS 2,124; 2,587;
+  2,671; 2,777 e 2,324.
+
+### Taxa normal, 2,700 MHz / 42,1875 kHz
+
+- Silêncio: RMS=4010,69, média absoluta=3267,63 e pico=16384.
+- Voz: RMS=20023,63, média absoluta=14288, pico=84992; razões sobre silêncio
+  4,993 e 4,373. Zero frame errors. `PHYSICAL ACOUSTIC CAPTURE = PASS`.
+- Palmas: três eventos em 0,666 s, 1,810 s e 2,810 s, com intervalos de
+  1,144 s e 1,000 s. Zero frame errors. PASS físico.
+- A FSM original chegou a ACTIVE, mas somente em 368 pontos GAO decimados
+  (~0,558 s). Isso explica a indicação visual esporádica com voz.
+
+### Calibração
+
+A observação direta de 8192 médias reais de 256 frames mostrou min=736,
+mediana=4096, p90=11456, p95=15056, máximo=62112 e nenhum overflow/erro de
+frame. Combinando-a com a referência física de silêncio, o candidato inicial é
+`THRESHOLD_ON=16000` e `THRESHOLD_OFF=8000`. O ON fica acima do máximo de
+janela de silêncio aproximado (14848); o OFF fica acima da vizinhança p95
+(7168) e preserva histerese de 8000.
+
+Uma tentativa automática marcou cinco janelas por GPIO17, mas o operador
+confirmou que não falou durante elas. O arquivo foi preservado e classificado
+`INCONCLUSIVE`; não é FAIL do microfone nem do threshold. A variante calibrada
+ON=16000/OFF=8000 passou simulação/P&R/STA, mas obteve 8/10 pares e 130
+comutações em 99,42 s. A variante temporal separada ON=12000/OFF=6000,
+ataque de duas janelas, retenção mínima de 82 janelas (~498 ms) e liberação
+após 16 janelas passou 11/11 checks de simulação, P&R e STA. O GAO observou
+ACTIVE e retorno a QUIET em todas as nove janelas completas exportadas, sem
+frame error, mas ainda com 100 transições em 99,42 s. O operador confirmou a
+fala, ressalvando que pode ter pulado um ciclo. Resultado: detecção 9/9 PASS;
+estabilidade FAIL. Não se alega 10/10.
+
+Bitstream temporal em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\stable_cued_capture\impl\pnr\ao_0.fs`.
+SHA-256: `99E43D60FBCE01CFBC6270624C4741AAB9DF30D69DE4D34B6031CEC2416639E7`.
+Recursos: Logic 871/4608 (19%), Register 573/3573 (17%), CLS 640/2304
+(28%), BSRAM 10/10. STA: zero violações setup/hold, Fmax sys_clk=31,761 MHz
+para 27 MHz. Warnings preservados: 331 (1 NL0002, 327 PA1001 do GAO/BSRAM e
+carries não consumidos, 2 TA1117 entre domínios observacionais e 1 PR1014 do
+clock de entrada já conhecido).
+
+Depois da captura, foi gerado e programado somente em SRAM o candidato
+funcional equivalente, com LED=`GPIO17 OR sound_active`, mantendo o build TP4
+original intacto. Simulação 10/10 PASS, P&R PASS, STA PASS com zero violações,
+Fmax=29,638 MHz para 27 MHz, recursos Logic 358/4608 (8%), Register 160/3573
+(5%) e CLS 244/2304 (11%). Warnings: 2 (NL0002 e PR1014 já analisados).
+Arquivo:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\stable_audio_candidate\impl\pnr\safe_field_stable_audio.fs`;
+SHA-256 `D5F94C664BB1882437CA3BD235A70913F00E1419C17C7943A33CEA64D80E7858`.
 
 ## Reteste DEBUG6 pós-correção de contato
 
@@ -182,8 +248,6 @@ Senha SSH foi fornecida interativamente e não foi persistida em arquivo.
 
 ## Próxima ação física indispensável
 
-Com o sistema desenergizado, verificar continuidade do pad SD do INMP441 até o
-package pin 43 e inspecionar orientação/solda do módulo. Se a continuidade for
-PASS, substituir o INMP441 é a ação tecnicamente indicada. Depois, repetir
-DEBUG6; somente avançar ao GATE C quando SD tiver transições e ao menos um
-sample LEFT não-zero.
+A aquisição acústica já é PASS e a confirmação do operador foi registrada. O
+trabalho restante é estabilizar a classificação QUIET/ACTIVE e executar os
+três restarts SRAM; nenhuma intervenção elétrica é necessária.

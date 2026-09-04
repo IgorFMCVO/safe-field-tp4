@@ -1,0 +1,16 @@
+SAFE-FIELD TP4 energy calibration capture simulation
+started_utc=2026-09-04T14:15:34.322Z
+success=true
+stage=run
+--- SAFE_FIELD_ENERGY_CALIBRATION_CAPTURE ---
+PASS at least eight LEFT samples reconstructed                        expected=1 obtained=1
+PASS one GAO clock after two four-frame windows                       expected=1 obtained=1
+PASS captured energy is exact average divided by sixteen              expected=256 obtained=256
+PASS calibration observation did not overflow                         expected=0 obtained=0
+PASS pipeline crosses simulated audio threshold                       expected=1 obtained=1
+PASS no I2S frame error latched                                       expected=0 obtained=0
+PASS audio ACTIVE drives LED                                          expected=1 obtained=1
+PASS GPIO17 override remains integrated                               expected=1 obtained=1
+checks=8 errors=0 left_samples=9 energy_edges=1
+TEST_RESULT: PASS
+tb/tb_safe_field_energy_calibration_capture.v:56: $finish called at 32251000 (1ps)

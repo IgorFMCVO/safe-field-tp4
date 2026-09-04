@@ -1,0 +1,16 @@
+SAFE-FIELD TP4 normal-rate continuous acoustic capture simulation
+started_utc=2026-09-04T13:17:47.331Z
+success=true
+stage=run
+--- SAFE_FIELD_NORMAL_ACOUSTIC_CAPTURE ---
+PASS SCK period is six simulation sys_clk cycles                      expected=60 obtained=60
+PASS eight LEFT samples reconstructed                                 expected=8 obtained=8
+PASS decimator-by-four emits two GAO clocks                           expected=2 obtained=2
+PASS 24-bit receiver feeds exact compressed sample                    expected=4 obtained=4
+PASS normal pipeline crosses simulated audio threshold                expected=1 obtained=1
+PASS no I2S frame error latched                                       expected=0 obtained=0
+PASS audio ACTIVE drives LED                                          expected=1 obtained=1
+PASS GPIO17 override remains integrated                               expected=1 obtained=1
+checks=8 errors=0 left_samples=8 decimated_edges=2
+TEST_RESULT: PASS
+tb/tb_safe_field_normal_acoustic_capture.v:58: $finish called at 28431000 (1ps)

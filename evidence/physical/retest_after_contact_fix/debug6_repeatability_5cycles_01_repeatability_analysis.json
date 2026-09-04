@@ -1,0 +1,44 @@
+{
+  "evidence_kind": "physical GAO/JTAG five-cycle capture",
+  "operator_confirmed_five_cycles": true,
+  "analysis": "250 ms RMS local maxima followed within 0.75 s by a local quiet block; minimum ratio 1.8",
+  "events": [
+    {
+      "voice_start_s": 0.0,
+      "voice_rms": 5228.767946345936,
+      "quiet_start_s": 0.5,
+      "quiet_rms": 2461.5836565838376,
+      "voice_to_quiet_rms_ratio": 2.124147977811313
+    },
+    {
+      "voice_start_s": 1.25,
+      "voice_rms": 4861.238215064816,
+      "quiet_start_s": 1.75,
+      "quiet_rms": 1879.074022936156,
+      "voice_to_quiet_rms_ratio": 2.5870392308807855
+    },
+    {
+      "voice_start_s": 2.5,
+      "voice_rms": 6529.871798505545,
+      "quiet_start_s": 3.0,
+      "quiet_rms": 2444.9422669103233,
+      "voice_to_quiet_rms_ratio": 2.6707672761358707
+    },
+    {
+      "voice_start_s": 3.75,
+      "voice_rms": 8123.252518259533,
+      "quiet_start_s": 4.5,
+      "quiet_rms": 2925.0997012572207,
+      "voice_to_quiet_rms_ratio": 2.7770856886581075
+    },
+    {
+      "voice_start_s": 6.25,
+      "voice_rms": 7072.639686223775,
+      "quiet_start_s": 6.75,
+      "quiet_rms": 3043.893279187358,
+      "voice_to_quiet_rms_ratio": 2.3235504787841936
+    }
+  ],
+  "frame_error_latched": 0,
+  "pass": true
+}

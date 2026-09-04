@@ -1,5 +1,43 @@
 # SAFE-FIELD TP4 — log de diagnóstico físico
 
+## 04/09/2026 — captação acústica pós-reparo
+
+Após reparo dos contatos dos pins 41 e 43, SD voltou a transmitir dados e o diagnóstico anterior de falha do INMP441 foi invalidado.
+
+- DEBUG6 baixa taxa: 1024/1024 samples LEFT não-zero e zero frame errors.
+- Voz baixa taxa: RMS 14216,89 contra 4557,35 antes da fala (3,120x), PASS.
+- Três palmas baixa taxa: três picos separados, PASS.
+- Cinco ciclos baixa taxa: cinco razões voz/silêncio de 2,124 a 2,777, PASS.
+- Taxa normal: silêncio RMS 4010,69; voz RMS 20023,63 (4,993x), PASS.
+- Três palmas normais: 0,666/1,810/2,810 s, zero frame errors, PASS.
+- Energia real/256 frames: 8192 pontos em 99,42 s, min 736, mediana 4096,
+  p90 11456, p95 15056, máximo 62112, overflow 0 e frame error 0.
+- Candidato calibrado separado: ON=16000/OFF=8000; simulação/P&R/STA PASS;
+  SRAM Program operação 2 PASS. O build final preservado não foi alterado.
+- Uma sequência GPIO de cinco janelas sem fala foi explicitamente confirmada
+  pelo operador e classificada INCONCLUSIVE, não FAIL do microfone.
+- Variante temporal separada ON=12000/OFF=6000, ataque=2 janelas, retenção
+  mínima=82 janelas (~498 ms) e release=16 janelas: simulação 11/11 PASS,
+  P&R/STA PASS, SRAM operação 2 PASS; SHA-256
+  `99E43D60FBCE01CFBC6270624C4741AAB9DF30D69DE4D34B6031CEC2416639E7`.
+- GPIO17 LOW foi observado pelo operador com LED apagado; HIGH é a fase acesa.
+- Captura marcada de 99,42 s: nove janelas completas tiveram ACTIVE e retorno
+  a QUIET, frame errors=0, mas a FSM comutou 100 vezes. O operador confirmou a
+  fala com ressalva de possível ciclo pulado: detecção 9/9 intervalos completos
+  PASS; estabilidade FAIL; não se alega 10/10.
+
+Bitstream temporal em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\stable_cued_capture\impl\pnr\ao_0.fs`
+
+SHA-256:
+`99E43D60FBCE01CFBC6270624C4741AAB9DF30D69DE4D34B6031CEC2416639E7`
+
+Após a captura GAO, o candidato funcional equivalente foi programado somente
+em SRAM: simulação 10/10 PASS, P&R/STA PASS, zero violações, Fmax 29,638 MHz,
+2 warnings conhecidos. Arquivo
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\stable_audio_candidate\impl\pnr\safe_field_stable_audio.fs`,
+SHA-256 `D5F94C664BB1882437CA3BD235A70913F00E1419C17C7943A33CEA64D80E7858`.
+
 Execução em 03/09/2026, fuso America/Sao_Paulo. Checkpoint isolado:
 branch `tp4-physical-validation`, derivada do commit de diagnósticos `28bb261`.
 A baseline e o build final de produção não foram sobrescritos.

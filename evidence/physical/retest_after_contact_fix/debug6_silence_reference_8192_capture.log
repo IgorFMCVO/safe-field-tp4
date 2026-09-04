@@ -1,0 +1,74 @@
+started_local=2026-09-04T09:49:01.917-03:00
+capture_kind=physical GAO/JTAG after contact repair
+stimulus=silence
+evidence_label=silence_reference_8192
+stimulus_frequency_hz=0.0
+wav_amplitude_fraction_full_scale=0.12
+capture_count=8
+samples_per_capture=1024 LEFT frames
+rao=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao
+capture_01_start=2026-09-04T09:49:02.418-03:00
+capture_01_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture01 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture01_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture01_core1_window0.csv
+Running GAO analyzer complete.
+capture_01_exit_code=0
+capture_01_finish=2026-09-04T09:49:06.540-03:00
+capture_02_start=2026-09-04T09:49:06.791-03:00
+capture_02_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture02 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture02_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture02_core1_window0.csv
+Running GAO analyzer complete.
+capture_02_exit_code=0
+capture_02_finish=2026-09-04T09:49:10.943-03:00
+capture_03_start=2026-09-04T09:49:11.194-03:00
+capture_03_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture03 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture03_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture03_core1_window0.csv
+Running GAO analyzer complete.
+capture_03_exit_code=0
+capture_03_finish=2026-09-04T09:49:15.305-03:00
+capture_04_start=2026-09-04T09:49:15.556-03:00
+capture_04_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture04 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture04_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture04_core1_window0.csv
+Running GAO analyzer complete.
+capture_04_exit_code=0
+capture_04_finish=2026-09-04T09:49:19.696-03:00
+capture_05_start=2026-09-04T09:49:19.947-03:00
+capture_05_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture05 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture05_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture05_core1_window0.csv
+Running GAO analyzer complete.
+capture_05_exit_code=0
+capture_05_finish=2026-09-04T09:49:24.103-03:00
+capture_06_start=2026-09-04T09:49:24.354-03:00
+capture_06_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture06 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture06_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture06_core1_window0.csv
+Running GAO analyzer complete.
+capture_06_exit_code=0
+capture_06_finish=2026-09-04T09:49:28.526-03:00
+capture_07_start=2026-09-04T09:49:28.777-03:00
+capture_07_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture07 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture07_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture07_core1_window0.csv
+Running GAO analyzer complete.
+capture_07_exit_code=0
+capture_07_finish=2026-09-04T09:49:32.902-03:00
+capture_08_start=2026-09-04T09:49:33.153-03:00
+capture_08_command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\debug6_retest_after_contact_fix.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture08 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture08_core0_window0.csv
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\debug6_silence_reference_8192_capture08_core1_window0.csv
+Running GAO analyzer complete.
+capture_08_exit_code=0
+capture_08_finish=2026-09-04T09:49:37.291-03:00
+finished_local=2026-09-04T09:49:37.542-03:00

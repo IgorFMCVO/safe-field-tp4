@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="debug6_acoustic_capture" Register="36" Alu="7" Lut="34" T_Register="436(36)" T_Alu="29(7)" T_Lut="520(34)" T_Bsram="9(0)">
+ <SubModule name="clock_master" Register="23" Lut="26" T_Register="23(23)" T_Lut="26(26)"/>
+ <SubModule name="receiver" Register="58" Alu="6" Lut="15" T_Register="58(58)" T_Alu="6(6)" T_Lut="15(15)"/>
+ <SubModule name="gw_gao_inst_0" Register="319" Alu="16" Lut="445" Bsram="9" T_Register="319(319)" T_Alu="16(16)" T_Lut="445(445)" T_Bsram="9(9)"/>
+</Module>
