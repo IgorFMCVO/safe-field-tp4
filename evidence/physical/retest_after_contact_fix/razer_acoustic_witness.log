@@ -1,0 +1,19 @@
+{
+  "kind": "independent Razer microphone-array witness",
+  "input_device": 1,
+  "input_device_name": "Microphone Array (Tecnologia In",
+  "output_device": 3,
+  "output_device_name": "Speakers (Realtek(R) Audio)",
+  "sample_rate_hz": 48000,
+  "generated_frequency_hz": 1000.0,
+  "generated_amplitude_fraction_full_scale": 0.4,
+  "captured_peak_frequency_hz": 3000.0,
+  "frequency_error_hz": 2000.0,
+  "silence_rms": 2.164147387829644e-05,
+  "tone_rms": 1.590956934058063e-05,
+  "rms_ratio_tone_to_silence": 0.7351425984223673,
+  "pass": false
+}
+WAV=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\razer_mic_witness_1000hz.wav
+ANALYSIS_JSON=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\razer_mic_witness_1000hz_analysis.json
+PLOT=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\razer_mic_witness_1000hz.png

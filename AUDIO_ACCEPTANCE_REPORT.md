@@ -1,47 +1,67 @@
 # SAFE-FIELD — AUDIO ACCEPTANCE REPORT
 
-Data: 04/09/2026. Fuso: America/Sao_Paulo. Branch de diagnóstico:
-`tp4-audio-acceptance`. O build final e todos os DEBUG1–5 permaneceram
+Data: 04/09/2026. Fuso: America/Sao_Paulo. Branch de reteste:
+`tp4-retest-after-contact-fix`. O build final e todos os DEBUG1–7 permaneceram
 inalterados. Todas as programações desta rodada usaram somente operação 2,
 `SRAM Program`; nenhuma Flash foi acessada.
 
 ## Veredito
 
-**A cadeia de áudio NÃO está aceita e o INMP441 NÃO deve ser declarado
-operacional.** O GATE A falhou porque SD não apresentou transições nem sample
-LEFT diferente de zero. O GATE B demonstrou que SD segue o pull interno do
-FPGA e permanece em alta impedância durante ambos os slots, inclusive durante
-tom de 1 kHz. Conforme o critério solicitado, o módulo INMP441 — incluindo seu
-estágio/pad de saída SD — é o principal suspeito físico.
+**GATE A passou após o reparo dos contatos; a cadeia completa ainda não está
+aceita.** O GAO agora observa transições reais em SD, `sample_valid`, 1024/1024
+samples LEFT não-zero e zero frame errors. A conclusão anterior de SD morto e
+INMP441 suspeito está formalmente superada e não descreve a montagem atual.
 
-Ainda existe uma alternativa física que software não distingue: circuito
-aberto entre o pad SD do módulo e o package pin 43. SCK e WS foram excluídos
-dessa hipótese porque o operador confirmou explicitamente DEBUG5 LOW/HIGH nos
-pads do próprio INMP441. Resolver a distinção INMP441 versus continuidade de SD
-exigiria medição/inspeção física, proibida nesta execução.
+Os testes acústicos automatizados ainda não provaram periodicidade: 500 Hz,
+1 kHz e 2 kHz não apareceram nos FFTs do INMP441. Uma testemunha independente
+com a matriz de microfones do Razer também não captou o tom enviado ao endpoint
+Realtek. Portanto o bloqueio atual é confirmar que o estímulo realmente foi
+irradiado no ambiente, e não uma falha demonstrada do I2S ou do INMP441.
+
+> O reteste ocorreu após correção física dos contatos dos pins 41 e 43.
 
 ## Matriz de aceitação
 
 | Camada | PASS/FAIL | Valor medido | Evidência | Arquivo |
 |---|---|---|---|---|
 | alimentação | PASS | 3,3 V no INMP441, informado como medido pelo operador | evidência física explicitamente fornecida pelo operador | `STATUS_TP4.md` |
-| clocks | PASS | SCK=500.000 Hz; WS=7.812,5 Hz; 64 SCK/frame; 32 SCK/slot | GAO físico, modal de 54 sys_clks/SCK e 1728 sys_clks/meio-frame | `evidence/physical/debug7_sd_slot_diagnostic/pull_none_slot_analysis.json` |
+| clocks | PASS | SCK=500.000 Hz; WS=7.812,5 Hz; 64 SCK/frame; 32 SCK/slot | GAO físico pós-reparo | `evidence/physical/retest_after_contact_fix/debug6_environment_01_analysis.json` |
 | fiação externa SCK/WS | PASS | DEBUG5 alternância LOW/HIGH observada nos pads SCK/WS | evidência física explicitamente informada pelo operador em 04/09/2026 | `evidence/physical/PHYSICAL_DIAGNOSTIC_LOG.md` |
-| SD | FAIL | DOWN: 0/1025 HIGH; NONE: 4096/4096 HIGH; UP: 4096/4096 HIGH; zero transições estáveis | SD muda com o pull configurado e não com WS/áudio | `evidence/physical/debug7_sd_slot_diagnostic/sd_bias_comparison.png` |
-| decoding | FAIL | 512×0 com pull-down; 512×-1 com NONE/UP; frame errors=0 | receptor avança corretamente, mas reconstrói somente o nível de bias | `evidence/physical/debug6_low_rate_i2s/gate_a_initial_analysis.json`; `evidence/physical/debug7_sd_slot_diagnostic/pull_up_slot_analysis.json` |
-| samples | FAIL | nenhum sample físico atribuível ao microfone | 0/512 não-zero no GATE A; 512 valores constantes -1 no pull-up não são áudio | mesmos JSONs acima |
-| resposta acústica | FAIL | tom 1 kHz: SD HIGH 4096/4096, 0 transições, 512×-1 | captura GAO simultânea a WAV 1 kHz, amplitude digital 12% | `evidence/physical/debug7_sd_slot_diagnostic/pull_up_tone_1000hz_slot_analysis.json` |
-| frequência acústica | FAIL | não estimável | não existe waveform real; estimar frequência de bias constante seria fictício | `evidence/physical/debug7_sd_slot_diagnostic/pull_up_tone_1000hz_core1_window0.csv` |
-| magnitude/energia | FAIL | não calibrável | nenhuma amostra real; thresholds não foram alterados | `evidence/physical/debug6_low_rate_i2s/gate_a_initial_core1_window0.csv` |
-| FSM QUIET/ACTIVE | FAIL | não executada fisicamente | bloqueada pelo GATE A/B, evitando falso resultado com bias | este relatório |
-| estabilidade 60 s/restarts | FAIL | não executada | GATE F depende de samples reais e foi bloqueado pelo GATE B | este relatório |
-| integração Raspberry | FAIL | GPIO17 LOW confirmado; aceitação ponta a ponta não executada | override baseline preservado, mas GATE G depende de áudio válido | `evidence/physical/debug6_low_rate_i2s/gpio17_low.log` |
+| SD | PASS | 8 transições na janela bruta inicial; 44 em quatro janelas de silêncio | GAO/JTAG pós-reparo | `evidence/physical/retest_after_contact_fix/GATE_A_RESULT.md` |
+| decoding | PASS preliminar | 1024/1024 LEFT não-zero, signed positivos e negativos, frame errors=0 | PCM real reconstruído | `evidence/physical/retest_after_contact_fix/debug6_environment_01_core1_window0.csv` |
+| samples | PASS preliminar | silêncio: 4096 samples, min=-13616, max=6912, AC RMS=3959,7 | quatro capturas GAO independentes | `evidence/physical/retest_after_contact_fix/debug6_silence_analysis_4096.json` |
+| resposta acústica | BLOQUEADO | WAVs executaram, mas nem INMP441 nem microfone-testemunha captaram periodicidade | estímulo acústico não confirmado no ar | `evidence/physical/retest_after_contact_fix/razer_mic_witness_1000hz_analysis.json` |
+| frequência acústica | FAIL atual | estimativas não acompanham 500/1000/2000 Hz | critério de periodicidade não atendido | `evidence/physical/retest_after_contact_fix/debug6_tone_*_analysis_4096.json` |
+| magnitude/energia | PENDENTE | noise floor preliminar disponível; sem tom validado para calibração | não inventar thresholds | este relatório |
+| FSM QUIET/ACTIVE | PENDENTE | não executada após o reparo | depende de estímulo acústico confirmado | este relatório |
+| estabilidade 60 s/restarts | PENDENTE | não executada após o reparo | depende do GATE D | este relatório |
+| integração Raspberry | PARCIAL | GPIO17 LOW confirmado; HIGH/LOW final ainda pendente | baseline preservada | `evidence/physical/retest_after_contact_fix/ssh_gpio17_attempt.log` |
 
-`FAIL` nas etapas C–G significa “critério de aceitação não atingido”, não falha
-demonstrada da lógica correspondente. Elas foram deliberadamente interrompidas
-porque o plano proíbe avançar para processamento quando SD não transmite.
+O status acima é o vigente. Os resultados abaixo são preservados como histórico
+anterior ao reparo e não devem ser usados para diagnosticar o hardware atual.
 
-## GATE A — DEBUG6_LOW_RATE_I2S
+## Reteste DEBUG6 pós-correção de contato
+
+- Branch/checkpoint: `tp4-retest-after-contact-fix`, início `6fbe4f5`.
+- Simulação: PASS, 14/14 checks.
+- Síntese/P&R: PASS; STA PASS, 3194 paths, zero violações setup/hold.
+- Recursos GAO profundo: Logic 1173/4608 (26%), Register 1143/3573 (32%),
+  CLS 992/2304 (44%), I/O 10/39 (26%), BSRAM 10/10 (100%).
+- Warnings preservados: 262 — 259× PA1001 do GAO/memórias/carries não
+  consumidos, 2× TA1117 entre domínios assíncronos do GAO e 1× PR1014 na rota
+  genérica conhecida de `sys_clk_d`.
+- Bitstream programado somente em SRAM:
+  `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\impl\pnr\ao_0.fs`.
+- SHA-256: `7C1F24C7FE1B1142245AE53973B49C8A32807C6BFA77C27496D17C4CC3EA0B6F`.
+- Primeira captura: SCK 500 kHz, WS 7,8125 kHz, 1024 samples não-zero,
+  min=-9736, max=3078, RMS=5276,15, 8 transições SD e zero frame errors.
+- Silêncio agregado: 4096 samples; 1 zero/4095 não-zero; min=-13616;
+  max=6912; mean=-3043,40; mean abs=3987,71; AC RMS=3959,67; pico=13616;
+  clipping=0; frame errors=0.
+
+## Registro histórico anterior à correção — não vigente
+
+### GATE A — DEBUG6_LOW_RATE_I2S antes do reparo
 
 ### Build
 

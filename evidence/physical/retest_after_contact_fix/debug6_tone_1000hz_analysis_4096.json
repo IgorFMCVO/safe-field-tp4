@@ -1,0 +1,40 @@
+{
+  "kind": "physical GAO/JTAG capture after contact repair",
+  "stimulus": "tone_1000hz",
+  "expected_frequency_hz": 1000.0,
+  "sample_rate_hz": 7812.5,
+  "captures": 4,
+  "total_samples": 4096,
+  "zero_samples": 0,
+  "nonzero_samples": 4096,
+  "min": -11670,
+  "max": 19274,
+  "mean": 1222.23046875,
+  "mean_abs": 6309.40234375,
+  "rms": 7697.930696987665,
+  "ac_rms": 7600.282211660575,
+  "peak_abs": 19274,
+  "full_scale_fraction": 0.002297640120701804,
+  "clipped_samples": 0,
+  "raw_sd_transitions_across_windows": 38,
+  "frame_error_counter_max": 0,
+  "sck_hz": 500000.0,
+  "ws_hz": 7812.5,
+  "fft_frequency_hz_per_capture": [
+    22.88818359375,
+    7.62939453125,
+    7.62939453125,
+    7.62939453125
+  ],
+  "zero_crossing_hz_per_capture": [
+    389.09912109375,
+    419.61669921875,
+    198.3642578125,
+    526.42822265625
+  ],
+  "fft_frequency_hz_median": 7.62939453125,
+  "zero_crossing_hz_median": 404.35791015625,
+  "frequency_tolerance_hz": 80.0,
+  "frequency_pass": false,
+  "frame_integrity_pass": true
+}

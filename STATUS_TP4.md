@@ -8,11 +8,16 @@ O checkpoint `tp4-audio-inmp441` contém receptor I2S de 24 bits, geração de
 SCK/WS, `sample_valid`, magnitude/média, FSM com histerese e integração com o
 caminho GPIO17 -> LED preexistente. Simulação, síntese, Place & Route, STA e
 geração do `.fs` passaram. O build final abaixo permanece byte a byte intacto.
-Em 03/09/2026, o checkpoint separado `tp4-physical-validation` programou apenas
-SRAM com GAO/JTAG e localizou a falha física na camada SD. Em 04/09/2026, a
-branch `tp4-audio-acceptance` confirmou SCK/WS em baixa velocidade e demonstrou
-que SD segue o pull interno do FPGA, permanecendo sem saída I2S do microfone.
-O INMP441/estágio SD é o principal suspeito; áudio ainda não está operacional.
+Em 03/09/2026 e no início de 04/09/2026, checkpoints separados observaram SD
+estático. Depois disso houve reparo físico de contatos nos caminhos dos pins 41
+e 43. O reteste isolado `tp4-retest-after-contact-fix` demonstrou que SD voltou
+a apresentar transições e que o receptor captura PCM LEFT signed não-zero sem
+frame errors. A suspeita anterior de INMP441 defeituoso está superada.
+
+A cadeia completa ainda não está aceita: os tons enviados pelo endpoint Realtek
+não foram reconhecidos espectralmente, e a própria matriz de microfones do Razer
+também não testemunhou o tom. O próximo gate é confirmar com o operador que o
+estímulo é audível; não há autorização técnica para calibrar FSM antes disso.
 
 Bitstream revisado:
 `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\full\impl\pnr\safe_field_tp4.fs`
@@ -25,6 +30,34 @@ Bitstream GAO atualmente recomendado para diagnóstico em SRAM:
 
 SHA-256 GAO:
 `64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56`
+
+## Reteste após correção física — status vigente
+
+> O reteste ocorreu após correção física dos contatos dos pins 41 e 43.
+
+- Branch isolada: `tp4-retest-after-contact-fix`; checkpoint inicial `6fbe4f5`.
+- JTAG: PASS, `GW1NSR-4C`, IDCODE `0x0100981B`.
+- GPIO17: PASS, `17: op -- pd | lo`, confirmado às 09:30:43 -03:00.
+- DEBUG6 profundo: simulação 14/14 PASS; síntese/P&R PASS; STA PASS, zero
+  violações setup/hold e Fmax 85,401 MHz para `sys_clk` de 27 MHz.
+- Pinout do P&R: 40/pi_signal in, 41/SCK out, 42/WS out, 43/SD in,
+  45/sys_clk in e 10/LED out; Bank 1 LVCMOS33 para 40–45.
+- SRAM Program: PASS pela operação 2; nenhuma Flash acessada.
+- `.fs` programado:
+  `C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug6_retest_after_contact_fix\impl\pnr\ao_0.fs`.
+- SHA-256: `7C1F24C7FE1B1142245AE53973B49C8A32807C6BFA77C27496D17C4CC3EA0B6F`.
+- GAO: SCK=500.000 Hz, WS=7.812,5 Hz, 64 SCK/frame; SD com transições;
+  1024/1024 samples LEFT não-zero; min=-9736, max=3078; RMS=5276,15;
+  frame errors=0.
+- Silêncio em 4096 samples: 4095 não-zero, min=-13616, max=6912,
+  AC RMS=3959,67, pico=13616, clipping=0 e frame errors=0.
+- Tons 500/1000/2000 Hz: periodicidade esperada ainda FAIL. A matriz de
+  microfones do Razer também não captou o 1 kHz enviado ao endpoint Realtek,
+  logo a emissão acústica precisa de confirmação do operador.
+
+Conclusão vigente: **SD e PCM físico PASS; resposta acústica conhecida ainda
+PENDENTE/BLOQUEADA por observabilidade do estímulo.** Não atribuir defeito ao
+INMP441 e não usar os resultados anteriores ao reparo como estado atual.
 
 ## DEBUG5_EXTERNAL_WIRING_LEVELS — PASS físico informado pelo operador
 
@@ -64,7 +97,7 @@ Estado físico: **PASS informado explicitamente pelo operador em 04/09/2026**.
 SCK e WS foram observados alternando LOW/HIGH nos pads do próprio INMP441. Esta
 evidência confirma somente os caminhos externos de SCK/WS; não valida SD.
 
-## Aceitação de áudio DEBUG6/DEBUG7 — bloqueada em SD
+## Histórico DEBUG6/DEBUG7 anterior à correção — não vigente
 
 - DEBUG6: SCK=500.000 Hz, WS=7.812,5 Hz, 64 SCK/frame e 0 frame errors.
 - GATE A: FAIL; pull-down resultou em 512/512 samples zero e 0 transições SD.
@@ -141,22 +174,20 @@ evidência confirma somente os caminhos externos de SCK/WS; não valida SD.
 
 ## PENDENTE
 
-- Com todo o hardware desenergizado, verificar continuidade entre o pad SD do
-  INMP441 e o package pin 43, além de orientação e soldas do módulo.
-- Se a continuidade SD passar, substituir o módulo INMP441/avaliar seu estágio
-  de saída; qualquer retrabalho depende da decisão física do responsável.
-- Depois que SD apresentar transições e samples não-zero, repetir as capturas
-  DEBUG6/GAO e então executar GATES C–G e calibrar `THRESHOLD_ON/OFF` com dados
-  acústicos reais.
+- Operador confirmar se o tom de 1 kHz do Razer é audível no ambiente, sem
+  mover fios ou alterar a montagem.
+- Depois de confirmar o estímulo: repetir 500/1000/2000 Hz e pulsos, exigir
+  frequência compatível, então avançar à taxa normal, magnitude, janela de 256,
+  thresholds físicos, FSM, 10 ciclos, voz, 60 s, três SRAM restarts e GPIO17.
+- Não calibrar `THRESHOLD_ON/OFF` com os tons atuais porque a emissão acústica
+  não foi testemunhada.
 
 ## BLOQUEADO
 
-A validação ponta a ponta para na camada B. DEBUG5 confirmou fisicamente SCK/WS
-nos pads, mas SD segue o pull do FPGA: LOW com PULL DOWN e HIGH com NONE/UP,
-sempre sem transições nos slots LEFT/RIGHT, inclusive sob tom de 1 kHz. Isso é
-alta impedância contínua/circuito aberto, não saída I2S. Distinguir módulo
-INMP441 defeituoso de descontinuidade no caminho SD exige teste físico com o
-sistema desenergizado. Não há PASS físico de áudio nem calibração válida.
+O gate de resposta acústica aguarda uma única observação humana: confirmar se o
+tom emitido pelo Razer é audível. O caminho digital não está bloqueado em SD:
+o GAO pós-reparo já provou transições e samples PCM reais. Nenhuma alteração
+física, ressolda ou substituição do INMP441 é indicada pelos dados atuais.
 
 ## Pinout final usado
 

@@ -1,0 +1,5 @@
+timestamp=2026-09-04T09:27:59.656-03:00
+branch=tp4-retest-after-contact-fix
+head=6fbe4f59c7a79c342d978193da3f04dee12c1ff3
+debug6_sha256=D930622FF7C1407D33C0EA0B2324B7DFB8892E6FDE08B98F2A4D40F603876105
+camera_status=operator-confirmed disconnected; not independently observable by software

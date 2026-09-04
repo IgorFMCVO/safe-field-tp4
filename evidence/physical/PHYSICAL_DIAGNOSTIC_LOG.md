@@ -274,3 +274,31 @@ GATES C–G foram bloqueados e não simulados como evidência física. Relatóri
 matriz completos em `AUDIO_ACCEPTANCE_REPORT.md`; CSVs, JSONs, PNG, logs de
 build, SRAM e GAO estão em `evidence/physical/debug6_low_rate_i2s/` e
 `evidence/physical/debug7_sd_slot_diagnostic/`.
+
+## 04/09/2026 — RETESTE APÓS CORREÇÃO DOS CONTATOS 41/43
+
+O reteste ocorreu após correção física dos contatos dos pins 41 e 43. Todo o
+conteúdo DEBUG6/DEBUG7 imediatamente acima é preservado como histórico
+pré-reparo e não é diagnóstico válido da montagem atual.
+
+- Branch/checkpoint: `tp4-retest-after-contact-fix` / `6fbe4f5`.
+- JTAG: `GW1NSR-4C`, ID `0x0100981B`, PASS.
+- GPIO17: saída LOW, PASS.
+- DEBUG6 profundo: simulation/P&R/STA PASS; somente SRAM, operação 2.
+- Hash programado: `7C1F24C7FE1B1142245AE53973B49C8A32807C6BFA77C27496D17C4CC3EA0B6F`.
+- Clocks GAO: SCK 500 kHz e WS 7,8125 kHz, PASS.
+- Primeira captura pós-reparo: 8 transições SD; 1024/1024 samples LEFT
+  não-zero; min=-9736; max=3078; média=-4240,24; média absoluta=4509,19;
+  RMS=5276,15; frame errors=0. **GATE A PASS.**
+- Silêncio agregado: 4096 samples; AC RMS=3959,67; pico=13616; clipping=0;
+  frame errors=0.
+- Tons automatizados: 500, 1000 e 2000 Hz produziram capturas não-zero, mas
+  nenhuma FFT acompanhou a frequência emitida. Uma repetição de 1 kHz com WAV
+  a 40% também falhou no critério espectral.
+- Testemunha independente: a matriz de microfones do Razer não captou o tom de
+  1 kHz enviado ao endpoint padrão Realtek; RMS do trecho de tom foi 0,735× o
+  trecho de pausa. A emissão acústica no ambiente não está comprovada.
+
+Estado: o diagnóstico anterior de SD morto/INMP441 suspeito está **SUPERADO**.
+O reteste para antes da taxa normal e da calibração, aguardando o operador
+confirmar se o tom é audível. Não houve Flash nem alteração de hardware.

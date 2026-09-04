@@ -1,0 +1,8 @@
+SSH pre-flight attempt
+Target: safe-field@safe-field.local
+Command requested remotely: pinctrl set 17 op dl; pinctrl get 17; date --iso-8601=seconds
+Initial result: authentication password prompt reached successfully; the first session was cancelled without entering a credential.
+Retest result: operator supplied the credential for one-time interactive use only. It was not copied into this file, a script, a commit, or project documentation.
+Remote command output: 17: op -- pd | lo // GPIO17 = output
+Remote timestamp: 2026-09-04T09:30:43-03:00
+GPIO17 state: PASS — output LOW before SRAM programming.
