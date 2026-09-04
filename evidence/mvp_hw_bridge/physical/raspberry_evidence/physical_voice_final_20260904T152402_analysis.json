@@ -1,0 +1,56 @@
+{
+  "source": "evidence\\mvp_hw_bridge\\physical\\raspberry_evidence\\physical_voice_final_20260904T152402.jsonl",
+  "records": 3264,
+  "start": "2026-09-04T18:24:03.262+00:00",
+  "end": "2026-09-04T18:24:22.974+00:00",
+  "sequence": {
+    "first": 62034,
+    "last": 65297,
+    "discontinuities": 0
+  },
+  "frame_counter": {
+    "first": 66212608,
+    "last": 67047936,
+    "expected_step": 256,
+    "step_errors": 0
+  },
+  "energy": {
+    "min": 775,
+    "max": 25829,
+    "mean": 6020.73
+  },
+  "flags": [
+    4
+  ],
+  "segments": [
+    {
+      "state": "QUIET",
+      "records": 902,
+      "start": "2026-09-04T18:24:03.262+00:00",
+      "end": "2026-09-04T18:24:08.700+00:00",
+      "energy_min": 783,
+      "energy_max": 24651,
+      "energy_mean": 5028.64
+    },
+    {
+      "state": "ACTIVE",
+      "records": 414,
+      "start": "2026-09-04T18:24:08.701+00:00",
+      "end": "2026-09-04T18:24:11.225+00:00",
+      "energy_min": 835,
+      "energy_max": 23302,
+      "energy_mean": 6413.49
+    },
+    {
+      "state": "QUIET",
+      "records": 1948,
+      "start": "2026-09-04T18:24:11.225+00:00",
+      "end": "2026-09-04T18:24:22.974+00:00",
+      "energy_min": 775,
+      "energy_max": 25829,
+      "energy_mean": 6396.64
+    }
+  ],
+  "quiet_active_quiet": true,
+  "result": "PASS"
+}
