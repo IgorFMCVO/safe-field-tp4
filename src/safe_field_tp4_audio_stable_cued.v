@@ -1,0 +1,3 @@
+`define SAFE_FIELD_TP4_STABLE_MODULE safe_field_tp4_audio_stable_cued
+`define SAFE_FIELD_TP4_CUE_ONLY_LED
+`include "safe_field_tp4_audio_stable.v"

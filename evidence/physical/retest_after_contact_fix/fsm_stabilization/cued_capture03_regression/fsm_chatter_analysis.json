@@ -1,0 +1,370 @@
+{
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_cued_physical_2cycles_03_core0_window0.csv",
+  "gao_rate_hz": 82.3974609375,
+  "fsm_window_rate_hz": 164.794921875,
+  "duration_seconds": 49.71026962962963,
+  "threshold_on": 12000,
+  "threshold_off": 6000,
+  "threshold_distance": 6000,
+  "transitions_before": 6,
+  "rapid_reversals_under_500ms_before": 0,
+  "transitions_within_3000_of_relevant_threshold": 2,
+  "active_dwell_seconds": {
+    "minimum": 1.225765925925926,
+    "median": 2.378714074074074,
+    "maximum": 2.4029866666666666,
+    "count": 3
+  },
+  "quiet_dwell_seconds": {
+    "minimum": 4.041386666666667,
+    "median": 8.68352,
+    "maximum": 22.294376296296296,
+    "count": 4
+  },
+  "all_dwell_under_500ms": 0,
+  "confirmed_full_operator_intervals": 2,
+  "diagnosis": "Combination: frequent threshold crossings plus speech/noise gaps shorter than a perceptually useful release interval. The existing ~97 ms release qualification is too short; minimum-active hold does not prevent chatter after it expires.",
+  "chosen_candidate": {
+    "transitions": 4,
+    "rapid_reversals_under_500ms": 0,
+    "events_detected": 2,
+    "events_total": 2,
+    "inter_event_quiet_recovered": 1,
+    "inter_event_gaps_total": 1,
+    "attack_latency_max_seconds": 3.0158696296296297,
+    "attack_latency_mean_seconds": 2.4333274074074076,
+    "event_results": [
+      {
+        "event": 1,
+        "detected": true,
+        "attack_latency_seconds": 1.850785185185185
+      },
+      {
+        "event": 2,
+        "detected": true,
+        "attack_latency_seconds": 3.0158696296296297
+      }
+    ],
+    "attack_windows": 24,
+    "release_windows": 82,
+    "attack_nominal_seconds": 0.14563555555555555,
+    "release_nominal_seconds": 0.49758814814814817
+  },
+  "top_qualified_candidates": [
+    {
+      "transitions": 4,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 3.0158696296296297,
+      "attack_latency_mean_seconds": 2.4333274074074076,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 1.850785185185185
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 3.0158696296296297
+        }
+      ],
+      "attack_windows": 24,
+      "release_windows": 82,
+      "attack_nominal_seconds": 0.14563555555555555,
+      "release_nominal_seconds": 0.49758814814814817
+    },
+    {
+      "transitions": 4,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 3.76832,
+      "attack_latency_mean_seconds": 2.8338251851851854,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 1.8993303703703703
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 3.76832
+        }
+      ],
+      "attack_windows": 32,
+      "release_windows": 82,
+      "attack_nominal_seconds": 0.19418074074074074,
+      "release_nominal_seconds": 0.49758814814814817
+    },
+    {
+      "transitions": 4,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 3.0158696296296297,
+      "attack_latency_mean_seconds": 2.4333274074074076,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 1.850785185185185
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 3.0158696296296297
+        }
+      ],
+      "attack_windows": 24,
+      "release_windows": 96,
+      "attack_nominal_seconds": 0.14563555555555555,
+      "release_nominal_seconds": 0.5825422222222222
+    },
+    {
+      "transitions": 4,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 3.76832,
+      "attack_latency_mean_seconds": 2.8338251851851854,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 1.8993303703703703
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 3.76832
+        }
+      ],
+      "attack_windows": 32,
+      "release_windows": 96,
+      "attack_nominal_seconds": 0.19418074074074074,
+      "release_nominal_seconds": 0.5825422222222222
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 2,
+      "release_windows": 128,
+      "attack_nominal_seconds": 0.012136296296296296,
+      "release_nominal_seconds": 0.776722962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 4,
+      "release_windows": 128,
+      "attack_nominal_seconds": 0.024272592592592592,
+      "release_nominal_seconds": 0.776722962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 8,
+      "release_windows": 128,
+      "attack_nominal_seconds": 0.048545185185185184,
+      "release_nominal_seconds": 0.776722962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 12,
+      "release_windows": 128,
+      "attack_nominal_seconds": 0.07281777777777777,
+      "release_nominal_seconds": 0.776722962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 16,
+      "release_windows": 128,
+      "attack_nominal_seconds": 0.09709037037037037,
+      "release_nominal_seconds": 0.776722962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 2,
+      "release_windows": 164,
+      "attack_nominal_seconds": 0.012136296296296296,
+      "release_nominal_seconds": 0.9951762962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 4,
+      "release_windows": 164,
+      "attack_nominal_seconds": 0.024272592592592592,
+      "release_nominal_seconds": 0.9951762962962963
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 2,
+      "events_total": 2,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 1,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 8,
+      "release_windows": 164,
+      "attack_nominal_seconds": 0.048545185185185184,
+      "release_nominal_seconds": 0.9951762962962963
+    }
+  ],
+  "transition_detail_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\cued_capture03_regression\\fsm_transition_details.csv",
+  "rtl_regression_memory": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\cued_capture03_regression\\physical_energy_99s.memh",
+  "rtl_regression_words": 8192
+}

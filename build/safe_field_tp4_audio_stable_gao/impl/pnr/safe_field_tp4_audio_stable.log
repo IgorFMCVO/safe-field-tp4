@@ -1,0 +1,133 @@
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\gwsynthesis\safe_field_tp4_audio_stable.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\gwsynthesis\safe_field_tp4_audio_stable.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er1'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'run_test_idle_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'pause_dr'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'enable_er2'(source:'u_gw_jtag') in module 'gw_gao' has no destination
+WARN  (PA1001) : Dangling net 'n1419_23_SUM'(source:'n1419_s22') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_24_SUM'(source:'n1419_s23') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_25_SUM'(source:'n1419_s24') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_26_SUM'(source:'n1419_s25') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_27_SUM'(source:'n1419_s26') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_28_SUM'(source:'n1419_s27') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_29_SUM'(source:'n1419_s28') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_30_SUM'(source:'n1419_s29') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_31_SUM'(source:'n1419_s30') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1419_32_SUM'(source:'n1419_s31') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1445_1_SUM'(source:'n1445_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1446_1_SUM'(source:'n1446_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1447_1_SUM'(source:'n1447_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'n1448_1_SUM'(source:'n1448_s0') in module 'ao_top_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[8]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[9]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[10]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[11]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[12]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[13]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[14]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[15]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[16]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[17]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[18]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[19]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[20]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[21]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[22]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[23]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[24]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[25]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[26]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[27]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[28]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[29]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[30]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO[31]'(source:'mem_mem_0_0_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[8]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[9]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[10]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[11]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[12]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[13]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[14]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[15]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[16]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[17]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[18]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[19]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[20]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[21]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[22]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[23]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[24]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[25]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[26]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[27]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[28]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[29]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[30]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_0[31]'(source:'mem_mem_0_1_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[4]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[5]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[6]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[7]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[8]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[9]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[10]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[11]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[12]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[13]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[14]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[15]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[16]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[17]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[18]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[19]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[20]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[21]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[22]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[23]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[24]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[25]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[26]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[27]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[28]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[29]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[30]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+WARN  (PA1001) : Dangling net 'DO_1[31]'(source:'mem_mem_0_2_s') in module 'ao_mem_ctrl_0' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+WARN  (TA1117) : Can't calculate clocks' relationship between: "i2s_ws_clk" and "sys_clk"
+WARN  (TA1117) : Can't calculate clocks' relationship between: "sys_clk" and "energy_capture_clk"
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_gao\impl\pnr\safe_field_tp4_audio_stable.tr" completed
+Fri Sep  4 12:42:26 2026
+

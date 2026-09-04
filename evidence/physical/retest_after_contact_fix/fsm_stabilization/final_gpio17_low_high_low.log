@@ -1,0 +1,21 @@
+SAFE-FIELD TP4 final GPIO17 software-level check
+Date: 2026-09-04, America/Sao_Paulo
+Target: Raspberry Pi 4, GPIO17 -> Tang Nano 4K package pin 40
+Bitstream loaded before test: safe_field_tp4_validated.fs, SRAM operation 2
+
+FINAL_GPIO_TEST_START
+2026-09-04T13:10:30-03:00
+LOW
+17: op -- pd | lo // GPIO17 = output
+HIGH
+17: op -- pd | hi // GPIO17 = output
+RESTORED_LOW
+17: op -- pd | lo // GPIO17 = output
+2026-09-04T13:10:32-03:00
+FINAL_GPIO_TEST_END
+
+The password was supplied interactively and is not stored here.
+Physical endpoint context: GPIO17 HIGH/LOW -> Tang pin 40 -> LED had already
+been physically validated repeatedly by the operator. This final check proves
+the Raspberry-side LOW/HIGH/LOW sequence and restoration to LOW; the current
+top-level GPIO override also passed end-to-end RTL simulation.

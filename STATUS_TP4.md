@@ -2,6 +2,28 @@
 
 Atualizado em 04/09/2026, fuso America/Sao_Paulo.
 
+## Fechamento vigente — 04/09/2026 13:10 -03:00
+
+O fechamento técnico está consolidado em `TP4_FINAL_VALIDATION_SUMMARY.md`.
+A cadeia física de áudio, decoding I2S e energia estão em PASS. A FSM final usa
+`ON=12000`, `OFF=6000`, persistência `N=24/M=82`, sem hold adicional. A
+regressão física de 99,42 s reduziu 100 para 7 transições, preservou 9/9
+intervalos e eliminou reversões menores que 500 ms; a captura sincronizada de
+dois eventos reexecutada como estímulo resultou em 4 transições e 2/2 eventos.
+
+**FSM STABILITY = RESIDUAL** exclusivamente porque a iteração 2 programada em
+SRAM não recebeu uma nova captura GAO física antes do fechamento. A iteração 1
+física capturou 2/2 eventos, zero frame errors, mas ainda 6 transições. Não foi
+convertido replay/simulação em PASS físico.
+
+Bitstream recomendado e atualmente programado somente em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_iter2\impl\pnr\safe_field_tp4_validated.fs`
+
+SHA-256: `5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181`.
+P&R PASS; STA PASS; setup/hold 0/0; WNS +8,156 ns; Fmax 34,625 MHz;
+337 Logic, 184 registradores, 250 CLS; 2 warnings revisados. GPIO17 executou
+LOW/HIGH/LOW e foi restaurado a LOW. O `.fs` original abaixo permanece intacto.
+
 ## Resumo executivo
 
 O checkpoint `tp4-audio-inmp441` contém receptor I2S de 24 bits, geração de

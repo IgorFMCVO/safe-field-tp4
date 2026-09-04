@@ -1,0 +1,7 @@
+started_local=2026-09-04T12:44:30.8627758-03:00
+command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4_audio_stable.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_physical_2cycles_01 -device GW1NSR-4C -cable FT2CH -location 0
+Start running GAO analyzer.
+Export C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_physical_2cycles_01_core0_window0.csv
+Running GAO analyzer complete.
+
+completed_local=2026-09-04T12:45:23.9955378-03:00

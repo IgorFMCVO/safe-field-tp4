@@ -1,0 +1,827 @@
+{
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_04_valid_core0_window0.csv",
+  "gao_rate_hz": 82.3974609375,
+  "fsm_window_rate_hz": 164.794921875,
+  "duration_seconds": 99.42053925925926,
+  "threshold_on": 12000,
+  "threshold_off": 6000,
+  "threshold_distance": 6000,
+  "transitions_before": 100,
+  "rapid_reversals_under_500ms_before": 40,
+  "transitions_within_3000_of_relevant_threshold": 52,
+  "active_dwell_seconds": {
+    "minimum": 0.12136296296296296,
+    "median": 1.0437214814814815,
+    "maximum": 6.056011851851852,
+    "count": 51
+  },
+  "quiet_dwell_seconds": {
+    "minimum": 0.012136296296296296,
+    "median": 0.21238518518518518,
+    "maximum": 1.6505362962962964,
+    "count": 50
+  },
+  "all_dwell_under_500ms": 40,
+  "confirmed_full_operator_intervals": 9,
+  "diagnosis": "Combination: frequent threshold crossings plus speech/noise gaps shorter than a perceptually useful release interval. The existing ~97 ms release qualification is too short; minimum-active hold does not prevent chatter after it expires.",
+  "chosen_candidate": {
+    "transitions": 20,
+    "rapid_reversals_under_500ms": 0,
+    "events_detected": 9,
+    "events_total": 9,
+    "inter_event_quiet_recovered": 3,
+    "inter_event_gaps_total": 8,
+    "attack_latency_max_seconds": 0.8070637037037037,
+    "attack_latency_mean_seconds": 0.10113580246913581,
+    "event_results": [
+      {
+        "event": 1,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 2,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 3,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 4,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 5,
+        "detected": true,
+        "attack_latency_seconds": 0.10315851851851852
+      },
+      {
+        "event": 6,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 7,
+        "detected": true,
+        "attack_latency_seconds": 0.8070637037037037
+      },
+      {
+        "event": 8,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      },
+      {
+        "event": 9,
+        "detected": true,
+        "attack_latency_seconds": 0.0
+      }
+    ],
+    "attack_windows": 24,
+    "release_windows": 48,
+    "attack_nominal_seconds": 0.14563555555555555,
+    "release_nominal_seconds": 0.2912711111111111
+  },
+  "top_qualified_candidates": [
+    {
+      "transitions": 20,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 3,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.8070637037037037,
+      "attack_latency_mean_seconds": 0.10113580246913581,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.10315851851851852
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.8070637037037037
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 24,
+      "release_windows": 48,
+      "attack_nominal_seconds": 0.14563555555555555,
+      "release_nominal_seconds": 0.2912711111111111
+    },
+    {
+      "transitions": 16,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 3,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.9284266666666666,
+      "attack_latency_mean_seconds": 0.22586995884773664,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.24879407407407408
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.9284266666666666
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.8556088888888889
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 32,
+      "release_windows": 48,
+      "attack_nominal_seconds": 0.19418074074074074,
+      "release_nominal_seconds": 0.2912711111111111
+    },
+    {
+      "transitions": 11,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 12,
+      "release_windows": 64,
+      "attack_nominal_seconds": 0.07281777777777777,
+      "release_nominal_seconds": 0.3883614814814815
+    },
+    {
+      "transitions": 11,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 16,
+      "release_windows": 64,
+      "attack_nominal_seconds": 0.09709037037037037,
+      "release_nominal_seconds": 0.3883614814814815
+    },
+    {
+      "transitions": 11,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 24,
+      "release_windows": 64,
+      "attack_nominal_seconds": 0.14563555555555555,
+      "release_nominal_seconds": 0.3883614814814815
+    },
+    {
+      "transitions": 10,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 2,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.24879407407407408,
+      "attack_latency_mean_seconds": 0.027643786008230455,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.24879407407407408
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 32,
+      "release_windows": 64,
+      "attack_nominal_seconds": 0.19418074074074074,
+      "release_nominal_seconds": 0.3883614814814815
+    },
+    {
+      "transitions": 7,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 16,
+      "release_windows": 82,
+      "attack_nominal_seconds": 0.09709037037037037,
+      "release_nominal_seconds": 0.49758814814814817
+    },
+    {
+      "transitions": 7,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 24,
+      "release_windows": 82,
+      "attack_nominal_seconds": 0.14563555555555555,
+      "release_nominal_seconds": 0.49758814814814817
+    },
+    {
+      "transitions": 7,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 1,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.24879407407407408,
+      "attack_latency_mean_seconds": 0.027643786008230455,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.24879407407407408
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 32,
+      "release_windows": 82,
+      "attack_nominal_seconds": 0.19418074074074074,
+      "release_nominal_seconds": 0.49758814814814817
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 2,
+      "release_windows": 96,
+      "attack_nominal_seconds": 0.012136296296296296,
+      "release_nominal_seconds": 0.5825422222222222
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 4,
+      "release_windows": 96,
+      "attack_nominal_seconds": 0.024272592592592592,
+      "release_nominal_seconds": 0.5825422222222222
+    },
+    {
+      "transitions": 3,
+      "rapid_reversals_under_500ms": 0,
+      "events_detected": 9,
+      "events_total": 9,
+      "inter_event_quiet_recovered": 0,
+      "inter_event_gaps_total": 8,
+      "attack_latency_max_seconds": 0.0,
+      "attack_latency_mean_seconds": 0.0,
+      "event_results": [
+        {
+          "event": 1,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 2,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 3,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 4,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 5,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 6,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 7,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 8,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        },
+        {
+          "event": 9,
+          "detected": true,
+          "attack_latency_seconds": 0.0
+        }
+      ],
+      "attack_windows": 8,
+      "release_windows": 96,
+      "attack_nominal_seconds": 0.048545185185185184,
+      "release_nominal_seconds": 0.5825422222222222
+    }
+  ],
+  "transition_detail_csv": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\fsm_transition_details.csv",
+  "rtl_regression_memory": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\physical_energy_99s.memh",
+  "rtl_regression_words": 16384
+}
+JSON=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\fsm_chatter_analysis.json
+TRANSITIONS=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\fsm_transition_details.csv

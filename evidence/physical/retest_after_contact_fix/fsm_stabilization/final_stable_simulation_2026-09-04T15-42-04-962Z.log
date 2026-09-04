@@ -1,0 +1,47 @@
+SAFE-FIELD TP4 final stable simulation
+started_utc=2026-09-04T15:42:04.962Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)
+===== TEST persistence_unit =====
+success=true
+stage=run
+PASS interruption resets attack persistence                           expected=0 obtained=0
+PASS fourth consecutive ON window enters ACTIVE                       expected=1 obtained=1
+PASS six OFF windows do not release M=7                               expected=1 obtained=1
+PASS deadband resets release persistence                              expected=1 obtained=1
+PASS seventh consecutive OFF window returns QUIET                     expected=0 obtained=0
+PASS hysteresis deadband preserves QUIET                              expected=0 obtained=0
+checks=6 errors=0
+TEST_RESULT: PASS
+tb/tb_audio_activity_fsm_persistent.v:34: $finish called at 236000 (1ps)
+
+===== TEST physical_99s_regression =====
+success=true
+stage=run
+PASS physical regression transitions reduced from 100                 expected=20 obtained=20
+PASS no rapid reversal under 500 ms                                   expected=0 obtained=0
+PASS confirmed observable intervals in trace                          expected=9 obtained=9
+PASS all confirmed intervals retain ACTIVE                            expected=9 obtained=9
+REGRESSION before=100 after=20 events=9/9 rapid=0
+checks=4 errors=0
+TEST_RESULT: PASS
+tb/tb_fsm_physical_regression.v:51: $finish called at 163856000 (1ps)
+
+===== TEST stable_end_to_end =====
+success=true
+stage=run
+--- SAFE_FIELD_TP4_AUDIO_STABLE ---
+PASS silence starts QUIET                                             expected=0 obtained=0
+PASS GPIO17 LOW and QUIET keep LED off                                expected=0 obtained=0
+PASS persistent audio reaches ACTIVE                                  expected=1 obtained=1
+PASS ACTIVE drives LED                                                expected=1 obtained=1
+PASS I2S reconstructed nonzero LEFT samples                           expected=1 obtained=1
+PASS nonzero latch set                                                expected=1 obtained=1
+PASS persistent silence returns QUIET                                 expected=0 obtained=0
+PASS QUIET clears LED                                                 expected=0 obtained=0
+PASS well-formed I2S has no frame error                               expected=0 obtained=0
+PASS GPIO17 HIGH overrides LED                                        expected=1 obtained=1
+PASS GPIO17 LOW restores FSM control                                  expected=0 obtained=0
+checks=11 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_tp4_audio_stable.v:47: $finish called at 137872000 (1ps)

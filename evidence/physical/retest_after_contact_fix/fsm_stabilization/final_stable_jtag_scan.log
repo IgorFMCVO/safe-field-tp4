@@ -1,0 +1,11 @@
+started_local=2026-09-04T12:43:30.6765025-03:00
+command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\Programmer\bin\programmer_cli.exe --scan --cable-index 0 --frequency 2.5MHz
+ Scanning!
+ Target Cable: Gowin USB Cable(GWU2X)/0/None/null@1.33 MHz
+
+Error: Cable failed to open via the channel.
+
+Error: No Gowin devices found!
+ Cost 0.05 second(s)
+  
+completed_local=2026-09-04T12:43:30.9378807-03:00

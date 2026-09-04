@@ -1,0 +1,90 @@
+{
+  "evidence_kind": "physical GAO/JTAG completed-energy capture",
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_02_core0_window0.csv",
+  "effective_sample_rate_hz": 82.3974609375,
+  "duration_seconds": 24.855134814814814,
+  "energy_lsb": 16,
+  "threshold_on": 12000,
+  "threshold_off": 6000,
+  "overall": {
+    "count": 2048,
+    "minimum": 816,
+    "maximum": 84576,
+    "mean": 11147.3125,
+    "median": 7656.0,
+    "p90": 22665.6,
+    "p95": 31297.59999999997,
+    "p99": 61008.959999999955
+  },
+  "frame_error_latched": 0,
+  "energy_overflow": 0,
+  "sound_active_sample_count": 1553,
+  "sound_active_transition_count": 2,
+  "gpio_high_intervals": 2,
+  "operator_confirmed_sync": true,
+  "marker_active_level": 1,
+  "cycles": [
+    {
+      "cycle": 1,
+      "marked_high": {
+        "count": 413,
+        "minimum": 832,
+        "maximum": 65152,
+        "mean": 11273.685230024214,
+        "median": 7120.0,
+        "p90": 25868.800000000003,
+        "p95": 36367.999999999956,
+        "p99": 56651.52
+      },
+      "adjacent_low": {
+        "count": 667,
+        "minimum": 864,
+        "maximum": 77680,
+        "mean": 10052.749625187405,
+        "median": 6640.0,
+        "p90": 21363.199999999997,
+        "p95": 29511.999999999993,
+        "p99": 52429.12000000004
+      },
+      "mean_ratio": 1.1214529009832022,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": true,
+      "fsm_transition_pair_pass": true
+    },
+    {
+      "cycle": 2,
+      "marked_high": {
+        "count": 413,
+        "minimum": 816,
+        "maximum": 84576,
+        "mean": 12445.210653753027,
+        "median": 8336.0,
+        "p90": 23302.4,
+        "p95": 37475.19999999995,
+        "p99": 71085.44
+      },
+      "adjacent_low": {
+        "count": 826,
+        "minimum": 832,
+        "maximum": 76960,
+        "mean": 10190.353510895884,
+        "median": 7552.0,
+        "p90": 21136.0,
+        "p95": 26752.0,
+        "p99": 44764.0
+      },
+      "mean_ratio": 1.2212736918740033,
+      "energy_separation_pass": false,
+      "fsm_active_seen_while_gpio_high": true,
+      "fsm_quiet_seen_after_gpio_fall": false,
+      "fsm_transition_pair_pass": false
+    }
+  ],
+  "repeatability_result": "FAIL",
+  "fsm_transition_pairs_passed": 1,
+  "fsm_transition_repeatability_result": "FAIL",
+  "fsm_stability_result": "FAIL"
+}
+JSON=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_physical_2cycles_02_energy_analysis.json
+PLOT=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_physical_2cycles_02_energy_timeline.png

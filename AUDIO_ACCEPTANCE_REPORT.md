@@ -5,6 +5,28 @@ Data: 04/09/2026. Fuso: America/Sao_Paulo. Branch de reteste:
 inalterados. Todas as programações desta rodada usaram somente operação 2,
 `SRAM Program`; nenhuma Flash foi acessada.
 
+## Adendo final de estabilidade — prevalece sobre o histórico abaixo
+
+- Cadeia acústica física: **PASS**.
+- FSM funcional: **PASS**.
+- FSM estabilidade: **RESIDUAL físico / PASS nas regressões gravadas**.
+- Iteração final: `ON=12000`, `OFF=6000`, `N=24`, `M=82`, ataque nominal
+  145,636 ms, release nominal 497,588 ms, sem `minimum_active_hold`.
+- Captura física longa: `100 -> 7` transições no replay, 9/9 eventos, zero
+  reversões <500 ms.
+- Captura física sincronizada de 49,71 s: duas vozes com razões de energia
+  2,36× e 1,57×, 2/2 detectadas, frame errors=0; replay final produziu quatro
+  transições e QUIET entre eventos. A iteração 1 em hardware havia produzido
+  seis transições, por isso não é registrada como estabilidade PASS.
+- Bitstream final: `build/safe_field_tp4_audio_stable_iter2/impl/pnr/safe_field_tp4_validated.fs`;
+  SHA-256 `5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181`.
+- P&R/STA: PASS, setup/hold 0/0, WNS +8,156 ns, Fmax 34,625 MHz.
+- GPIO17: PASS; LOW/HIGH/LOW final e restauração a LOW, preservando a baseline.
+
+O resultado permanece `RESIDUAL`, não `PASS`, porque a iteração 2 não teve uma
+nova captura GAO depois da programação SRAM. Consulte
+`TP4_FINAL_VALIDATION_SUMMARY.md` para a matriz final e a lista de entrega.
+
 ## Veredito
 
 **A captação acústica física passou em baixa velocidade e na taxa normal; a

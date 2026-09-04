@@ -1,0 +1,16 @@
+started_local=2026-09-04T13:13:21.8875840-03:00
+final_fs=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_audio_stable_iter2\impl\pnr\safe_field_tp4_validated.fs
+final_sha256=5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181
+baseline_sha256=0B04C9DF3F51B408932ED75B754F7F180001F02C50594B14CC685B4CE1BFFE8B
+simulation_log=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_simulation_2026-09-04T16-07-40-847Z.log
+final_sha=True
+baseline_sha=True
+no_build_errors=True
+pnr_complete=True
+sta_setup_zero=True
+sta_hold_zero=True
+pinout=True
+warning_count=2
+sim_test_results=4
+gpio_restored_low=True
+PACKAGE_AUDIT=PASS

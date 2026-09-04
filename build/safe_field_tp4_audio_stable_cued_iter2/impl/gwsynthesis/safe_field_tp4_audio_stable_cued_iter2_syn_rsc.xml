@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="safe_field_tp4_audio_stable_cued" Register="37" Alu="7" Lut="22" T_Register="546(37)" T_Alu="60(7)" T_Lut="703(22)" T_Bsram="5(0)">
+ <SubModule name="clock_master" Register="23" Lut="25" T_Register="23(23)" T_Lut="25(25)"/>
+ <SubModule name="receiver" Register="58" Alu="6" Lut="15" T_Register="58(58)" T_Alu="6(6)" T_Lut="15(15)"/>
+ <SubModule name="detector" Register="90" Alu="32" Lut="164" T_Register="103(90)" T_Alu="32(32)" T_Lut="200(164)">
+  <SubModule name="activity_fsm" Register="13" Lut="36" T_Register="13(13)" T_Lut="36(36)"/>
+ </SubModule>
+ <SubModule name="gw_gao_inst_0" Register="325" Alu="15" Lut="441" Bsram="5" T_Register="325(325)" T_Alu="15(15)" T_Lut="441(441)" T_Bsram="5(5)"/>
+</Module>

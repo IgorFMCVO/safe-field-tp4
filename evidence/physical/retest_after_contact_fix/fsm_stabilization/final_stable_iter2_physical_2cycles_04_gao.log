@@ -1,0 +1,2 @@
+started_local=2026-09-04T13:08:35.4486953-03:00
+command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gao_sh.exe -gao C:\SAFE-FIELD\fpga\tp4-audio-inmp441\src\safe_field_tp4_audio_stable_cued.rao -out C:\SAFE-FIELD\fpga\tp4-audio-inmp441\evidence\physical\retest_after_contact_fix\fsm_stabilization\final_stable_iter2_physical_2cycles_04 -device GW1NSR-4C -cable FT2CH -location 0

@@ -1,0 +1,12 @@
+started_local=2026-09-04T12:43:46.0733025-03:00
+command=C:\Gowin\Gowin_V1.9.11.03_Education_x64\Programmer\bin\programmer_cli.exe --scan --cable-index 1
+ Scanning!
+ Target Cable: Gowin USB Cable(FT2CH)/0/None/null@2.5MHz
+Device Info:
+ 	Family: GW1NSR  
+	Name: GW1NSR-4C   
+	ID: 0x0100981B  
+ 1 device(s) found!
+ Cost 0.11 second(s)
+  
+completed_local=2026-09-04T12:43:46.3955127-03:00
