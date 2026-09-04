@@ -38,8 +38,9 @@ function Copy-TreeFiltered {
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
     $sourceRoot = (Resolve-Path -LiteralPath $Source).Path
     $files = Get-ChildItem -LiteralPath $sourceRoot -File -Recurse -Force | Where-Object {
-        $_.FullName -notmatch '[\\/](\.git|__pycache__|\.pytest_cache|\.mypy_cache|\.cache)[\\/]' -and
-        $_.Extension -notin @('.pyc', '.pyo', '.tmp')
+        $_.FullName -notmatch '[\\/](\.git|__pycache__|\.pytest_cache|\.mypy_cache|\.cache|node_modules|tmp|pre_handshake_fix_waveforms)[\\/]' -and
+        $_.Extension -notin @('.pyc', '.pyo', '.tmp', '.vcd', '.db', '.bin', '.binx', '.vg') -and
+        $_.Name -notmatch '\.tar\.gz$'
     }
     foreach ($file in $files) {
         $relative = $file.FullName.Substring($sourceRoot.Length).TrimStart('\')

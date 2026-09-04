@@ -182,8 +182,9 @@ PCM integral permanecem explicitamente fora do fechamento.
 Foram atendidos 22 dos 22 itens: 22 PASS, zero PARTIAL e zero MISSING. DSP e BRAM
 são recursos reais comprovados pela síntese, ARM64/NEON foi executado no Pi 4 e
 as duas direções UART foram fisicamente aceitas. O vídeo foi gravado e publicado
-em https://youtu.be/1Ancm5QdG2E. O link final do Google Drive é apenas uma
-providência de submissão do operador.
+em https://youtu.be/1Ancm5QdG2E. O código está no GitHub Classroom oficial em
+https://github.com/Prof-Dacio-INFNET/live-profdaciosouza-IgorFMCVO. Não permanece
+requisito pendente na matriz.
 
 ## Referências
 

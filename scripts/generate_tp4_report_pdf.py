@@ -475,7 +475,7 @@ def build_pdf():
         ["Pi -> Tang fisico", "PASS; 3/3 respostas corretas; checksum=0; perdas=0"],
         ["Video", "gravado; https://youtu.be/1Ancm5QdG2E"],
         ["FSM refinada", "replay sobre dados fisicos; nao nova captura GAO"],
-        ["Google Drive", "link final pendente de fornecimento pelo operador"],
+        ["GitHub Classroom", "Prof-Dacio-INFNET/live-profdaciosouza-IgorFMCVO"],
         ["TP3/enunciado PDF", "nao localizados no workspace; criterios nao inventados"],
     ]
     story += [table(limitations, [5.0 * cm, W - 5.0 * cm], font_size=8)]
@@ -500,7 +500,7 @@ def build_pdf():
         "de DSP e BSRAM comprovados pela ferramenta, 40/40 checks de simulacao, P&R e STA aprovados, "
         "e rotinas AArch64/NEON executadas no Raspberry Pi 4. As duas direcoes UART passaram em "
         "hardware, com CRC e sequence verificados. A rubrica fecha em 22/22 PASS e o video esta "
-        "publicado em https://youtu.be/1Ancm5QdG2E.")]
+        "publicado em https://youtu.be/1Ancm5QdG2E. Nao permanece requisito pendente.")]
     story += [P(styles, "Referencias", "H2SF")]
     refs = [
         "1. Sipeed, Tang Nano 4K schematic 3603.",
