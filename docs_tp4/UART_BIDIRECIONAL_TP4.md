@@ -38,11 +38,18 @@ Tang package pin 46 é `IOT13B/LPLL_C_in`, Bank 1. No esquemático 3603,
 4,7 kΩ. A câmera permanece desconectada, portanto o net pode ser usado como
 entrada UART com idle HIGH sem contenção.
 
-Ligação futura, somente com placas desenergizadas:
+Ligação executada pelo operador com as placas desenergizadas:
 
 `Raspberry physical pin 8 / GPIO14 TXD -> Tang package pin 46 / CAMERA_SDA`
 
-O GND compartilhado existente deve permanecer. Não programar o build acadêmico
-antes dessa ligação ser confirmada.
+O GND compartilhado permaneceu conectado e a câmera continuou desconectada. O
+build corrigido foi programado somente em SRAM. Resultado físico: 3/3 comandos
+`square16` com expected=actual, `checksum_errors=0`, `sequence_losses=0` e
+`response_errors=0`.
+
+Durante a primeira execução física, a terceira resposta coincidiu com uma
+telemetria periódica e foi perdida. O `event_valid` de resposta passou a ser
+mantido até `event_ready`, corrigindo o handshake sem alterar áudio, DSP, BSRAM
+ou o protocolo. A regressão passou novamente 40/40 checks, P&R e STA.
 
 Fonte oficial: <https://dl.sipeed.com/fileList/TANG/Nano%204K/HDK/02_Schematic/Tang_Nano_4K_3603_Schematic_.pdf>

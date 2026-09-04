@@ -50,8 +50,9 @@ fora do núcleo avaliado. Transcrição, IA e PCM completo foram congelados.
 | UART RX acadêmico | 46 | Pi GPIO14 -> Tang | LVCMOS33, input |
 
 O pin 46 foi selecionado pelo esquemático Sipeed 3603: `IOT13B`, Bank 1 a
-3,3 V, net `CAMERA_SDA`. Seu uso exige câmera desconectada. A ligação ainda não
-foi executada e o build acadêmico não foi programado.
+3,3 V, net `CAMERA_SDA`. Seu uso exige câmera desconectada. A ligação física
+Pi GPIO14/TXD -> Tang pin 46 foi executada com as placas desenergizadas e o
+build acadêmico corrigido foi programado exclusivamente em SRAM.
 
 ## 5. Áudio físico
 
@@ -95,8 +96,13 @@ QUIET->ACTIVE->QUIET.
 
 O novo frame Pi->Tang tem sync `A6 6A`, versão, comando, sequence, payload32 e
 CRC-8/ATM. Três vetores square16 passaram e um CRC corrompido foi rejeitado. A
-resposta reutiliza o TX aprovado com flag de response. A aceitação física
-Pi->Tang permanece bloqueada pela nova ligação, não por software ou build.
+resposta reutiliza o TX aprovado com flag de response. No ensaio físico, os
+operandos `123`, `-123` e `32767` produziram respectivamente `15129`, `15129` e
+`1073676289`, todos idênticos ao esperado, com zero erro de checksum e zero
+perda de sequência. A revisão física também encontrou uma condição de handshake
+na arbitragem da telemetria: `valid` podia ser removido antes de `ready`. O sinal
+passou a permanecer ativo até o handshake efetivo, eliminando a perda da terceira
+resposta sem modificar o caminho de áudio, DSP ou BSRAM.
 
 ## 9. Assembly AArch64
 
@@ -132,17 +138,18 @@ PNGs do DSP expected/actual e dos comandos UART/erro de checksum.
 
 | Item | Resultado |
 |---|---:|
-| Logic | 1068/4608, 24% |
+| Logic | 1065/4608, 24% |
 | Registers | 833/3573, 24% |
-| CLS | 823/2304, 36% |
+| CLS | 827/2304, 36% |
 | BSRAM | 1/10; SDPB=1 |
 | DSP | MULT18X18=1 |
 | endpoints setup/hold violados | 0/0 |
-| Fmax | 37,778 MHz |
+| Fmax | 38,297 MHz |
 | requisito | 27 MHz |
 
-O build gerou `.fs` com SHA-256
-`0460826C112FFF69A83E6420BDD28657AE5265EFD5E7D96BE457B9CBA1581A73`.
+O build bidirecional corrigido gerou `.fs` com SHA-256
+`6E4C460162816C54EE38B11CDA246004C05FE07CEC4C1FA963FDBB36092E172F`.
+O build acadêmico anterior foi preservado, sem sobrescrita.
 
 ## 13. Warnings
 
@@ -166,7 +173,6 @@ PCM integral permanecem explicitamente fora do fechamento.
 
 ## 16. Limitações
 
-- Pi->Tang físico requer um fio adicional com placas desenergizadas;
 - o vídeo de cinco minutos requer gravação humana;
 - a última iteração de estabilidade FSM tem regressão sobre dados físicos, mas
   não uma nova recaptura GAO;
@@ -175,10 +181,10 @@ PCM integral permanecem explicitamente fora do fechamento.
 
 ## 17. Conclusão
 
-Foram atendidos 20 dos 22 itens: 20 PASS, 2 PARTIAL e zero MISSING. DSP e BRAM
+Foram atendidos 21 dos 22 itens: 21 PASS, 1 PARTIAL e zero MISSING. DSP e BRAM
 são recursos reais comprovados pela síntese, ARM64/NEON foi executado no Pi 4 e
-FPGA->ARM está fisicamente aceito. Os dois PARTIAL dependem exclusivamente de
-ação física/humana: fio RX e gravação do vídeo.
+as duas direções UART foram fisicamente aceitas. O único PARTIAL é a gravação
+humana do vídeo de demonstração.
 
 ## Referências
 

@@ -20,9 +20,10 @@ Na raiz do projeto:
 ```powershell
 node verilog_tp4/scripts/run-official-rubric.mjs
 & 'C:\Gowin\Gowin_V1.9.11.03_x64\IDE\bin\gw_sh.exe' `
-  verilog_tp4/scripts/build_safe_field_tp4_official.tcl
+  verilog_tp4/scripts/build_safe_field_tp4_official_bidirectional.tcl
 ```
 
-O build acadêmico não deve ser programado antes da ligação Pi GPIO14/TXD para
-Tang package pin 46 ser feita com as placas desenergizadas e confirmada pelo
-operador.
+O build bidirecional corrigido foi programado somente em SRAM depois da ligação
+Pi GPIO14/TXD para Tang package pin 46 ser feita com as placas desenergizadas e
+confirmada pelo operador. O teste físico terminou 3/3 PASS, com zero erro de
+checksum e zero perda de sequência.

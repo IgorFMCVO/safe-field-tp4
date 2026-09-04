@@ -17,7 +17,9 @@ Data: 04/09/2026.
 
 O bitstream oficial de áudio previamente validado mantém SHA-256
 `5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181`.
-O build acadêmico é independente e não foi programado. O ZIP de engenharia
+O build acadêmico bidirecional é independente e foi programado somente em SRAM,
+após a ligação física autorizada, com 3/3 respostas numéricas corretas, zero erro
+de checksum e zero perda de sequência. O ZIP de engenharia
 `SAFE_FIELD_TP4_Igor_de_Freitas_Monteiro.zip` não foi substituído.
 
 Não são incluídos caches, `.git`, credenciais, senha, temporários ou builds

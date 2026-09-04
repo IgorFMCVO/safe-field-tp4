@@ -19,6 +19,8 @@ New-Item -ItemType Directory -Force -Path $selectedAudio, $selectedBridge, $docs
 # Build e evidências acadêmicas independentes.
 Copy-Item -LiteralPath (Join-Path $repo 'build\safe_field_tp4_official') `
     -Destination $verilogBuild -Recurse -Force
+Copy-Item -LiteralPath (Join-Path $repo 'build\safe_field_tp4_official_bidirectional') `
+    -Destination $verilogBuild -Recurse -Force
 Copy-Item -LiteralPath (Join-Path $repo 'evidence\official_tp4') `
     -Destination $verilogEvidence -Recurse -Force
 
@@ -33,11 +35,13 @@ foreach ($relative in $scriptCopies) {
         -Destination (Join-Path $verilog 'scripts') -Force
 }
 
-# Dois bitstreams com nomes inequívocos; nenhum arquivo original é modificado.
+# Três bitstreams com nomes inequívocos; nenhum arquivo original é modificado.
 Copy-Item -LiteralPath (Join-Path $repo 'build\safe_field_tp4_audio_stable_iter2\impl\pnr\safe_field_tp4_validated.fs') `
     -Destination (Join-Path $bitstreams 'safe_field_tp4_validated.fs') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'build\safe_field_tp4_official\impl\pnr\safe_field_tp4_official.fs') `
     -Destination (Join-Path $bitstreams 'safe_field_tp4_official.fs') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.fs') `
+    -Destination (Join-Path $bitstreams 'safe_field_tp4_official_bidirectional.fs') -Force
 
 # Evidências físicas mínimas e suficientes para auditoria acadêmica.
 $physicalBase = Join-Path $repo 'evidence\physical\retest_after_contact_fix'

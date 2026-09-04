@@ -42,6 +42,8 @@ continuam fora do caminho crítico.
 
 - áudio final: `safe_field_tp4_validated.fs`, imutável;
 - bridge FPGA->Pi: build separado e fisicamente aprovado;
-- build acadêmico: `safe_field_tp4_official.fs`, não programado;
+- build acadêmico bidirecional: `safe_field_tp4_official_bidirectional.fs`,
+  programado somente em SRAM e fisicamente aprovado;
 - GPIO17, I2S e LED mantêm os package pins 40/41/42/43/45/10;
-- RX acadêmico usa package pin 46 apenas com câmera desconectada.
+- RX acadêmico usa package pin 46 com câmera desconectada; 3/3 comandos físicos
+  retornaram expected=actual, CRC=0 e perdas=0.

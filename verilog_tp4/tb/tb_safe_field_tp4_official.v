@@ -19,7 +19,7 @@ task send_command;input[15:0]seq;input signed[15:0]operand;reg[31:0]p;reg[7:0]c;
 end endtask
 task await_response;input[15:0]seq;input[31:0]expected;begin
  @(negedge sys_clk);timeout_count=0;
- while(!(dut.telemetry_event_valid&&dut.telemetry_flags[7]&&dut.telemetry_energy[15:0]==seq)&&timeout_count<200000)begin@(negedge sys_clk);timeout_count=timeout_count+1;end
+ while(!(dut.telemetry_event_valid&&dut.telemetry_event_ready&&dut.telemetry_flags[7]&&dut.telemetry_energy[15:0]==seq)&&timeout_count<200000)begin@(negedge sys_clk);timeout_count=timeout_count+1;end
  check("response event observed",1,(timeout_count<200000));check("response sequence echoed",seq,dut.telemetry_energy[15:0]);check("DSP result returned",expected,dut.telemetry_frame_counter);check("response error clear",0,dut.telemetry_flags[6]);
 end endtask
 initial begin wait(i2s_sck===1'b1);forever begin @(negedge i2s_sck);if(i2s_ws!=model_ws)begin model_ws=i2s_ws;model_bit_index=0;end else model_bit_index=model_bit_index+1;selected_model_word=model_ws?model_right_word:model_left_word;if(model_bit_index>=1&&model_bit_index<=24)i2s_sd=selected_model_word[24-model_bit_index];else i2s_sd=0;end end

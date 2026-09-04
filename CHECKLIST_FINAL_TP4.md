@@ -35,6 +35,6 @@
 - [x] manifesto, matriz, checklist, links e hashes;
 - [x] ZIP acadêmico novo, sem substituir ZIP de engenharia;
 - [x] branch final commitada e tag local preparada;
-- [ ] ARM->FPGA físico: precisa da ligação pin 8 -> pin 46;
+- [x] ARM->FPGA físico: 3/3 comandos, CRC=0 e perdas=0;
 - [ ] vídeo: precisa de gravação humana;
 - [ ] GitHub: não há remote configurado; publicação pendente.

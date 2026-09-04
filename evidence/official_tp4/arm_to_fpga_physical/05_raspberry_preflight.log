@@ -1,0 +1,12 @@
+2026-09-04T17:54:39-03:00
+Linux safe-field 6.18.34+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.18.34-1+rpt1 (2026-06-09) aarch64 GNU/Linux
+/dev/ttyS0
+lrwxrwxrwx 1 root root        5 Sep  4 17:41 /dev/serial0 -> ttyS0
+crw-rw---- 1 root dialout 4, 64 Sep  4 17:41 /dev/ttyS0
+14: a5    pn | hi // GPIO14 = TXD1
+15: a5    pu | hi // GPIO15 = RXD1
+17: op -- pd | lo // GPIO17 = output
+inactive
+inactive
+safe-field adm dialout cdrom sudo audio video plugdev games users netdev gpio i2c spi render input lpadmin
+pyserial 3.5

@@ -171,7 +171,11 @@ always @(posedge sys_clk or negedge internal_reset_n) begin
         sample_nonzero_latched <= 1'b0;
         telemetry_overrun_latched <= 1'b0;
     end else begin
-        telemetry_event_valid <= 1'b0;
+        // Hold event_valid until the telemetry block accepts it. The previous
+        // one-cycle pulse could be lost when a periodic frame began in the
+        // same cycle that a command response was queued.
+        if (telemetry_event_valid && telemetry_event_ready)
+            telemetry_event_valid <= 1'b0;
         if (i2s_frame_error) frame_error_latched <= 1'b1;
         if (sample_valid && (sample_data != 0)) sample_nonzero_latched <= 1'b1;
         if (command_checksum_error || command_framing_error)
@@ -241,7 +245,7 @@ always @(posedge sys_clk or negedge internal_reset_n) begin
             endcase
         end
 
-        if (telemetry_event_ready) begin
+        if (!telemetry_event_valid) begin
             if (response_pending) begin
                 telemetry_state <= sound_active;
                 telemetry_energy <= {response_command, response_sequence};

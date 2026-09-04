@@ -19,7 +19,7 @@ relatório TP3; portanto não se inventam critérios adicionais.
 | 11 | NEON float | PASS | 4 lanes, erro máximo 0, tolerância 1e-7 |
 | 12 | benchmark/paralelização | PASS | runs 50/200/800 reais preservados |
 | 13 | arquitetura atualizada | PASS | `docs_tp4/ARQUITETURA_TP4.md` |
-| 14 | ARM->FPGA | PARTIAL | protocolo, RX, 3 vetores e build PASS; falta fio físico |
+| 14 | ARM->FPGA | PASS | 3/3 vetores físicos; expected=actual; CRC=0; perdas=0 |
 | 15 | FPGA->ARM | PASS | 3.264 mensagens, zero perda/erro, QUIET->ACTIVE->QUIET |
 | 16 | checksum | PASS | CRC-8/ATM nos dois sentidos; corrupção rejeitada |
 | 17 | telemetria | PASS | state, energy, frame counter, flags, sequence e JSONL |
@@ -29,7 +29,7 @@ relatório TP3; portanto não se inventam critérios adicionais.
 | 21 | ZIP | PASS | `Igor_Monteiro_PB_TP4.ZIP` com hashes verificados |
 | 22 | vídeo | PARTIAL | roteiro de 5 min pronto; gravação humana pendente |
 
-Resultado: **20/22 PASS**, 2 PARTIAL, 0 MISSING.
+Resultado: **21/22 PASS**, 1 PARTIAL, 0 MISSING.
 
-Os dois itens PARTIAL exigem ação física/humana e não podem ser convertidos em
-PASS por simulação: ligação RX Pi->Tang e gravação do vídeo.
+O único item PARTIAL exige ação humana e não pode ser convertido em PASS por
+software: gravação do vídeo.
