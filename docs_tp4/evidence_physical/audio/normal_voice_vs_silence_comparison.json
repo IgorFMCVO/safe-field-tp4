@@ -1,0 +1,33 @@
+{
+  "evidence_kind": "comparison of independent physical GAO/JTAG captures",
+  "silence_source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\normal_silence_reference_01_continuous_samples.csv",
+  "voice_source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\physical\\retest_after_contact_fix\\normal_voice_real_01_continuous_samples.csv",
+  "silence": {
+    "count": 8192,
+    "minimum": -16384,
+    "maximum": 11264,
+    "mean": -819.875,
+    "mean_absolute": 3267.625,
+    "rms": 4010.689716245823,
+    "standard_deviation": 3925.9950311194993,
+    "peak": 16384
+  },
+  "voice": {
+    "count": 8192,
+    "minimum": -76800,
+    "maximum": 84992,
+    "mean": -1152.0,
+    "mean_absolute": 14288.0,
+    "rms": 20023.634035808784,
+    "standard_deviation": 19990.468128585682,
+    "peak": 84992
+  },
+  "voice_to_silence_rms_ratio": 4.992566229868253,
+  "voice_to_silence_mean_absolute_ratio": 4.372594774492177,
+  "acoustic_capture_pass": true,
+  "threshold_proposal": {
+    "THRESHOLD_ON": 16000,
+    "THRESHOLD_OFF": 8000,
+    "basis": "ON is above the approximate silence-window maximum (14848) derived from the physical reference; OFF is above its p95 neighborhood (7168) and below ON."
+  }
+}

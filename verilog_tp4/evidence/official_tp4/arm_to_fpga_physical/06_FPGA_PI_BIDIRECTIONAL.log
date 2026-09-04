@@ -1,0 +1,6 @@
+seq=16641 operand=123 expected=15129 actual=15129 response_crc=PASS PASS
+seq=16642 operand=-123 expected=15129 actual=15129 response_crc=PASS PASS
+seq=16643 operand=32767 expected=1073676289 actual=1073676289 response_crc=PASS PASS
+SUMMARY valid_frames=73 checksum_errors=0 sequence_losses=0 response_errors=0
+ARM_TO_FPGA: PASS
+TEST_RESULT: PASS

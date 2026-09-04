@@ -1,0 +1,17 @@
+SAFE_FIELD_MVP_PACKAGE_AUDIT
+timestamp=2026-09-04T13:37:23.6746227-03:00
+branch=safe_field_mvp_hw_bridge
+mvp_exists=True
+mvp_sha256=2FEE0AE7BFA036DBB1F97EB6CC06A3D2A8FBC8CDD7BAE8E139F450D6E298A963
+baseline_sha256=5D8F2D31EF5D0349AC0E52F13AC8A7472FCB1A23103131D13163BB8946F39181
+baseline_expected=True
+protected_source_diff_empty=True
+setup_violations_zero=True
+hold_violations_zero=True
+fmax_34_181=True
+uart_pin39=True
+warning_count=8
+error_count=0
+rtl_pass_count=3
+python_tests_pass=True
+emulator_jsonl_records=6

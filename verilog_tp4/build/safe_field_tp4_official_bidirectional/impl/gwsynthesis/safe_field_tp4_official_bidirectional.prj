@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-synthesis-project>
+<Project>
+    <Version>beta</Version>
+    <Device id="GW1NSR-4C" package="QFN48P" speed="6" partNumber="GW1NSR-LV4CQN48PC6/I5"/>
+    <FileList>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\rasp_to_tang.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_clock_gen.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_rx_24.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_activity_fsm_persistent.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_energy_detector_persistent.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\uart_tx_byte.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\safe_field_telemetry_tx.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_audio_energy_dsp.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_energy_bram.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\uart_rx_byte.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_command_rx.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_tp4_official.v" type="verilog"/>
+    </FileList>
+    <OptionList>
+        <Option type="disable_insert_pad" value="0"/>
+        <Option type="global_freq" value="50.000"/>
+        <Option type="looplimit" value="2000"/>
+        <Option type="output_file" value="C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg"/>
+        <Option type="print_all_synthesis_warning" value="1"/>
+        <Option type="ram_rw_check" value="0"/>
+        <Option type="top_module" value="safe_field_tp4_official"/>
+        <Option type="vcc" value="1.2"/>
+        <Option type="verilog_language" value="verilog-2001"/>
+        <Option type="vhdl_language" value="vhdl-1993"/>
+    </OptionList>
+</Project>

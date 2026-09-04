@@ -1,0 +1,15 @@
+===REPEATS_50===
+BENCHMARK elements=65536 repeats=50
+NEON_INT scalar_ns=11067481 neon_ns=3412555 speedup=3.243166 lanes=8
+NEON_FLOAT scalar_ns=11129574 neon_ns=5421277 speedup=2.052943 lanes=4
+TEST_RESULT: PASS errors=0
+===REPEATS_200===
+BENCHMARK elements=65536 repeats=200
+NEON_INT scalar_ns=42972741 neon_ns=4492092 speedup=9.566309 lanes=8
+NEON_FLOAT scalar_ns=14899055 neon_ns=12829723 speedup=1.161292 lanes=4
+TEST_RESULT: PASS errors=0
+===REPEATS_800===
+BENCHMARK elements=65536 repeats=800
+NEON_INT scalar_ns=58673389 neon_ns=17922667 speedup=3.273697 lanes=8
+NEON_FLOAT scalar_ns=59432019 neon_ns=52751518 speedup=1.126641 lanes=4
+TEST_RESULT: PASS errors=0

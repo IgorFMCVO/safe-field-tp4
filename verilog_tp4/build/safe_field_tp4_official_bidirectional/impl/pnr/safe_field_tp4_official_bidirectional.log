@@ -1,0 +1,85 @@
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n85_1_SUM'(source:'n85_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n86_1_SUM'(source:'n86_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n87_1_SUM'(source:'n87_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n88_1_SUM'(source:'n88_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n89_1_SUM'(source:'n89_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n90_1_SUM'(source:'n90_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n91_1_SUM'(source:'n91_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n92_1_SUM'(source:'n92_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'SOA[0]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[1]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[2]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[3]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[4]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[5]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[6]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[7]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[8]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[9]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[10]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[11]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[12]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[13]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[14]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[15]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[16]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[17]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[0]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[1]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[2]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[3]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[4]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[5]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[6]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[7]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[8]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[9]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[10]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[11]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[12]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[13]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[14]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[15]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[16]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[17]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[32]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[33]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[34]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[35]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\constraints\safe_field_tp4_official.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.tr" completed
+Fri Sep  4 17:59:46 2026
+

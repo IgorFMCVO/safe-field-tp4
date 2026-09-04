@@ -1,0 +1,20 @@
+-d C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official\impl\gwsynthesis\safe_field_tp4_official.vg
+-p GW1NSR-4C-QFN48P-6
+-pn GW1NSR-LV4CQN48PC6/I5
+-cst C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\constraints\safe_field_tp4_official.cst
+-cfg C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official\impl\pnr\device.cfg
+-sdc C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\constraints\safe_field_tp4_official.sdc
+-bit
+-tr
+-ph
+-warning_all
+-tt
+-timing
+-cst_error
+-convert_sdp32_36_to_sdp16_18
+-place_option 0
+-route_option 0
+-clock_route_order 0
+-correct_hold 1
+-route_maxfan 23
+-global_freq 50.000

@@ -1,0 +1,149 @@
+*** GOWIN Tcl Command Line Console  *** 
+current device: GW1NSR-4C  GW1NSR-LV4CQN48PC6/I5
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/rasp_to_tang.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/i2s_clock_gen.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/i2s_rx_24.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/audio_activity_fsm_persistent.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/audio_energy_detector_persistent.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/uart_tx_byte.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/frozen_baseline/safe_field_telemetry_tx.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/safe_field_audio_energy_dsp.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/safe_field_energy_bram.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/uart_rx_byte.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/safe_field_command_rx.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/rtl/safe_field_tp4_official.v"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/constraints/safe_field_tp4_official.cst"
+add new file: "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/verilog_tp4/constraints/safe_field_tp4_official.sdc"
+GowinSynthesis start
+Running parser ...
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\rasp_to_tang.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_clock_gen.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_rx_24.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_activity_fsm_persistent.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_energy_detector_persistent.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\uart_tx_byte.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\safe_field_telemetry_tx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_audio_energy_dsp.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_energy_bram.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\uart_rx_byte.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_command_rx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_tp4_official.v'
+Compiling module 'safe_field_tp4_official'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_tp4_official.v":5)
+Compiling module 'i2s_clock_gen'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_clock_gen.v":6)
+Compiling module 'i2s_rx_24'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\i2s_rx_24.v":6)
+Compiling module 'audio_energy_detector_persistent(THRESHOLD_ON=24'b000000000010111011100000,THRESHOLD_OFF=24'b000000000001011101110000)'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_energy_detector_persistent.v":4)
+Compiling module 'audio_activity_fsm_persistent(THRESHOLD_ON=24'b000000000010111011100000,THRESHOLD_OFF=24'b000000000001011101110000)'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\audio_activity_fsm_persistent.v":6)
+Compiling module 'rasp_to_tang'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\rasp_to_tang.v":1)
+Compiling module 'safe_field_command_rx'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_command_rx.v":5)
+Compiling module 'uart_rx_byte'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\uart_rx_byte.v":5)
+Compiling module 'safe_field_audio_energy_dsp'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_audio_energy_dsp.v":6)
+Compiling module 'safe_field_energy_bram'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_energy_bram.v":5)
+Extracting RAM for identifier 'memory'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_energy_bram.v":16)
+Compiling module 'safe_field_telemetry_tx'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\safe_field_telemetry_tx.v":5)
+Compiling module 'uart_tx_byte'("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\frozen_baseline\uart_tx_byte.v":5)
+NOTE  (EX0101) : Current top module is "safe_field_tp4_official"
+[5%] Running netlist conversion ...
+Running device independent optimization ...
+[10%] Optimizing Phase 0 completed
+[15%] Optimizing Phase 1 completed
+[25%] Optimizing Phase 2 completed
+Running inference ...
+[30%] Inferring Phase 0 completed
+[40%] Inferring Phase 1 completed
+[50%] Inferring Phase 2 completed
+[55%] Inferring Phase 3 completed
+Running technical mapping ...
+[60%] Tech-Mapping Phase 0 completed
+[65%] Tech-Mapping Phase 1 completed
+[75%] Tech-Mapping Phase 2 completed
+[80%] Tech-Mapping Phase 3 completed
+[90%] Tech-Mapping Phase 4 completed
+WARN  (NL0002) : The module "rasp_to_tang" instantiated to "gpio17_baseline" is swept in optimizing("C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\rtl\safe_field_tp4_official.v":66)
+[95%] Generate netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg" completed
+[100%] Generate report file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional_syn.rpt.html" completed
+GowinSynthesis finish
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\gwsynthesis\safe_field_tp4_official_bidirectional.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n85_1_SUM'(source:'n85_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n86_1_SUM'(source:'n86_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n87_1_SUM'(source:'n87_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n88_1_SUM'(source:'n88_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n89_1_SUM'(source:'n89_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n90_1_SUM'(source:'n90_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n91_1_SUM'(source:'n91_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n92_1_SUM'(source:'n92_s0') in module 'safe_field_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'SOA[0]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[1]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[2]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[3]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[4]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[5]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[6]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[7]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[8]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[9]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[10]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[11]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[12]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[13]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[14]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[15]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[16]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOA[17]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[0]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[1]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[2]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[3]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[4]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[5]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[6]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[7]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[8]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[9]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[10]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[11]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[12]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[13]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[14]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[15]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[16]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'SOB[17]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[32]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[33]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[34]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[35]'(source:'n7_s1') in module 'safe_field_audio_energy_dsp' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_tp4\constraints\safe_field_tp4_official.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_tp4_official_bidirectional\impl\pnr\safe_field_tp4_official_bidirectional.tr" completed
+Fri Sep  4 17:59:46 2026
+

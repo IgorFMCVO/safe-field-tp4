@@ -1,0 +1,125 @@
+SAFE-FIELD MVP hardware bridge simulation
+started_utc=2026-09-04T18:30:40.142Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)
+===== TEST uart_byte_baud_and_framing =====
+success=true
+stage=run
+PASS idle line is HIGH                                expected=1 obtained=1
+PASS idle transmitter is ready                        expected=1 obtained=1
+PASS start bit is LOW                                 expected=0 obtained=0
+PASS stop bit is HIGH                                 expected=1 obtained=1
+PASS 8 data bits are LSB-first                        expected=165 obtained=165
+PASS 10-bit framing duration in ns                    expected=800 obtained=800
+PASS ready returns after stop bit                     expected=1 obtained=1
+checks=7 errors=0
+TEST_RESULT: PASS
+tb/tb_uart_tx_byte.v:57: $finish called at 845000 (1ps)
+
+===== TEST telemetry_packet_protocol =====
+success=true
+stage=run
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS sync byte 0                                          expected=165 obtained=165
+PASS sync byte 1                                          expected=90 obtained=90
+PASS protocol version                                     expected=1 obtained=1
+PASS fixed payload length                                 expected=11 obtained=11
+PASS sequence number                                      expected=0 obtained=0
+PASS QUIET/ACTIVE state                                   expected=0 obtained=0
+PASS 24-bit energy                                        expected=1193046 obtained=1193046
+PASS 32-bit frame counter                                 expected=16909060 obtained=16909060
+PASS error/status flags                                   expected=1 obtained=1
+PASS CRC-8/ATM                                            expected=174 obtained=174
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS UART packet start bit                                expected=0 obtained=0
+PASS UART packet stop bit                                 expected=1 obtained=1
+PASS sync byte 0                                          expected=165 obtained=165
+PASS sync byte 1                                          expected=90 obtained=90
+PASS protocol version                                     expected=1 obtained=1
+PASS fixed payload length                                 expected=11 obtained=11
+PASS sequence number                                      expected=1 obtained=1
+PASS QUIET/ACTIVE state                                   expected=1 obtained=1
+PASS 24-bit energy                                        expected=16702650 obtained=16702650
+PASS 32-bit frame counter                                 expected=287454020 obtained=287454020
+PASS error/status flags                                   expected=5 obtained=5
+PASS CRC-8/ATM                                            expected=182 obtained=182
+PASS sequence increments exactly once per packet          expected=1 obtained=1
+checks=85 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_telemetry_tx.v:84: $finish called at 25926000 (1ps)
+
+===== TEST mvp_audio_uart_integration =====
+success=true
+stage=run
+PASS telemetry event follows real I2S frame counting          expected=1 obtained=1
+PASS captured LEFT sample is nonzero                          expected=1 obtained=1
+PASS valid I2S has no frame error                             expected=0 obtained=0
+PASS telemetry drives UART start bit LOW                      expected=0 obtained=0
+PASS frozen audio pipeline reaches ACTIVE                     expected=1 obtained=1
+PASS ACTIVE continues to drive LED                            expected=1 obtained=1
+PASS GPIO17 HIGH keeps baseline override                      expected=1 obtained=1
+PASS silence returns frozen pipeline to QUIET                 expected=0 obtained=0
+PASS GPIO17 LOW and QUIET clear LED                           expected=0 obtained=0
+checks=9 errors=0
+TEST_RESULT: PASS
+tb/tb_safe_field_mvp_hw_bridge.v:45: $finish called at 76425000 (1ps)

@@ -1,0 +1,4 @@
+timestamp=2026-09-04T14:55:57.5721320-03:00
+fs=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\safe_field_mvp_hw_bridge\impl\pnr\safe_field_mvp_hw_bridge.fs
+sha256=2FEE0AE7BFA036DBB1F97EB6CC06A3D2A8FBC8CDD7BAE8E139F450D6E298A963
+expected_match=True

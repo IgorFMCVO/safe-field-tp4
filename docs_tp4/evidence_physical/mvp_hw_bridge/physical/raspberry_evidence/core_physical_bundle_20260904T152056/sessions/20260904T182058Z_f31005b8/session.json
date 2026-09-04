@@ -1,0 +1,46 @@
+{
+  "session_id": "20260904T182058Z_f31005b8",
+  "started_at": "2026-09-04T18:20:58.003+00:00",
+  "ended_at": "2026-09-04T18:21:03.172+00:00",
+  "status": "OCCURRENCE_FINISHED",
+  "event_count": 624,
+  "last_fpga_event": {
+    "flags": 4,
+    "state": "QUIET",
+    "timestamp": "2026-09-04T18:21:01.921+00:00",
+    "seq": 32165,
+    "frame_counter": 58566144,
+    "energy": 19755,
+    "source": "FPGA_UART"
+  },
+  "last_camera_event": {
+    "status": "CAMERA_NOT_CONNECTED",
+    "backend": "uvc",
+    "timestamp": "2026-09-04T18:21:03.093+00:00",
+    "photo_id": null,
+    "filename": null,
+    "device": null,
+    "device_name": null,
+    "detail": null
+  },
+  "timeline": [
+    {
+      "timestamp": "2026-09-04T18:20:58.003+00:00",
+      "state": "OCCURRENCE_ACTIVE"
+    },
+    {
+      "timestamp": "2026-09-04T18:20:58.231+00:00",
+      "state": "AUDIO_QUIET",
+      "seq": 31542,
+      "energy": 1384
+    },
+    {
+      "timestamp": "2026-09-04T18:21:03.093+00:00",
+      "state": "CAMERA_NOT_CONNECTED"
+    },
+    {
+      "timestamp": "2026-09-04T18:21:03.172+00:00",
+      "state": "OCCURRENCE_FINISHED"
+    }
+  ]
+}
