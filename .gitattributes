@@ -1,0 +1,27 @@
+# Preserve generated artifacts exactly; several academic files are hash-checked.
+*.pdf binary
+*.fs binary
+*.bin binary
+*.binx binary
+*.db binary
+*.png binary
+*.aarch64 binary
+
+# Keep source/evidence text deterministic across Windows and Raspberry Linux.
+*.md text eol=lf
+*.v text eol=lf
+*.sv text eol=lf
+*.sdc text eol=lf
+*.cst text eol=lf
+*.tcl text eol=lf
+*.S text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.py text eol=lf
+*.mjs text eol=lf
+*.ps1 text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.log text eol=lf
+*.txt text eol=lf
+*.vcd text eol=lf

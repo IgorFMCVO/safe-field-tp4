@@ -1,0 +1,34 @@
+{
+  "algorithm": "signed sample[23:8] squared by one 16x16 DSP",
+  "silence": {
+    "source": "evidence\\physical\\retest_after_contact_fix\\normal_silence_reference_01_continuous_samples.csv",
+    "samples": 8192,
+    "input_min": -16384,
+    "input_max": 11264,
+    "reduced_16bit_min": -64,
+    "reduced_16bit_max": 44,
+    "zero_power_samples": 711,
+    "power_min": 0,
+    "power_max": 4096,
+    "power_mean": 245.447265625,
+    "equivalent_rms_24bit": 4010.689716245823,
+    "overflow_count": 0
+  },
+  "voice": {
+    "source": "evidence\\physical\\retest_after_contact_fix\\normal_voice_real_01_continuous_samples.csv",
+    "samples": 8192,
+    "input_min": -76800,
+    "input_max": 84992,
+    "reduced_16bit_min": -300,
+    "reduced_16bit_max": 332,
+    "zero_power_samples": 181,
+    "power_min": 0,
+    "power_max": 110224,
+    "power_mean": 6117.94921875,
+    "equivalent_rms_24bit": 20023.634035808784,
+    "overflow_count": 0
+  },
+  "voice_to_silence_power_ratio": 24.92571755962091,
+  "voice_to_silence_rms_ratio": 4.992566229868253,
+  "result": "PASS"
+}

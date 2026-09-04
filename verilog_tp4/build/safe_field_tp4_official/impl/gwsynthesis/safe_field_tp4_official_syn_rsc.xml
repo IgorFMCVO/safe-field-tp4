@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="safe_field_tp4_official" Register="251" Alu="38" Lut="263" T_Register="833(251)" T_Alu="139(38)" T_Lut="920(263)" T_MULT18X18="1(0)" T_Bsram="1(0)">
+ <SubModule name="clock_master" Register="23" Lut="25" T_Register="23(23)" T_Lut="25(25)"/>
+ <SubModule name="receiver" Register="58" Alu="6" Lut="15" T_Register="58(58)" T_Alu="6(6)" T_Lut="15(15)"/>
+ <SubModule name="detector" Register="90" Alu="32" Lut="136" T_Register="103(90)" T_Alu="32(32)" T_Lut="173(136)">
+  <SubModule name="activity_fsm" Register="13" Lut="37" T_Register="13(13)" T_Lut="37(37)"/>
+ </SubModule>
+ <SubModule name="commands" Register="102" Alu="8" Lut="50" T_Register="143(102)" T_Alu="8(8)" T_Lut="106(50)">
+  <SubModule name="receiver" Register="41" Lut="56" T_Register="41(41)" T_Lut="56(56)"/>
+ </SubModule>
+ <SubModule name="power_dsp" Register="20" MULT18X18="1" T_Register="20(20)" T_MULT18X18="1(1)"/>
+ <SubModule name="energy_buffer" Register="80" Alu="40" Lut="51" Bsram="1" T_Register="80(80)" T_Alu="40(40)" T_Lut="51(51)" T_Bsram="1(1)"/>
+ <SubModule name="telemetry" Register="109" Alu="15" Lut="209" T_Register="155(109)" T_Alu="15(15)" T_Lut="287(209)">
+  <SubModule name="byte_uart" Register="46" Lut="78" T_Register="46(46)" T_Lut="78(78)"/>
+ </SubModule>
+</Module>

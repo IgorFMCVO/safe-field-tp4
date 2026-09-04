@@ -1,0 +1,32 @@
+=== PLATFORM ===
+Linux safe-field 6.18.34+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.18.34-1+rpt1 (2026-06-09) aarch64 GNU/Linux
+Revision	: a03115
+Model		: Raspberry Pi 4 Model B Rev 1.5
+gcc (Debian 14.2.0-19) 14.2.0
+=== BUILD ===
+rm -f *.o safe_field_arm64_test safe_field_arm64_test.objdump.txt
+cc -O3 -Wall -Wextra -Werror -std=c11 -c -o harness.o harness.c
+cc -O3 -Wall -Wextra -Werror -std=c11 -c -o safe_field_arm64.o safe_field_arm64.S
+cc -O3 -Wall -Wextra -Werror -std=c11 -o safe_field_arm64_test harness.o safe_field_arm64.o -lm
+objdump -d -S safe_field_arm64_test > safe_field_arm64_test.objdump.txt
+=== EXECUTION ===
+SAFE-FIELD TP4 AArch64 expected x actual
+add128 overflow low            expected=                   0 actual=                   0 PASS
+add128 overflow high           expected=                   0 actual=                   0 PASS
+add128 vector low              expected=18446744073709551615 actual=18446744073709551615 PASS
+add128 vector high             expected= 3689348814741910323 actual= 3689348814741910323 PASS
+SCVTF integer->double          expected=-123456789.0 actual=-123456789.0 PASS
+lookup ACTIVE                  expected=                   1 actual=                   1 PASS
+lookup invalid                 expected=                 255 actual=                 255 PASS
+mask/shift/rotate              expected=          4076868206 actual=          4076868206 PASS
+NEON integer exact energy      expected=         21865754704 actual=         21865754704 PASS
+NEON float scale               tolerance=1e-7 max_error=0 PASS
+BENCHMARK elements=65536 repeats=400
+NEON_INT scalar_ns=29398741 neon_ns=8953426 speedup=3.283519 lanes=8
+NEON_FLOAT scalar_ns=29646037 neon_ns=22544611 speedup=1.314994 lanes=4
+TEST_RESULT: PASS errors=0
+=== COMMAND PROTOCOL ===
+seq=12289 payload=123 packet=a66a010101307b0000000b PASS
+seq=12290 payload=-123 packet=a66a0101023085ffffffb8 PASS
+seq=12291 payload=32767 packet=a66a01010330ff7f000010 PASS
+TEST_RESULT: PASS

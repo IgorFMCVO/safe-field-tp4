@@ -1,0 +1,6 @@
+{"timestamp":"2026-09-04T16:33:29.755+00:00","seq":0,"state":"QUIET","energy":3500,"frame_counter":256,"flags":4,"sequence_loss":0}
+{"timestamp":"2026-09-04T16:33:29.755+00:00","seq":1,"state":"QUIET","energy":3500,"frame_counter":512,"flags":4,"sequence_loss":0}
+{"timestamp":"2026-09-04T16:33:29.755+00:00","seq":2,"state":"ACTIVE","energy":18000,"frame_counter":768,"flags":4,"sequence_loss":0}
+{"timestamp":"2026-09-04T16:33:29.755+00:00","seq":3,"state":"ACTIVE","energy":18000,"frame_counter":1024,"flags":5,"sequence_loss":0}
+{"timestamp":"2026-09-04T16:33:29.755+00:00","seq":5,"state":"QUIET","energy":3500,"frame_counter":1280,"flags":4,"sequence_loss":1}
+{"timestamp":"2026-09-04T16:33:29.757+00:00","seq":6,"state":"ACTIVE","energy":18000,"frame_counter":1536,"flags":4,"sequence_loss":0}

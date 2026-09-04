@@ -1,0 +1,10 @@
+test_checksum_invalid_resynchronizes (test_uart_protocol.ProtocolTests.test_checksum_invalid_resynchronizes) ... ok
+test_little_endian_payload_and_crc (test_uart_protocol.ProtocolTests.test_little_endian_payload_and_crc) ... ok
+test_quiet_active_and_alternation (test_uart_protocol.ProtocolTests.test_quiet_active_and_alternation) ... ok
+test_sequence_loss (test_uart_protocol.ProtocolTests.test_sequence_loss) ... ok
+test_truncated_data_waits_for_completion (test_uart_protocol.ProtocolTests.test_truncated_data_waits_for_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK

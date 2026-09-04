@@ -1,0 +1,75 @@
+SAFE-FIELD official TP4 rubric simulation
+started_utc=2026-09-04T19:57:38.166Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4
+===== TEST dsp_arithmetic =====
+success=true
+stage=run
+VCD info: dumpfile safe_field_audio_energy_dsp.vcd opened for output.
+PASS zero squared expected=0 actual=0
+PASS command tag expected=1 actual=1
+PASS positive squared expected=15129 actual=15129
+PASS command tag expected=1 actual=1
+PASS negative squared expected=15129 actual=15129
+PASS command tag expected=1 actual=1
+PASS positive limit expected=1073676289 actual=1073676289
+PASS command tag expected=1 actual=1
+PASS negative limit without overflow expected=1073741824 actual=1073741824
+PASS command tag expected=1 actual=1
+TEST_RESULT: PASS
+checks=10 errors=0
+verilog_tp4/tb/tb_safe_field_audio_energy_dsp.v:36: $finish called at 136000 (1ps)
+
+===== TEST functional_bram =====
+success=true
+stage=run
+VCD info: dumpfile safe_field_energy_bram.vcd opened for output.
+PASS average floor of 0..255 expected=127 actual=127
+PASS BRAM address zero expected=0 actual=0
+PASS BRAM middle expected=123 actual=123
+PASS BRAM upper limit expected=255 actual=255
+PASS write pointer wrapped expected=0 actual=0
+TEST_RESULT: PASS
+checks=5 errors=0
+verilog_tp4/tb/tb_safe_field_energy_bram.v:26: $finish called at 2656000 (1ps)
+
+===== TEST uart_command_checksum =====
+success=true
+stage=run
+VCD info: dumpfile safe_field_command_rx.vcd opened for output.
+PASS vector1 command expected=1 actual=1
+PASS vector1 sequence expected=1001 actual=1001
+PASS vector1 payload expected=7b actual=7b
+PASS vector2 negative expected=fffffb2e actual=fffffb2e
+PASS vector3 limit expected=7fff actual=7fff
+PASS three valid vectors expected=3 actual=3
+PASS bad checksum rejected expected=1 actual=1
+PASS no framing error expected=0 actual=0
+TEST_RESULT: PASS
+checks=8 errors=0
+verilog_tp4/tb/tb_safe_field_command_rx.v:25: $finish called at 35555000 (1ps)
+
+===== TEST integrated_audio_dsp_bram_uart =====
+success=true
+stage=run
+VCD info: dumpfile safe_field_tp4_official.vcd opened for output.
+PASS real I2S power window completed                              expected=1 actual=1
+PASS DSP power average for 0x001000                               expected=256 actual=256
+PASS frame error remains zero                                     expected=0 actual=0
+PASS response event observed                                      expected=1 actual=1
+PASS response sequence echoed                                     expected=8193 actual=8193
+PASS DSP result returned                                          expected=15129 actual=15129
+PASS response error clear                                         expected=0 actual=0
+PASS response event observed                                      expected=1 actual=1
+PASS response sequence echoed                                     expected=8194 actual=8194
+PASS DSP result returned                                          expected=15129 actual=15129
+PASS response error clear                                         expected=0 actual=0
+PASS response event observed                                      expected=1 actual=1
+PASS response sequence echoed                                     expected=8195 actual=8195
+PASS DSP result returned                                          expected=1073676289 actual=1073676289
+PASS response error clear                                         expected=0 actual=0
+PASS baseline audio reaches ACTIVE                                expected=1 actual=1
+PASS GPIO17 override preserved                                    expected=1 actual=1
+TEST_RESULT: PASS
+checks=17 errors=0
+verilog_tp4/tb/tb_safe_field_tp4_official.v:35: $finish called at 1001971000 (1ps)

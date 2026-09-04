@@ -1,0 +1,6 @@
+SAFE_FIELD_CORE_READY http://127.0.0.1:8765 camera=uvc
+2026-09-04T18:20:58.004+00:00 http 127.0.0.1 "POST /api/v1/occurrences/start HTTP/1.1" 200 -
+2026-09-04T18:21:03.059+00:00 http 127.0.0.1 "GET /api/v1/status HTTP/1.1" 200 -
+2026-09-04T18:21:03.108+00:00 http 127.0.0.1 "POST /api/v1/capture_photo HTTP/1.1" 409 -
+2026-09-04T18:21:03.141+00:00 http 127.0.0.1 "GET /api/v1/wearable/state HTTP/1.1" 200 -
+2026-09-04T18:21:03.173+00:00 http 127.0.0.1 "POST /api/v1/occurrences/finish HTTP/1.1" 200 -
