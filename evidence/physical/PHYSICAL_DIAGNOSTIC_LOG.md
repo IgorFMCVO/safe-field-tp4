@@ -160,3 +160,58 @@ ssh -tt -o StrictHostKeyChecking=accept-new safe-field@safe-field.local "pinctrl
 & 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\scripts\run_physical_audio_stimuli.ps1'
 & 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\scripts\verify_physical_evidence.ps1'
 ```
+
+## 04/09/2026 — DEBUG5_EXTERNAL_WIRING_LEVELS
+
+Objetivo: verificar fisicamente, sem alterar a montagem, se os package pins 41
+e 42 chegam aos pads SCK e WS do INMP441. A variante é independente dos builds
+anteriores e não executa o protocolo I2S: mantém níveis estáticos complementares
+por intervalos de 2 s, adequados a medição com multímetro ou osciloscópio.
+
+### Resultado de software e implementação
+
+| Etapa | Resultado | Evidência |
+|---|---|---|
+| simulação | PASS, 29/29 checks | `debug5_external_wiring_levels/simulation_2026-09-04T10-49-50-868Z.log` |
+| síntese | PASS | `debug5_external_wiring_levels/build_console.log` |
+| Place & Route | PASS | `build/debug5_external_wiring_levels/impl/pnr/debug5_external_wiring_levels.rpt.txt` |
+| STA | PASS, 0 setup/hold | `build/debug5_external_wiring_levels/impl/pnr/debug5_external_wiring_levels.tr` |
+| scan JTAG | PASS, GW1NSR-4C ID `0x0100981B` | `debug5_external_wiring_levels/jtag_scan.log` |
+| GPIO17 | PASS, output LOW | `debug5_external_wiring_levels/gpio17_low.log` |
+| SRAM Program | PASS, 100%, exit 0 | `debug5_external_wiring_levels/sram_program.log` |
+| medição nos pads | PENDENTE | exige observação física do usuário |
+
+O P&R confirma: pin 41 `out` LVCMOS33/8 mA; pin 42 `out` LVCMOS33/8 mA;
+pin 43 exclusivamente `in` LVCMOS33 com pull-down; pin 40 `in`; pin 45 `in`;
+pin 10 `out` LVCMOS18. A câmera permaneceu fisicamente desconectada.
+
+Warnings preservados e analisados:
+
+1. `CV0016`: `i2s_sd` é propositalmente não usado no DEBUG5. A porta continua
+   listada no relatório P&R como `in`, sem drive; isso não afeta SCK/WS.
+2. `PR1014`: roteamento genérico conhecido em `sys_clk_d`. A rede é PRIMARY;
+   STA desta variante passa a 27 MHz com Fmax 121,483 MHz.
+
+Bitstream programado somente em SRAM:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug5_external_wiring_levels\impl\pnr\debug5_external_wiring_levels.fs`
+
+SHA-256:
+`712A05C5102B2D61895761769C386D6521D34BBFBB386F7B33A6B9294380C3D6`
+
+Programação iniciada em `2026-09-04T07:51:21.1492175-03:00` e finalizada em
+`2026-09-04T07:51:23.4526979-03:00`. Operação Programmer 2, `SRAM Program`;
+nenhuma operação de Flash foi executada.
+
+Comandos exatos (a senha SSH foi digitada interativamente e não foi gravada):
+
+```powershell
+node 'sim\run-debug5.mjs'
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\IDE\bin\gw_sh.exe' 'scripts\build_debug5_external_wiring_levels.tcl'
+Get-FileHash -Algorithm SHA256 -LiteralPath 'build\debug5_external_wiring_levels\impl\pnr\debug5_external_wiring_levels.fs'
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\Programmer\bin\programmer_cli.exe' --scan --cable-index 1
+ssh -tt -o StrictHostKeyChecking=accept-new safe-field@safe-field.local "pinctrl set 17 op dl; pinctrl get 17; date --iso-8601=seconds"
+& 'C:\Gowin\Gowin_V1.9.11.03_Education_x64\Programmer\bin\programmer_cli.exe' --device GW1NSR-4C --operation_index 2 --frequency 2.5MHz --fsFile 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug5_external_wiring_levels\impl\pnr\debug5_external_wiring_levels.fs' --cable-index 1
+```
+
+Resultado físico ainda não atribuído: aguardar as leituras LOW/HIGH nos pads
+SCK/WS. Não inferir continuidade a partir da simulação ou da programação.

@@ -1,0 +1,46 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { simulate } from '@veriflow/iverilog-wasm';
+
+const simDir = path.dirname(fileURLToPath(import.meta.url));
+const projectDir = path.resolve(simDir, '..');
+const startedAt = new Date();
+const sources = [
+  'src/debug5_external_wiring_levels.v',
+  'tb/tb_debug5_external_wiring_levels.v',
+];
+const files = sources.map((relativePath) => ({
+  path: relativePath.replaceAll('\\', '/'),
+  data: fs.readFileSync(path.join(projectDir, relativePath), 'utf8'),
+}));
+
+const result = await simulate({
+  files,
+  sources,
+  generation: '2012',
+  timeoutMs: 120_000,
+});
+
+const log = [
+  'SAFE-FIELD TP4 DEBUG5 simulation',
+  `started_utc=${startedAt.toISOString()}`,
+  `node=${process.version}`,
+  'simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)',
+  `success=${result.success}`,
+  `stage=${result.stage ?? 'complete'}`,
+  result.combinedOutput,
+].join('\n');
+
+const logDir = path.join(projectDir, 'evidence', 'physical',
+                         'debug5_external_wiring_levels');
+fs.mkdirSync(logDir, { recursive: true });
+const stamp = startedAt.toISOString().replaceAll(':', '-').replaceAll('.', '-');
+const logPath = path.join(logDir, `simulation_${stamp}.log`);
+fs.writeFileSync(logPath, log, 'utf8');
+
+process.stdout.write(log);
+process.stdout.write(`\nEVIDENCE_LOG=${logPath}\n`);
+
+const passed = result.success && /TEST_RESULT:\s*PASS/.test(result.combinedOutput);
+process.exitCode = passed ? 0 : 1;

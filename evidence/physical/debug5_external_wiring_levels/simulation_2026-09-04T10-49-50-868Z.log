@@ -1,0 +1,39 @@
+SAFE-FIELD TP4 DEBUG5 simulation
+started_utc=2026-09-04T10:49:50.868Z
+node=v24.19.0
+simulator=@veriflow/iverilog-wasm@0.1.4 (Icarus Verilog WASM)
+success=true
+stage=run
+--- DEBUG5_EXTERNAL_WIRING_LEVELS ---
+PASS initial pin 41 SCK LOW                                           expected=0 obtained=0
+PASS initial pin 42 WS HIGH                                           expected=1 obtained=1
+PASS initial LED follows LOW phase                                    expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS SCK remains LOW before first boundary                            expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS pin 41 SCK HIGH at first boundary                                expected=1 obtained=1
+PASS pin 42 WS LOW at first boundary                                  expected=0 obtained=0
+PASS LED indicates HIGH phase                                         expected=1 obtained=1
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS pin 41 SCK LOW at second boundary                                expected=0 obtained=0
+PASS pin 42 WS HIGH at second boundary                                expected=1 obtained=1
+PASS LED returns to LOW phase                                         expected=0 obtained=0
+PASS pin 42 WS is inverse of pin 41 SCK                               expected=1 obtained=1
+PASS GPIO17 HIGH override preserved                                   expected=1 obtained=1
+PASS pin 43 input HIGH is observed internally                         expected=1 obtained=1
+PASS pin 43 input LOW is observed internally                          expected=0 obtained=0
+checks=29 errors=0
+TEST_RESULT: PASS
+tb/tb_debug5_external_wiring_levels.v:113: $finish called at 220000 (1ps)

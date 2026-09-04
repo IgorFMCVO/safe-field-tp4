@@ -1,6 +1,6 @@
 # STATUS TP4 — SAFE-FIELD / INMP441
 
-Atualizado em 03/09/2026, fuso America/Sao_Paulo.
+Atualizado em 04/09/2026, fuso America/Sao_Paulo.
 
 ## Resumo executivo
 
@@ -23,6 +23,44 @@ Bitstream GAO atualmente recomendado para diagnóstico em SRAM:
 
 SHA-256 GAO:
 `64A06F844FF63560384455ADA08B7F0C768BBA6A818579F87BDC5F6993968E56`
+
+## DEBUG5_EXTERNAL_WIRING_LEVELS — programado em SRAM, medição pendente
+
+Em 04/09/2026 foi criada uma variante isolada para comprovar continuidade
+externa de SCK/WS até os pads do INMP441. Nenhum fonte, bitstream ou diretório
+de implementação anterior foi sobrescrito. A variante foi programada somente
+em SRAM às 07:51:21 -03:00; a operação chegou a 100%, terminou com exit code 0
+e confirmou o GW1NSR-4C ID `0x0100981B`.
+
+- Simulação: PASS, 29 checks, 0 erros.
+- Síntese: PASS.
+- Place & Route: PASS.
+- STA: PASS, 76 paths/73 endpoints, 0 violações setup/hold, TNS 0/0,
+  pior setup +28,805 ns, pior hold +0,708 ns e Fmax 121,483 MHz para 27 MHz.
+- Recursos: 52/4608 Logic (2%), 36/3573 registradores (1%), 28/2304 CLS
+  (2%) e 6/39 I/O ports (16%).
+- Warnings: 2. `CV0016` informa que `i2s_sd` não é usado pela lógica; o P&R
+  ainda confirma pin 43 exclusivamente `in`, LVCMOS33, pull-down, sem drive.
+  `PR1014` é o warning já conhecido de roteamento genérico de `sys_clk_d`; o
+  clock foi promovido a PRIMARY e o STA passa com ampla margem nesta variante.
+- Pin 41/SCK: `out`, LVCMOS33, alterna a cada 54.000.000 clocks = 2,000 s.
+- Pin 42/WS: `out`, LVCMOS33, sempre inverso ao pin 41.
+- Pin 43/SD: `in`, LVCMOS33, pull-down; nunca dirigido pelo DEBUG5.
+- Pins preservados: GPIO17 pin 40 `in`, clock pin 45 `in`, LED pin 10 `out`.
+- GPIO17 foi confirmado `output LOW` na Raspberry antes da programação.
+- Comportamento esperado: 2 s com SCK LOW/WS HIGH, depois 2 s com SCK HIGH/WS
+  LOW, repetindo em ciclo de 4 s; o LED indica a fase quando GPIO17 permanece
+  LOW.
+
+Bitstream DEBUG5 realmente programado:
+`C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\debug5_external_wiring_levels\impl\pnr\debug5_external_wiring_levels.fs`
+
+SHA-256 DEBUG5:
+`712A05C5102B2D61895761769C386D6521D34BBFBB386F7B33A6B9294380C3D6`
+
+Estado físico: **PENDENTE** de medição pelo responsável nos pads SCK e WS do
+INMP441. Programação SRAM PASS não é evidência de que os níveis chegaram ao
+módulo; nenhum PASS físico de continuidade foi declarado.
 
 ## Validação física executada em 03/09/2026
 
