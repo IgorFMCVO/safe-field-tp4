@@ -1,0 +1,22 @@
+{
+  "generated_at_utc": "2026-09-05T15:26:50.699884+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\mvp\\evidence\\physical_pcm_transport\\v2_extracted\\physical_stability_60s_v2.wav",
+  "input_sha256": "F52CC060B6E9D4BF7406AD21D7999F865C5D61B56124FE80A5AFAE46B5D2BFE3",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 42188,
+    "samples": 2530688,
+    "duration_s": 59.985967573717645,
+    "minimum": -236,
+    "maximum": 355,
+    "mean": -1.0722590062465227,
+    "mean_absolute": 37.169672041753074,
+    "rms": 49.448666757653115,
+    "standard_deviation": 49.43703980552386,
+    "peak_absolute": 355,
+    "zero_samples": 17851,
+    "nonzero_samples": 2512837,
+    "unique_samples": 588
+  }
+}

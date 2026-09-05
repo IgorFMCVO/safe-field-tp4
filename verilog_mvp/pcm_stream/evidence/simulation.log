@@ -1,0 +1,14 @@
+SAFE-FIELD MVP PCM stream self-checking simulation
+started_utc=2026-09-05T19:11:53.377Z
+simulator=@veriflow/iverilog-wasm@0.1.4
+===== packet_protocol =====
+success=true
+stage=run
+TEST_RESULT: PASS (framing, payload, sequence, CRC, channel filter, no loss)
+verilog_mvp/pcm_stream/tb/tb_safe_field_pcm_packet_tx.v:177: $finish called at 89645000 (1ps)
+
+===== sustained_physical_rate =====
+success=true
+stage=run
+TEST_RESULT: PASS (320 samples, 10 packets, physical rate, zero overrun)
+verilog_mvp/pcm_stream/tb/tb_safe_field_pcm_sustained.v:69: $finish called at 2182885000 (1ps)

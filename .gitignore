@@ -11,4 +11,16 @@ __pycache__/
 /wearable/safe_field_audio_autotest/build/
 /wearable/safe_field_audio_autotest/secrets.h
 /wearable/safe_field_audio_autotest/wifi_credentials.*
+/wearable/safe_field_operational_v1/build/
+/wearable/safe_field_operational_v1/secrets.h
+/wearable/safe_field_operational_v1/wifi_credentials.*
 /build/safe_field_mvp_audio_autocalibration/
+/knowledge/diao/*.pdf
+/knowledge/diao/index/
+/knowledge/diao/cache/
+/knowledge/diao/extracted/
+/knowledge/diao/vectorstore/
+/sessions/
+/sessions_operational/
+/mvp/evidence/
+/mvp/generated_audio/

@@ -1,0 +1,22 @@
+{
+  "generated_at_utc": "2026-09-05T15:26:50.466111+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\mvp\\evidence\\physical_watch_pcm\\003_extracted\\sessions\\PHYSICAL_WATCH_PCM_003\\audio\\raw.wav",
+  "input_sha256": "728F11A9BE2BF0B8FA778BDAB6849AEC77231DA1BB199AFC68A67762EBCF3F1F",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 42188,
+    "samples": 421760,
+    "duration_s": 9.99715558926709,
+    "minimum": -198,
+    "maximum": 231,
+    "mean": -1.2664382587253413,
+    "mean_absolute": 29.524324260242793,
+    "rms": 42.2250442308791,
+    "standard_deviation": 42.20604807887767,
+    "peak_absolute": 231,
+    "zero_samples": 5031,
+    "nonzero_samples": 416729,
+    "unique_samples": 427
+  }
+}

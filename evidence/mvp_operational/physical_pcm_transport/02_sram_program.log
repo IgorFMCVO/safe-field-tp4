@@ -1,0 +1,20 @@
+SAFE-FIELD MVP PCM transport — SRAM programming transcript
+date_local=2026-09-05T11:27-03:00
+device=GW1NSR-4C
+id_code=0x0100981B
+operation_index=2 (SRAM Program only; Flash untouched)
+frequency=2.5MHz
+bitstream=C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream\impl\pnr\safe_field_mvp_pcm_stream.fs
+bitstream_sha256=F46314D4A3478B6157A5253DF07E2AAB2022D305EA16E94E0F9F9A8706C0EC7B
+program_progress=100%
+user_code=0x000023A5
+status_code=0x0003F020
+result=PASS
+
+CLI final output observed:
+Target Device: GW1NSR-4C(0x0100981B)
+Operation "SRAM Program" for device#1...
+Programming...: 100%
+User Code is: 0x000023A5
+Status Code is: 0x0003F020
+Finished.

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "synthetic_only": true,
+  "scenarios": [
+    {
+      "scenario_id": "A_conflict_four_speakers",
+      "expected_nature": "C 01.155 - FURTO",
+      "expected_speakers": 4,
+      "requires_reassessment": true,
+      "segments": [
+        {
+          "segment_id": "segment_001",
+          "speaker": "OFFICER",
+          "voice": "Microsoft Maria Desktop",
+          "rate": 1,
+          "expected_role": "KNOWN_OFFICER",
+          "transcript": "Sou a policial responsável. Diga seu nome e relate somente o que aconteceu."
+        },
+        {
+          "segment_id": "segment_002",
+          "speaker": "S1",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_VICTIM",
+          "transcript": "Meu celular foi subtraído perto da praça às oito horas. Eu não autorizei ninguém a pegar."
+        },
+        {
+          "segment_id": "segment_003",
+          "speaker": "S2",
+          "voice": "Microsoft Zira Desktop",
+          "rate": 1,
+          "expected_role": "POSSIBLE_INVOLVED",
+          "transcript": "Eu apenas encontrei o celular no banco e pretendia devolver. Isso aconteceu depois das dez."
+        },
+        {
+          "segment_id": "segment_004",
+          "speaker": "S3",
+          "voice": "Microsoft Maria Desktop",
+          "rate": -4,
+          "pitch": 10,
+          "expected_role": "POSSIBLE_WITNESS",
+          "transcript": "Eu estava na janela e vi uma pessoa guardar o celular enquanto os dois discutiam."
+        },
+        {
+          "segment_id": "segment_005",
+          "speaker": "OFFICER",
+          "voice": "Microsoft Maria Desktop",
+          "rate": 1,
+          "expected_role": "KNOWN_OFFICER",
+          "transcript": "Confirmo que há versões divergentes sobre o horário e sobre a posse do objeto."
+        },
+        {
+          "segment_id": "segment_006",
+          "speaker": "S1",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_VICTIM",
+          "transcript": "Reconheço meu aparelho pela capa azul e pelo número de série registrado."
+        },
+        {
+          "segment_id": "segment_007",
+          "speaker": "S2",
+          "voice": "Microsoft Zira Desktop",
+          "rate": 1,
+          "expected_role": "POSSIBLE_INVOLVED",
+          "transcript": "Agora lembro que peguei o aparelho antes das nove, mas continuo dizendo que iria devolver."
+        }
+      ],
+      "expected_facts": [
+        "S1 declarou subtração de celular perto da praça",
+        "S1 situou o fato às oito horas",
+        "S2 inicialmente situou o fato depois das dez",
+        "S3 declarou ter visto uma pessoa guardar o celular",
+        "S2 posteriormente declarou ter pegado o aparelho antes das nove"
+      ],
+      "expected_contradictions": [
+        "Divergência temporal entre oito horas, depois das dez e antes das nove"
+      ]
+    },
+    {
+      "scenario_id": "B_reidentification_order",
+      "expected_nature": "G 01.330 - DESOBEDIÊNCIA",
+      "expected_speakers": 3,
+      "requires_reassessment": false,
+      "segments": [
+        {
+          "segment_id": "segment_001",
+          "speaker": "S1",
+          "voice": "Microsoft Maria Desktop",
+          "rate": 1,
+          "expected_role": "POSSIBLE_WITNESS",
+          "transcript": "Vi a ordem ser dada de forma clara no portão da residência."
+        },
+        {
+          "segment_id": "segment_002",
+          "speaker": "S2",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_INVOLVED",
+          "transcript": "Eu ouvi a ordem, mas achei que ela não era dirigida a mim."
+        },
+        {
+          "segment_id": "segment_003",
+          "speaker": "S1",
+          "voice": "Microsoft Maria Desktop",
+          "rate": 1,
+          "expected_role": "POSSIBLE_WITNESS",
+          "transcript": "Eu vi a pessoa responder ao policial e permanecer no mesmo lugar."
+        },
+        {
+          "segment_id": "segment_004",
+          "speaker": "S3",
+          "voice": "Microsoft Zira Desktop",
+          "rate": 1,
+          "expected_role": "KNOWN_OFFICER",
+          "transcript": "Sou o policial que emitiu a ordem legal e identifiquei o destinatário."
+        },
+        {
+          "segment_id": "segment_005",
+          "speaker": "S2",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_INVOLVED",
+          "transcript": "Depois compreendi a orientação e passei a cumprir a ordem."
+        }
+      ],
+      "expected_facts": [
+        "S1 declarou ter ouvido ordem clara",
+        "S2 declarou ter ouvido a ordem",
+        "S3 declarou ser o policial que emitiu a ordem"
+      ],
+      "expected_contradictions": []
+    },
+    {
+      "scenario_id": "C_ambiguous_threat",
+      "expected_nature": "B 01.147 - AMEAÇA",
+      "expected_speakers": 3,
+      "requires_reassessment": true,
+      "segments": [
+        {
+          "segment_id": "segment_001",
+          "speaker": "OFFICER",
+          "voice": "Microsoft Maria Desktop",
+          "rate": 1,
+          "expected_role": "KNOWN_OFFICER",
+          "transcript": "Sou a policial responsável. Explique as palavras usadas e se houve risco imediato."
+        },
+        {
+          "segment_id": "segment_002",
+          "speaker": "S1",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_VICTIM",
+          "transcript": "Ele disse que voltaria para me causar mal e eu fiquei com medo."
+        },
+        {
+          "segment_id": "segment_003",
+          "speaker": "S2",
+          "voice": "Microsoft Zira Desktop",
+          "rate": 1,
+          "expected_role": "POSSIBLE_WITNESS",
+          "transcript": "Ouvi uma discussão, mas não consegui entender todas as palavras."
+        },
+        {
+          "segment_id": "segment_004",
+          "speaker": "S1",
+          "voice": "Microsoft David Desktop",
+          "rate": -3,
+          "expected_role": "POSSIBLE_VICTIM",
+          "transcript": "Depois recebi uma mensagem dizendo que ele não retornaria ao local."
+        }
+      ],
+      "expected_facts": [
+        "S1 declarou ter ouvido ameaça de mal futuro",
+        "S1 declarou ter sentido medo",
+        "S2 não compreendeu todas as palavras",
+        "S1 recebeu mensagem posterior"
+      ],
+      "expected_contradictions": []
+    }
+  ]
+}
