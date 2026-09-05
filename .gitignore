@@ -3,3 +3,8 @@ npm-debug.log*
 /tmp/
 __pycache__/
 *.pyc
+/wearable/safe_field_one/build/
+/wearable/safe_field_one/secrets.h
+/wearable/safe_field_one/wifi_credentials.*
+/evidence/wearable/*.bin
+/evidence/wearable/*.elf

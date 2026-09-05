@@ -1,0 +1,30 @@
+SAFE-FIELD wearable MVP physical end-to-end summary
+date=2026-09-04
+branch=mvp-wearable-01
+
+fpga_device=GW1NSR-4C
+fpga_idcode=0x0100981B
+fpga_program_mode=SRAM only
+fpga_bitstream_sha256=6E4C460162816C54EE38B11CDA246004C05FE07CEC4C1FA963FDBB36092E172F
+
+raspberry_ip=192.168.1.115
+core_endpoint=http://192.168.1.115:8765/api/v1/wearable/state
+wifi_ssid=RZNET IGOR M - 2G
+wifi_password=REDACTED
+
+core_quiet=2026-09-04T22:41:12.062-03:00 seq=3856 energy=1994
+core_active=2026-09-04T22:58:25.408-03:00 seq=43087 energy=38264
+wearable_active_observed=2026-09-04T22:58:25.583-03:00
+core_quiet_return=2026-09-04T22:58:30.067-03:00 seq=43843 energy=2783
+wearable_quiet_observed=2026-09-04T22:58:30.480-03:00
+
+api_to_wearable_active_seconds=0.409
+api_to_wearable_quiet_seconds=0.563
+fpga_to_wearable_design_bound_seconds=0.75
+sequence_loss=0
+fpga_flags=0x04
+
+physical_boot_screen=PASS operator confirmed
+wifi_http=PASS physical ESP32 HTTP 200
+quiet_active_quiet=PASS physical ESP32 state/render logs
+ordinary_voice_repeatability=PENDING later attempts remained QUIET; no threshold change permitted in sprint

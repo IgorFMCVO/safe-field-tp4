@@ -1,0 +1,9 @@
+test_all_core_states_are_recognized (wearable.safe_field_one.tests.test_contract.WearableContractTests.test_all_core_states_are_recognized) ... ok
+test_core_endpoint_is_not_hardcoded (wearable.safe_field_one.tests.test_contract.WearableContractTests.test_core_endpoint_is_not_hardcoded) ... ok
+test_vibration_is_edge_triggered (wearable.safe_field_one.tests.test_contract.WearableContractTests.test_vibration_is_edge_triggered) ... ok
+test_wifi_secret_is_not_hardcoded (wearable.safe_field_one.tests.test_contract.WearableContractTests.test_wifi_secret_is_not_hardcoded) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.000s
+
+OK

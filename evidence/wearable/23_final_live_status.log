@@ -1,0 +1,11 @@
+timestamp=2026-09-04T23:09:42.1579662-03:00
+endpoint=http://192.168.1.115:8765/api/v1/wearable/state
+http=200
+wearable_state=AUDIO_QUIET
+system_state=OCCURRENCE_ACTIVE
+session_id=20260905T014111Z_69e77fad
+event_count=281863
+last_seq=23574
+last_fpga_state=QUIET
+last_energy=1107
+last_flags=4
