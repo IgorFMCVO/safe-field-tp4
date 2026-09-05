@@ -8,3 +8,7 @@ __pycache__/
 /wearable/safe_field_one/wifi_credentials.*
 /evidence/wearable/*.bin
 /evidence/wearable/*.elf
+/wearable/safe_field_audio_autotest/build/
+/wearable/safe_field_audio_autotest/secrets.h
+/wearable/safe_field_audio_autotest/wifi_credentials.*
+/build/safe_field_mvp_audio_autocalibration/

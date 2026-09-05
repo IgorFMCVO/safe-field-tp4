@@ -1,0 +1,270 @@
+{
+  "purpose": "read-only audit of historical physical energy evidence",
+  "parameters": {
+    "old": {
+      "on": 12000,
+      "off": 6000,
+      "attack": 24,
+      "release": 82
+    },
+    "candidate": {
+      "on": 12000,
+      "off": 6000,
+      "k": 8,
+      "n": 24,
+      "attack": 1,
+      "release": 16,
+      "hangover": 82
+    }
+  },
+  "evidence_summary": {
+    "json_files_scanned": 39,
+    "explicit_acoustic_pass": 1,
+    "explicit_acoustic_fail": 0,
+    "energy_cycles_pass": 25,
+    "energy_cycles_fail": 61,
+    "fsm_transition_pairs_pass": 49,
+    "fsm_transition_pairs_fail": 11,
+    "reported_old_transition_counts": [
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_cued_fsm_10cycles_01_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 130
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\cued_capture03_regression\\fsm_chatter_analysis.json",
+        "field": "transitions_before",
+        "value": 6
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_cued_physical_2cycles_03_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 6
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_01_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 0
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_02_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 2
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\fsm_chatter_analysis.json",
+        "field": "transitions_before",
+        "value": 100
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_01_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 58
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_02_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 110
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_04_valid_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 100
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_01_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 82
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_02_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 116
+      },
+      {
+        "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_03_valid_energy_analysis.json",
+        "field": "sound_active_transition_count",
+        "value": 86
+      }
+    ],
+    "reported_results": {
+      "repeatability_result": [
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_fsm_10cycles_02_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\energy_calibration_5cycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\energy_calibration_labeled_fast_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_cued_physical_2cycles_03_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_02_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_04_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_03_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        }
+      ],
+      "fsm_transition_repeatability_result": [
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_cued_physical_2cycles_03_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_02_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_04_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_03_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        }
+      ],
+      "fsm_stability_result": [
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\calibrated_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_cued_physical_2cycles_03_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\final_stable_physical_2cycles_02_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_01_energy_analysis.json",
+          "value": "FAIL"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_10cycles_04_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_01_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_02_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        },
+        {
+          "file": "evidence\\physical\\retest_after_contact_fix\\stable_cued_fsm_5longcycles_03_valid_energy_analysis.json",
+          "value": "INCONCLUSIVE"
+        }
+      ]
+    }
+  },
+  "memory_trace_replays": [
+    {
+      "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\cued_capture03_regression\\physical_energy_99s.memh",
+      "old_consecutive_24_release_82": {
+        "samples": 8192,
+        "transitions": 6,
+        "active_samples": 4628,
+        "active_fraction": 0.56494140625
+      },
+      "candidate_k8_of_n24_release16_hangover82": {
+        "samples": 8192,
+        "transitions": 9,
+        "active_samples": 6239,
+        "active_fraction": 0.7615966796875
+      },
+      "accuracy_claim": "INCONCLUSIVE_NO_TRUSTWORTHY_LABELS"
+    },
+    {
+      "file": "evidence\\physical\\retest_after_contact_fix\\fsm_stabilization\\physical_energy_99s.memh",
+      "old_consecutive_24_release_82": {
+        "samples": 16384,
+        "transitions": 3,
+        "active_samples": 16103,
+        "active_fraction": 0.98284912109375
+      },
+      "candidate_k8_of_n24_release16_hangover82": {
+        "samples": 16384,
+        "transitions": 1,
+        "active_samples": 16377,
+        "active_fraction": 0.99957275390625
+      },
+      "accuracy_claim": "INCONCLUSIVE_NO_TRUSTWORTHY_LABELS"
+    }
+  ],
+  "conclusion": "Historical evidence proves real acoustic response and documents old-FSM chatter/misses, but does not provide sufficiently reliable labels to physically accept the candidate. The autonomous wearable playback gate must pass before thresholds are fitted."
+}

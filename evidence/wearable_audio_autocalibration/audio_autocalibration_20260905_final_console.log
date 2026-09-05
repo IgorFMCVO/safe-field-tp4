@@ -1,0 +1,183 @@
+{
+  "generated_at": "2026-09-05T12:16:18.318517+00:00",
+  "watch_status": {
+    "ok": true,
+    "audio_ready": true,
+    "running": false,
+    "id": 5,
+    "phase": "TESTE ENVIADO",
+    "profile": "speech",
+    "volume": 85,
+    "bytes_written": 539184,
+    "bytes_expected": 539184,
+    "ip": "192.168.1.135"
+  },
+  "physical_playback_pass": false,
+  "inmp441_response_pass": false,
+  "detector_old_pass": false,
+  "detector_new_pass": false,
+  "chosen_config": null,
+  "calibration": [
+    {
+      "round": "calibration_v40",
+      "volume": 40,
+      "profile": "speech",
+      "samples": 1454,
+      "phase_stats": {
+        "SILENCIO 2s": {
+          "count": 326,
+          "minimum": 817,
+          "maximum": 23478,
+          "mean": 6649.861963190184,
+          "rms_equivalent": 8427.05822940844,
+          "p50": 4892.0,
+          "p90": 14539.0,
+          "p95": 16250.5,
+          "p99": 21561.5
+        },
+        "REPRODUZINDO": {
+          "count": 729,
+          "minimum": 807,
+          "maximum": 23437,
+          "mean": 6146.854595336077,
+          "rms_equivalent": 8056.5729805341025,
+          "p50": 4042.0,
+          "p90": 14020.400000000003,
+          "p95": 16988.8,
+          "p99": 21526.680000000004
+        },
+        "SILENCIO FINAL": {
+          "count": 326,
+          "minimum": 837,
+          "maximum": 25313,
+          "mean": 4693.4693251533745,
+          "rms_equivalent": 6654.620745071517,
+          "p50": 3008.0,
+          "p90": 12114.5,
+          "p95": 15374.25,
+          "p99": 22578.5
+        }
+      },
+      "active_rises": 0,
+      "detected": false,
+      "returned_quiet": true,
+      "false_active_pre": 0,
+      "attack_ms": null,
+      "release_ms": null,
+      "csv": "evidence/audio_autocalibration_20260905_final/calibration_01_v40.csv"
+    },
+    {
+      "round": "calibration_v65",
+      "volume": 65,
+      "profile": "speech",
+      "samples": 1464,
+      "phase_stats": {
+        "SILENCIO 2s": {
+          "count": 329,
+          "minimum": 784,
+          "maximum": 22449,
+          "mean": 6764.337386018237,
+          "rms_equivalent": 8588.251892462695,
+          "p50": 4612.0,
+          "p90": 14893.199999999999,
+          "p95": 16887.6,
+          "p99": 21548.519999999997
+        },
+        "REPRODUZINDO": {
+          "count": 719,
+          "minimum": 708,
+          "maximum": 24745,
+          "mean": 4749.168289290681,
+          "rms_equivalent": 6383.986311818455,
+          "p50": 3301.0,
+          "p90": 10711.600000000004,
+          "p95": 14756.800000000001,
+          "p99": 19641.480000000003
+        },
+        "SILENCIO FINAL": {
+          "count": 349,
+          "minimum": 743,
+          "maximum": 16835,
+          "mean": 3806.117478510029,
+          "rms_equivalent": 5066.2602838395815,
+          "p50": 2614.0,
+          "p90": 7788.0,
+          "p95": 12155.599999999993,
+          "p99": 15991.959999999985
+        }
+      },
+      "active_rises": 0,
+      "detected": false,
+      "returned_quiet": true,
+      "false_active_pre": 0,
+      "attack_ms": null,
+      "release_ms": null,
+      "csv": "evidence/audio_autocalibration_20260905_final/calibration_02_v65.csv"
+    },
+    {
+      "round": "calibration_v85",
+      "volume": 85,
+      "profile": "speech",
+      "samples": 1469,
+      "phase_stats": {
+        "SILENCIO 2s": {
+          "count": 321,
+          "minimum": 859,
+          "maximum": 25731,
+          "mean": 6058.274143302181,
+          "rms_equivalent": 7941.446089584029,
+          "p50": 4161.0,
+          "p90": 14179.0,
+          "p95": 16242.0,
+          "p99": 22899.000000000022
+        },
+        "REPRODUZINDO": {
+          "count": 743,
+          "minimum": 838,
+          "maximum": 24077,
+          "mean": 5886.705248990579,
+          "rms_equivalent": 7857.467676207008,
+          "p50": 3944.0,
+          "p90": 14231.800000000005,
+          "p95": 17842.899999999998,
+          "p99": 22918.16
+        },
+        "SILENCIO FINAL": {
+          "count": 338,
+          "minimum": 726,
+          "maximum": 23488,
+          "mean": 3795.846153846154,
+          "rms_equivalent": 5220.796188344905,
+          "p50": 2880.5,
+          "p90": 6191.1,
+          "p95": 8674.34999999995,
+          "p99": 21384.79
+        }
+      },
+      "active_rises": 0,
+      "detected": false,
+      "returned_quiet": true,
+      "false_active_pre": 0,
+      "attack_ms": null,
+      "release_ms": null,
+      "csv": "evidence/audio_autocalibration_20260905_final/calibration_03_v85.csv"
+    }
+  ],
+  "playback_ratios": [
+    0.956,
+    0.7433,
+    0.9894
+  ],
+  "noise_floor": 15712.6,
+  "cycles_passed": 0,
+  "false_positives": 0,
+  "crc_errors": 0,
+  "sequence_losses": 0,
+  "frame_errors": 0,
+  "telemetry_overruns": 0,
+  "command_errors": 0,
+  "pass": false,
+  "diagnosis": "ES8311/I2S bytes PASS, but no reproducible acoustic response; runtime Pi-to-Tang ACK regression independently confirmed",
+  "evidence_dir": "evidence/audio_autocalibration_20260905_final",
+  "json_path": "evidence/audio_autocalibration_20260905_final/autocalibration_result.json"
+}
