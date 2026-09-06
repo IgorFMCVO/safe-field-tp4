@@ -1,0 +1,88 @@
+SAFE-FIELD additive I2S -> gain8 PCM16 -> UART level diagnostic
+started_utc=2026-09-06T17:23:52.818Z
+simulator=@veriflow/iverilog-wasm@0.1.4
+hardware_programming=NOT_PERFORMED
+frozen_rtl_modified=NO
+levels_dbfs=-80,-60,-50,-40,-30,-20,-6
+amplitude_formula=round((2^23-1)*10^(dBFS/20))
+conversion=saturate_s16(sample24 >>> 5)
+protocol=UART_PCM16_V1
+success=true
+stage=run
+source_sha256 57D1CA1648D425E8971ECDF4A8028337FEE1B6C18C20955AA3CF27320FA00BC0 verilog_tp4/rtl/frozen_baseline/i2s_clock_gen.v
+source_sha256 F093FD39DEE74F1AF3FAF10F58CD811C02B30ED5096596C364C5F87BC05EE07C verilog_tp4/rtl/frozen_baseline/i2s_rx_24.v
+source_sha256 7F0CB30AC3C12A060FBC893B7DAE2BE5FF2E3EB9C9365EA95E342D4F5711EA34 verilog_tp4/rtl/frozen_baseline/uart_tx_byte.v
+source_sha256 BBDC5339794E1101F5F0E5BE2EDC85BA2C19CC9EE4643E0259EA5032A2695EAB verilog_mvp/pcm_stream/rtl/safe_field_pcm_packet_tx.v
+source_sha256 9F036127F8AAC317E7CF825EDE8C02ED30BBE66E88AFA15F27B534E9147DC4D5 verilog_mvp/pcm_stream_gain8/rtl/safe_field_pcm_s24_to_s16_sat.v
+source_sha256 6D2DF07DF043C8945272DE98F5E40DEEE40BAD8A341929ED075F1E8EE60000C2 verilog_mvp/pcm_stream_gain8/rtl/safe_field_pcm_packet_tx_gain8.v
+source_sha256 F4FF1D50FE1BD8FE345F61934C72FA8FEF4D87D032FC1D153926C5D74A9FE81C verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v
+===== simulator output =====
+PASS I2S LEFT index=0 dBFS=-80 sample24=839
+PASS I2S LEFT index=1 dBFS=-80 sample24=-839
+PASS I2S LEFT index=2 dBFS=-60 sample24=8389
+PASS I2S LEFT index=3 dBFS=-60 sample24=-8389
+PASS I2S LEFT index=4 dBFS=-50 sample24=26527
+PASS I2S LEFT index=5 dBFS=-50 sample24=-26527
+PASS I2S LEFT index=6 dBFS=-40 sample24=83886
+PASS I2S LEFT index=7 dBFS=-40 sample24=-83886
+PASS I2S LEFT index=8 dBFS=-30 sample24=265271
+PASS I2S LEFT index=9 dBFS=-30 sample24=-265271
+PASS I2S LEFT index=10 dBFS=-20 sample24=838861
+PASS I2S LEFT index=11 dBFS=-20 sample24=-838861
+PASS I2S LEFT index=12 dBFS=-6 sample24=4204263
+PASS I2S LEFT index=13 dBFS=-6 sample24=-4204263
+PASS I2S LEFT index=14 dBFS=-80 sample24=839
+PASS I2S LEFT index=15 dBFS=-80 sample24=-839
+PASS I2S LEFT index=16 dBFS=-60 sample24=8389
+PASS I2S LEFT index=17 dBFS=-60 sample24=-8389
+PASS I2S LEFT index=18 dBFS=-50 sample24=26527
+PASS I2S LEFT index=19 dBFS=-50 sample24=-26527
+PASS I2S LEFT index=20 dBFS=-40 sample24=83886
+PASS I2S LEFT index=21 dBFS=-40 sample24=-83886
+PASS I2S LEFT index=22 dBFS=-30 sample24=265271
+PASS I2S LEFT index=23 dBFS=-30 sample24=-265271
+PASS I2S LEFT index=24 dBFS=-20 sample24=838861
+PASS I2S LEFT index=25 dBFS=-20 sample24=-838861
+PASS I2S LEFT index=26 dBFS=-6 sample24=4204263
+PASS I2S LEFT index=27 dBFS=-6 sample24=-4204263
+PASS I2S LEFT index=28 dBFS=-80 sample24=839
+PASS I2S LEFT index=29 dBFS=-80 sample24=-839
+PASS I2S LEFT index=30 dBFS=-60 sample24=8389
+PASS I2S LEFT index=31 dBFS=-60 sample24=-8389
+PASS UART PCM index=0 dBFS=-80 sample24=839 expected16=26 actual16=26
+PASS UART PCM index=1 dBFS=-80 sample24=-839 expected16=-27 actual16=-27
+PASS UART PCM index=2 dBFS=-60 sample24=8389 expected16=262 actual16=262
+PASS UART PCM index=3 dBFS=-60 sample24=-8389 expected16=-263 actual16=-263
+PASS UART PCM index=4 dBFS=-50 sample24=26527 expected16=828 actual16=828
+PASS UART PCM index=5 dBFS=-50 sample24=-26527 expected16=-829 actual16=-829
+PASS UART PCM index=6 dBFS=-40 sample24=83886 expected16=2621 actual16=2621
+PASS UART PCM index=7 dBFS=-40 sample24=-83886 expected16=-2622 actual16=-2622
+PASS UART PCM index=8 dBFS=-30 sample24=265271 expected16=8289 actual16=8289
+PASS UART PCM index=9 dBFS=-30 sample24=-265271 expected16=-8290 actual16=-8290
+PASS UART PCM index=10 dBFS=-20 sample24=838861 expected16=26214 actual16=26214
+PASS UART PCM index=11 dBFS=-20 sample24=-838861 expected16=-26215 actual16=-26215
+PASS UART PCM index=12 dBFS=-6 sample24=4204263 expected16=32767 actual16=32767
+PASS UART PCM index=13 dBFS=-6 sample24=-4204263 expected16=-32768 actual16=-32768
+PASS UART PCM index=14 dBFS=-80 sample24=839 expected16=26 actual16=26
+PASS UART PCM index=15 dBFS=-80 sample24=-839 expected16=-27 actual16=-27
+PASS UART PCM index=16 dBFS=-60 sample24=8389 expected16=262 actual16=262
+PASS UART PCM index=17 dBFS=-60 sample24=-8389 expected16=-263 actual16=-263
+PASS UART PCM index=18 dBFS=-50 sample24=26527 expected16=828 actual16=828
+PASS UART PCM index=19 dBFS=-50 sample24=-26527 expected16=-829 actual16=-829
+PASS UART PCM index=20 dBFS=-40 sample24=83886 expected16=2621 actual16=2621
+PASS UART PCM index=21 dBFS=-40 sample24=-83886 expected16=-2622 actual16=-2622
+PASS UART PCM index=22 dBFS=-30 sample24=265271 expected16=8289 actual16=8289
+PASS UART PCM index=23 dBFS=-30 sample24=-265271 expected16=-8290 actual16=-8290
+PASS UART PCM index=24 dBFS=-20 sample24=838861 expected16=26214 actual16=26214
+PASS UART PCM index=25 dBFS=-20 sample24=-838861 expected16=-26215 actual16=-26215
+PASS UART PCM index=26 dBFS=-6 sample24=4204263 expected16=32767 actual16=32767
+PASS UART PCM index=27 dBFS=-6 sample24=-4204263 expected16=-32768 actual16=-32768
+PASS UART PCM index=28 dBFS=-80 sample24=839 expected16=26 actual16=26
+PASS UART PCM index=29 dBFS=-80 sample24=-839 expected16=-27 actual16=-27
+PASS UART PCM index=30 dBFS=-60 sample24=8389 expected16=262 actual16=262
+PASS UART PCM index=31 dBFS=-60 sample24=-8389 expected16=-263 actual16=-263
+PASS CRC expected=d90a actual=d90a
+TEST_RESULT: PASS (I2S delay/24-bit/sign/LEFT/sample_valid -> gain8 PCM16/saturation -> UART LE/CRC; levels -80,-60,-50,-40,-30,-20,-6 dBFS)
+verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v:335: $finish called at 232955000 (1ps)
+
+OVERALL_RESULT=PASS
