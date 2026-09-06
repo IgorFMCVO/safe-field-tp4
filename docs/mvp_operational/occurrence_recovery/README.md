@@ -30,7 +30,7 @@ acústico nesta recuperação, nem participação do operador.
 - Índice DIAO intacto: 19.129 chunks, 2.161 páginas, hashes de todos os cinco
   artefatos conferidos. Regressão ISOLADA da consulta previamente aprovada em A
   retorna fonte real; não substitui o FAIL do retrieval integrado B.
-- 92 testes unitários/integração PASS; `pip check` PASS; 300/300 arquivos da A
+- 93 testes unitários/integração PASS; `pip check` PASS; 300/300 arquivos da A
   conferidos por hash. 48 requests LLM auditados contra entradas reais.
 
 ## Limitações que impedem liberação
@@ -112,6 +112,12 @@ Logs: `asr_benchmark.log`, `asr_selected_validation.log`,
 `semantic_evaluation*.log`, `regression_final.log`, `diao_regression.log`,
 `provenance_audit.log`, `pip_check_final.log`.
 Tentativas abortadas/erros também permanecem; ausência de PASS não é ocultada.
+Auditoria final inicialmente sinalizou os próprios documentos novos por um
+prefixo incorreto no allowlist (`docs/mvp/` em vez do diretório real). O helper
+foi corrigido para permitir somente `docs/mvp_operational/occurrence_recovery/`,
+com teste que mantém TP4/wearable protegidos e exit code não-zero em FAIL.
+Logs anteriores mantidos; ver `provenance_audit_scope_fixed.log` e
+`regression_final_scope.log`. Isso não alterou nem repetiu o pipeline B.
 
 ## Dependências e privacidade
 

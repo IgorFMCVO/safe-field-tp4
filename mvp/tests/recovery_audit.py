@@ -10,6 +10,10 @@ from mvp.operational_intelligence.recovery_reasoning import SYSTEM
 from mvp.operational_intelligence.recovery_audio import HOTWORDS
 
 
+def allowed_recovery_path(path):
+    return path.startswith(('mvp/','docs/mvp_operational/occurrence_recovery/'))
+
+
 def audit(root):
     baseline=ROOT/'sessions/OCC-SIM-20260906T135545Z'
     original=load(baseline/'reports/STORAGE_MANIFEST.json')
@@ -63,7 +67,7 @@ def audit(root):
         contents=(ROOT/rel).read_text(encoding='utf-8')
         static.append({'file':rel,'pass':not any(s in contents for s in forbidden),'sha256':digest(ROOT/rel)})
     changed=subprocess.check_output(['git','diff','--name-only','74d4d28427215092d30cb217b7fa01c1b269e802'],cwd=ROOT,text=True).splitlines()
-    protected=[p for p in changed if not p.startswith(('mvp/','docs/mvp/'))]
+    protected=[p for p in changed if not allowed_recovery_path(p)]
     result={'baseline_a_files':len(checks),'baseline_a_manifest_pass':all(c['pass'] for c in checks),
             'baseline_file_checks':checks,'semantics_hash_pass':semantic_hash==frozen['semantics_sha256'],
             'original_truth_pass':digest(original_truth)==frozen['original_file_sha256'],
@@ -88,6 +92,7 @@ def audit(root):
        'O nome do catálogo/página não foi injetado no retrieval B. Ver JSON para as chamadas efetivas.\n\n'+
        result['limitations']+'\n\nTP4/hardware não alterados. C não executado; guard não constitui validação física.')
     print(json.dumps({k:result[k] for k in ('pass','baseline_a_files','baseline_a_manifest_pass','wire_requests','wire_kinds','leakage_failures','protected_paths_changed')}))
+    if not result['pass']:raise SystemExit(1)
 
 
 if __name__=='__main__':

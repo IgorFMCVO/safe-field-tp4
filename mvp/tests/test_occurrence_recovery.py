@@ -65,6 +65,13 @@ class RecoveryTests(unittest.TestCase):
                 with self.assertRaises(ValueError):registry.register(vector,'BAD')
             self.assertEqual(registry.records,[])
 
+    def test_audit_allows_only_scoped_recovery_documentation(self):
+        from mvp.tests.recovery_audit import allowed_recovery_path
+        self.assertTrue(allowed_recovery_path('docs/mvp_operational/occurrence_recovery/README.md'))
+        self.assertFalse(allowed_recovery_path('docs_tp4/README.md'))
+        self.assertFalse(allowed_recovery_path('docs/wearable/README.md'))
+        self.assertFalse(allowed_recovery_path('verilog_tp4/top.v'))
+
     def test_physical_guard_rejects_custom_serial_factory(self):
         with tempfile.TemporaryDirectory() as d:
             source=SerialPCMSource('/dev/serial0',serial_factory=lambda *a,**kw:None)
