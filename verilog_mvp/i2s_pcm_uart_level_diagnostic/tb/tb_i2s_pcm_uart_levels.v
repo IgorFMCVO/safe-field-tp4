@@ -314,6 +314,10 @@ initial begin
             $display("PASS CRC expected=%04x actual=%04x",
                      expected_crc, observed_crc);
         end
+        $write("UART_FRAME_HEX=");
+        for (i = 0; i < 78; i = i + 1)
+            $write("%02x", received[i]);
+        $display("");
     end
 
     if (left_seen !== 32 || right_seen !== 31) begin

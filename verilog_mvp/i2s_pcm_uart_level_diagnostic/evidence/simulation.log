@@ -1,5 +1,5 @@
 SAFE-FIELD additive I2S -> gain8 PCM16 -> UART level diagnostic
-started_utc=2026-09-06T17:23:52.818Z
+started_utc=2026-09-06T17:30:18.387Z
 simulator=@veriflow/iverilog-wasm@0.1.4
 hardware_programming=NOT_PERFORMED
 frozen_rtl_modified=NO
@@ -15,7 +15,7 @@ source_sha256 7F0CB30AC3C12A060FBC893B7DAE2BE5FF2E3EB9C9365EA95E342D4F5711EA34 v
 source_sha256 BBDC5339794E1101F5F0E5BE2EDC85BA2C19CC9EE4643E0259EA5032A2695EAB verilog_mvp/pcm_stream/rtl/safe_field_pcm_packet_tx.v
 source_sha256 9F036127F8AAC317E7CF825EDE8C02ED30BBE66E88AFA15F27B534E9147DC4D5 verilog_mvp/pcm_stream_gain8/rtl/safe_field_pcm_s24_to_s16_sat.v
 source_sha256 6D2DF07DF043C8945272DE98F5E40DEEE40BAD8A341929ED075F1E8EE60000C2 verilog_mvp/pcm_stream_gain8/rtl/safe_field_pcm_packet_tx_gain8.v
-source_sha256 F4FF1D50FE1BD8FE345F61934C72FA8FEF4D87D032FC1D153926C5D74A9FE81C verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v
+source_sha256 2D83C3FD21B90F888D8DD501E0D1CC9B42521CAB5E7487B6BC2D7484F0647222 verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v
 ===== simulator output =====
 PASS I2S LEFT index=0 dBFS=-80 sample24=839
 PASS I2S LEFT index=1 dBFS=-80 sample24=-839
@@ -82,7 +82,8 @@ PASS UART PCM index=29 dBFS=-80 sample24=-839 expected16=-27 actual16=-27
 PASS UART PCM index=30 dBFS=-60 sample24=8389 expected16=262 actual16=262
 PASS UART PCM index=31 dBFS=-60 sample24=-8389 expected16=-263 actual16=-263
 PASS CRC expected=d90a actual=d90a
+UART_FRAME_HEX=a5c3012000000000000020241a00e5ff0601f9fe3c03c3fc3d0ac2f561209edf66669999ff7f00801a00e5ff0601f9fe3c03c3fc3d0ac2f561209edf66669999ff7f00801a00e5ff0601f9fe0ad9
 TEST_RESULT: PASS (I2S delay/24-bit/sign/LEFT/sample_valid -> gain8 PCM16/saturation -> UART LE/CRC; levels -80,-60,-50,-40,-30,-20,-6 dBFS)
-verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v:335: $finish called at 232955000 (1ps)
+verilog_mvp/i2s_pcm_uart_level_diagnostic/tb/tb_i2s_pcm_uart_levels.v:339: $finish called at 232955000 (1ps)
 
 OVERALL_RESULT=PASS

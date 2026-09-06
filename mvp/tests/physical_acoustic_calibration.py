@@ -37,6 +37,11 @@ class AcousticCalibrationError(RuntimeError):
     """Calibration cannot safely produce an accepted playback level."""
 
 
+EXPECTED_WAV_SAMPLE_RATE_HZ = 42_188
+EXPECTED_EXACT_SAMPLE_RATE_HZ = 42_187.5
+PCM_SAMPLES_PER_UART_FRAME = 32
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -96,6 +101,7 @@ def audit_pcm16_wav(path: Path) -> dict[str, Any]:
         "sample_count": count,
         "duration_s": count / rate,
         "rms_pcm": rms,
+        "rms_domain": "RAW_PCM16_INCLUDING_DC",
         "rms_dbfs": 20 * math.log10(max(rms / 32_768, 1e-15)),
         "peak_pcm": peak,
         "peak_dbfs": 20 * math.log10(max(peak / 32_768, 1e-15)),
@@ -298,6 +304,10 @@ class SweepConfig:
             raise AcousticCalibrationError("unsafe calibration tone peak")
         if min(self.lead_s, self.noise_s, self.inter_stimulus_s, self.tail_s) < 0:
             raise AcousticCalibrationError("sweep timing cannot be negative")
+        if self.noise_s <= 0.30 or self.tail_s <= 0.30:
+            raise AcousticCalibrationError(
+                "pre/post noise windows must exceed the analysis edge trims"
+            )
 
 
 def run_sweep(
@@ -404,11 +414,13 @@ def _signal_metrics(samples: Any) -> dict[str, Any]:
     clipping = absolute >= 32_767
     near_rail = absolute >= 32_767 * 0.98
     return {
+        "domain": "RAW_PCM16_INCLUDING_DC",
         "sample_count": int(len(values)),
         "minimum": float(np.min(values)),
         "maximum": float(np.max(values)),
         "mean": float(np.mean(values)),
         "rms": rms,
+        "rms_including_dc": rms,
         "peak": peak,
         "peak_margin_db": 20 * math.log10(32_767 / max(peak, 1e-12)),
         "crest_factor_db": 20 * math.log10(max(peak, 1e-12) / max(rms, 1e-12)),
@@ -479,9 +491,35 @@ def _tone_metrics(samples: Any, rate: int, frequency: float, noise_rms: float) -
     }
 
 
+def _noise_subtracted_snr(
+    total_rms: float, noise_rms: float
+) -> tuple[float, float | None, bool]:
+    """Return signal RMS/SNR only when measured power exceeds noise power."""
+
+    if not all(math.isfinite(value) and value >= 0.0 for value in (total_rms, noise_rms)):
+        raise AcousticCalibrationError("RMS values must be finite and nonnegative")
+    signal_power = total_rms * total_rms - noise_rms * noise_rms
+    if signal_power <= 0.0:
+        return 0.0, None, False
+    signal_rms = math.sqrt(signal_power)
+    snr_db = 20 * math.log10(signal_rms / max(noise_rms, 1e-12))
+    return signal_rms, snr_db, True
+
+
 def _window(samples: Any, rate: int, start_s: float, end_s: float, trim_s: float = 0.2) -> Any:
-    begin = max(0, round((start_s + trim_s) * rate))
-    finish = min(len(samples), round((end_s - trim_s) * rate))
+    """Return an exact scheduled window; never hide clock/range errors by clamping."""
+
+    if not all(math.isfinite(value) for value in (start_s, end_s, trim_s)):
+        raise AcousticCalibrationError("scheduled capture window is not finite")
+    if rate <= 0 or start_s < 0 or end_s <= start_s or trim_s < 0:
+        raise AcousticCalibrationError("scheduled capture window is invalid")
+    duration_s = len(samples) / rate
+    if end_s > duration_s:
+        raise AcousticCalibrationError("scheduled capture window exceeds captured WAV")
+    begin = round((start_s + trim_s) * rate)
+    finish = round((end_s - trim_s) * rate)
+    if begin < 0 or finish > len(samples):
+        raise AcousticCalibrationError("scheduled capture indices exceed captured WAV")
     if finish <= begin:
         raise AcousticCalibrationError("scheduled capture window is empty")
     return samples[begin:finish]
@@ -497,6 +535,7 @@ def analyze_sweep(
     minimum_speech_snr_db: float = 6.0,
     maximum_thd_percent: float = 5.0,
     minimum_peak_margin_db: float = 6.0,
+    maximum_noise_floor_drift_db: float = 3.0,
 ) -> dict[str, Any]:
     import numpy as np
 
@@ -512,8 +551,38 @@ def analyze_sweep(
     capture_audit = audit_pcm16_wav(capture_wav)
     samples, rate = _pcm16(capture_wav)
     values = np.asarray(samples, dtype=np.float64)
-    transport = capture_report.get("watch_stop", {}).get("pcm_source", {})
+    watch_stop = capture_report.get("watch_stop", {})
+    transport = watch_stop.get("pcm_source", {})
+    capture_counts = watch_stop.get("capture", {})
     error_fields = capture_report.get("failed_zero_error_fields", [])
+    valid_frames = transport.get("valid_frames")
+    samples_received = transport.get("samples_received")
+    captured_frames = capture_counts.get("frames")
+    exact_rate = transport.get("exact_sample_rate_hz")
+    if rate != EXPECTED_WAV_SAMPLE_RATE_HZ:
+        raise AcousticCalibrationError(
+            f"captured WAV rate must be {EXPECTED_WAV_SAMPLE_RATE_HZ}, got {rate}"
+        )
+    if exact_rate != EXPECTED_EXACT_SAMPLE_RATE_HZ:
+        raise AcousticCalibrationError("capture sidecar has an unexpected exact FPGA rate")
+    if (
+        isinstance(valid_frames, bool)
+        or not isinstance(valid_frames, int)
+        or valid_frames <= 0
+        or isinstance(samples_received, bool)
+        or not isinstance(samples_received, int)
+        or samples_received <= 0
+        or isinstance(captured_frames, bool)
+        or not isinstance(captured_frames, int)
+        or captured_frames <= 0
+    ):
+        raise AcousticCalibrationError("capture sidecar is missing positive frame/sample counts")
+    if samples_received != valid_frames * PCM_SAMPLES_PER_UART_FRAME:
+        raise AcousticCalibrationError("UART frame/sample count invariant failed")
+    if captured_frames != samples_received:
+        raise AcousticCalibrationError("Core raw-WAV/sample count invariant failed")
+    if capture_audit["sample_count"] != samples_received:
+        raise AcousticCalibrationError("captured WAV does not match its transport sidecar")
     transport_valid = bool(
         capture_report.get("acceptance_pass") is True
         and not error_fields
@@ -527,27 +596,77 @@ def analyze_sweep(
 
     tone_frequency = float(schedule["stimuli"]["tone"]["frequency_hz"])
     results: list[dict[str, Any]] = []
-    for entry in schedule.get("levels", []):
+    entries = schedule.get("levels", [])
+    if not isinstance(entries, list) or not entries:
+        raise AcousticCalibrationError("calibration schedule contains no levels")
+    schedule_finished = offset(str(schedule["finished_at_utc"]))
+    previous_speech_end = -1.0
+    previous_scalar = -1.0
+    for index, entry in enumerate(entries):
         noise_start = offset(entry["noise_started_at_utc"])
         tone_start = offset(entry["tone_started_at_utc"])
         tone_end = offset(entry["tone_finished_at_utc"])
         speech_start = offset(entry["speech_started_at_utc"])
         speech_end = offset(entry["speech_finished_at_utc"])
+        post_noise_end = (
+            offset(entries[index + 1]["noise_started_at_utc"])
+            if index + 1 < len(entries)
+            else schedule_finished
+        )
+        scalar = entry.get("applied_scalar")
+        if (
+            isinstance(scalar, bool)
+            or not isinstance(scalar, (int, float))
+            or scalar <= previous_scalar
+        ):
+            raise AcousticCalibrationError("applied sweep levels must be strictly ascending")
+        if not (
+            0 <= noise_start < tone_start < tone_end < speech_start < speech_end
+            < post_noise_end <= len(values) / rate
+        ):
+            raise AcousticCalibrationError("scheduled level windows are unordered or out of range")
+        if noise_start < previous_speech_end:
+            raise AcousticCalibrationError("scheduled level windows overlap")
+        previous_speech_end = speech_end
+        previous_scalar = float(scalar)
         noise_raw = _window(values, rate, noise_start, tone_start, trim_s=0.15)
         tone_raw = _window(values, rate, tone_start, tone_end, trim_s=0.25)
         speech_raw = _window(values, rate, speech_start, speech_end, trim_s=0.25)
-        noise_band = _bandpass(noise_raw, rate, 300.0, 3_400.0)
-        noise_tone_band = _bandpass(
+        post_noise_raw = _window(
+            values, rate, speech_end, post_noise_end, trim_s=0.15
+        )
+        pre_noise_band = _bandpass(noise_raw, rate, 300.0, 3_400.0)
+        post_noise_band = _bandpass(post_noise_raw, rate, 300.0, 3_400.0)
+        pre_noise_tone_band = _bandpass(
             noise_raw, rate, max(40.0, tone_frequency - 50.0), tone_frequency + 50.0
+        )
+        post_noise_tone_band = _bandpass(
+            post_noise_raw,
+            rate,
+            max(40.0, tone_frequency - 50.0),
+            tone_frequency + 50.0,
         )
         speech_band = _bandpass(speech_raw, rate, 300.0, 3_400.0)
         tone_band = _bandpass(tone_raw, rate, 80.0, 7_500.0)
-        noise_rms = float(np.sqrt(np.mean(noise_band * noise_band)))
-        noise_tone_rms = float(np.sqrt(np.mean(noise_tone_band * noise_tone_band)))
+        pre_noise_rms = float(np.sqrt(np.mean(pre_noise_band * pre_noise_band)))
+        post_noise_rms = float(np.sqrt(np.mean(post_noise_band * post_noise_band)))
+        noise_rms = max(pre_noise_rms, post_noise_rms)
+        pre_noise_tone_rms = float(
+            np.sqrt(np.mean(pre_noise_tone_band * pre_noise_tone_band))
+        )
+        post_noise_tone_rms = float(
+            np.sqrt(np.mean(post_noise_tone_band * post_noise_tone_band))
+        )
+        noise_tone_rms = max(pre_noise_tone_rms, post_noise_tone_rms)
+        noise_floor_drift_db = abs(
+            20
+            * math.log10(
+                max(post_noise_rms, 1e-12) / max(pre_noise_rms, 1e-12)
+            )
+        )
         speech_rms = float(np.sqrt(np.mean(speech_band * speech_band)))
-        speech_signal_rms = math.sqrt(max(0.0, speech_rms * speech_rms - noise_rms * noise_rms))
-        speech_snr = 20 * math.log10(
-            max(speech_signal_rms, 1e-12) / max(noise_rms, 1e-12)
+        speech_signal_rms, speech_snr, speech_above_noise = _noise_subtracted_snr(
+            speech_rms, noise_rms
         )
         raw_combined = np.concatenate((tone_raw, speech_raw))
         result = {
@@ -555,15 +674,32 @@ def analyze_sweep(
             "applied_scalar": entry["applied_scalar"],
             "noise": {
                 **_signal_metrics(noise_raw),
+                "post_window": _signal_metrics(post_noise_raw),
+                "pre_speech_band_rms": pre_noise_rms,
+                "post_speech_band_rms": post_noise_rms,
+                "conservative_speech_band_rms": noise_rms,
+                "pre_tone_100hz_band_rms": pre_noise_tone_rms,
+                "post_tone_100hz_band_rms": post_noise_tone_rms,
+                "conservative_tone_100hz_band_rms": noise_tone_rms,
+                "floor_drift_db": noise_floor_drift_db,
+                # Backward-compatible aliases, now explicitly conservative.
                 "speech_band_rms": noise_rms,
                 "tone_100hz_band_rms": noise_tone_rms,
             },
             "tone": {
                 **_signal_metrics(tone_raw),
                 **_tone_metrics(tone_band, rate, tone_frequency, noise_tone_rms),
+                "thdn_policy": "DIAGNOSTIC_ONLY; THD and tone SNR are acceptance gates",
             },
             "speech": {
                 **_signal_metrics(speech_raw),
+                "analysis_domain": "BANDPASS_300_3400HZ_DC_REJECTED",
+                "speech_band_total_rms": speech_rms,
+                "conservative_noise_floor_rms": noise_rms,
+                "noise_subtracted_signal_rms": speech_signal_rms,
+                "noise_subtracted_snr_db": speech_snr,
+                "signal_power_above_noise": speech_above_noise,
+                # Backward-compatible aliases.
                 "speech_band_rms": speech_rms,
                 "noise_subtracted_rms": speech_signal_rms,
                 "snr_db": speech_snr,
@@ -577,7 +713,11 @@ def analyze_sweep(
             and result["combined"]["peak_margin_db"] >= minimum_peak_margin_db
             and result["tone"]["tone_over_noise_db"] >= minimum_tone_snr_db
             and result["tone"]["thd_percent"] <= maximum_thd_percent
+            and result["speech"]["snr_db"] is not None
             and result["speech"]["snr_db"] >= minimum_speech_snr_db
+            and result["noise"]["floor_drift_db"] <= maximum_noise_floor_drift_db
+            and capture_audit["clipped_samples"] == 0
+            and capture_audit["near_rail_samples"] == 0
         )
         failures = []
         if not transport_valid:
@@ -592,8 +732,17 @@ def analyze_sweep(
             failures.append("TONE_SNR")
         if result["tone"]["thd_percent"] > maximum_thd_percent:
             failures.append("THD")
-        if result["speech"]["snr_db"] < minimum_speech_snr_db:
+        if (
+            result["speech"]["snr_db"] is None
+            or result["speech"]["snr_db"] < minimum_speech_snr_db
+        ):
             failures.append("SPEECH_SNR")
+        if result["noise"]["floor_drift_db"] > maximum_noise_floor_drift_db:
+            failures.append("NOISE_FLOOR_DRIFT")
+        if capture_audit["clipped_samples"]:
+            failures.append("GLOBAL_CAPTURE_CLIPPING")
+        if capture_audit["near_rail_samples"]:
+            failures.append("GLOBAL_CAPTURE_NEAR_RAIL")
         result["failed_gates"] = failures
         results.append(result)
 
@@ -632,6 +781,22 @@ def analyze_sweep(
         "master": schedule["stimuli"]["master"],
         "master_modified": schedule["stimuli"]["master_modified"],
         "capture": capture_audit,
+        "capture_binding": {
+            "wav_path": capture_audit["path"],
+            "wav_sha256": capture_audit["sha256"],
+            "capture_report_path": str(capture_report_path.resolve(strict=True)),
+            "capture_report_sha256": sha256_file(capture_report_path.resolve()),
+            "schedule_path": str(schedule_path.resolve(strict=True)),
+            "schedule_sha256": sha256_file(schedule_path.resolve()),
+            "wav_header_sample_rate_hz": rate,
+            "transport_exact_sample_rate_hz": exact_rate,
+            "samples_per_uart_frame": PCM_SAMPLES_PER_UART_FRAME,
+            "transport_valid_frames": valid_frames,
+            "transport_samples_received": samples_received,
+            "core_raw_wav_frames": captured_frames,
+            "wav_sample_count": capture_audit["sample_count"],
+            "all_count_and_rate_invariants_pass": True,
+        },
         "capture_transport": {
             "valid": transport_valid,
             "valid_frames": transport.get("valid_frames"),
@@ -645,8 +810,18 @@ def analyze_sweep(
             "minimum_speech_snr_db": minimum_speech_snr_db,
             "maximum_thd_percent": maximum_thd_percent,
             "minimum_peak_margin_db": minimum_peak_margin_db,
+            "maximum_noise_floor_drift_db": maximum_noise_floor_drift_db,
             "zero_clipping_required": True,
             "zero_near_rail_samples_required": True,
+            "thdn": {
+                "enforced": False,
+                "reason": "THD and independent tone-SNR gates avoid double-counting acoustic noise",
+            },
+        },
+        "analysis_domains": {
+            "raw_metrics": "PCM16 codes including DC; used for rails/headroom only",
+            "speech_snr": "300-3400 Hz band; conservative max(pre,post) noise power subtracted",
+            "tone_snr": "fitted fundamental versus conservative max(pre,post) +/-50 Hz noise",
         },
         "levels": results,
         "selected_level": selected["applied_scalar"] if selected else None,

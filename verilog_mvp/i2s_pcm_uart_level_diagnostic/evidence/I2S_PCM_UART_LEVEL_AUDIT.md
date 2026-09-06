@@ -5,6 +5,11 @@ Scope: simulation and read-only RTL inspection only
 Hardware programming: **NOT PERFORMED**  
 Frozen TP4 RTL modified: **NO**
 
+Official format source: TDK/InvenSense, *INMP441 Datasheet*, rev. 1.1,
+<https://invensense.tdk.com/wp-content/uploads/2015/02/INMP441.pdf>.
+The audited 2.700 MHz SCK and 42.1875 kHz WS are within the documented
+0.5–3.2 MHz SCK and 7.8–50 kHz WS ranges.
+
 ## Result
 
 **PASS.** The deterministic chain preserves signed samples through:
@@ -76,6 +81,11 @@ packet.
   values, decoded little-endian.
 - CRC-16/CCITT-FALSE expected: `D90A`
 - CRC-16/CCITT-FALSE actual: `D90A`
+- Actual simulated UART-frame SHA-256:
+  `77E5C1A2EE6542FCAF1559F27483F13393C4B19230900839B7489094A4300CE2`.
+- The production Raspberry `decode_frame()` decoded that exact frame; all 32
+  samples matched. Per-level payload bytes and Pi-decoded values are preserved
+  in `evidence/pi_decode.log`.
 - Accepted samples: `32`
 - Dropped samples: `0`
 - Transport overrun: `0`
@@ -95,7 +105,10 @@ packet.
 
 ```powershell
 node verilog_mvp/i2s_pcm_uart_level_diagnostic/sim/run_i2s_pcm_uart_level_diagnostic.mjs
+python -m verilog_mvp.i2s_pcm_uart_level_diagnostic.sim.verify_pi_decode
 ```
 
-Machine-readable/raw simulator evidence:
-`verilog_mvp/i2s_pcm_uart_level_diagnostic/evidence/simulation.log`.
+Raw simulator and Pi-decoder evidence:
+
+- `verilog_mvp/i2s_pcm_uart_level_diagnostic/evidence/simulation.log`
+- `verilog_mvp/i2s_pcm_uart_level_diagnostic/evidence/pi_decode.log`

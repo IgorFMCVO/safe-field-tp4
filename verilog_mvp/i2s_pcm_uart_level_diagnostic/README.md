@@ -23,7 +23,9 @@ Run from the repository root:
 
 ```powershell
 node verilog_mvp/i2s_pcm_uart_level_diagnostic/sim/run_i2s_pcm_uart_level_diagnostic.mjs
+python -m verilog_mvp.i2s_pcm_uart_level_diagnostic.sim.verify_pi_decode
 ```
 
-The generated evidence is written to `evidence/simulation.log` in this
-directory.
+The generated evidence is written to `evidence/simulation.log` and
+`evidence/pi_decode.log` in this directory. The second command feeds the exact
+UART frame emitted by the HDL simulation to the production Raspberry decoder.

@@ -1,0 +1,36 @@
+SAFE-FIELD Pi production decoder over actual HDL-simulated UART frame
+uart_frame_sha256=77E5C1A2EE6542FCAF1559F27483F13393C4B19230900839B7489094A4300CE2
+seq=0 first_counter=0 flags=0x24
+PASS index=0 dBFS=-80 expected_sample24=839 expected_pcm16=26 uart_payload_le=1A00 pi_decoded_sample=26
+PASS index=1 dBFS=-80 expected_sample24=-839 expected_pcm16=-27 uart_payload_le=E5FF pi_decoded_sample=-27
+PASS index=2 dBFS=-60 expected_sample24=8389 expected_pcm16=262 uart_payload_le=0601 pi_decoded_sample=262
+PASS index=3 dBFS=-60 expected_sample24=-8389 expected_pcm16=-263 uart_payload_le=F9FE pi_decoded_sample=-263
+PASS index=4 dBFS=-50 expected_sample24=26527 expected_pcm16=828 uart_payload_le=3C03 pi_decoded_sample=828
+PASS index=5 dBFS=-50 expected_sample24=-26527 expected_pcm16=-829 uart_payload_le=C3FC pi_decoded_sample=-829
+PASS index=6 dBFS=-40 expected_sample24=83886 expected_pcm16=2621 uart_payload_le=3D0A pi_decoded_sample=2621
+PASS index=7 dBFS=-40 expected_sample24=-83886 expected_pcm16=-2622 uart_payload_le=C2F5 pi_decoded_sample=-2622
+PASS index=8 dBFS=-30 expected_sample24=265271 expected_pcm16=8289 uart_payload_le=6120 pi_decoded_sample=8289
+PASS index=9 dBFS=-30 expected_sample24=-265271 expected_pcm16=-8290 uart_payload_le=9EDF pi_decoded_sample=-8290
+PASS index=10 dBFS=-20 expected_sample24=838861 expected_pcm16=26214 uart_payload_le=6666 pi_decoded_sample=26214
+PASS index=11 dBFS=-20 expected_sample24=-838861 expected_pcm16=-26215 uart_payload_le=9999 pi_decoded_sample=-26215
+PASS index=12 dBFS=-6 expected_sample24=4204263 expected_pcm16=32767 uart_payload_le=FF7F pi_decoded_sample=32767
+PASS index=13 dBFS=-6 expected_sample24=-4204263 expected_pcm16=-32768 uart_payload_le=0080 pi_decoded_sample=-32768
+PASS index=14 dBFS=-80 expected_sample24=839 expected_pcm16=26 uart_payload_le=1A00 pi_decoded_sample=26
+PASS index=15 dBFS=-80 expected_sample24=-839 expected_pcm16=-27 uart_payload_le=E5FF pi_decoded_sample=-27
+PASS index=16 dBFS=-60 expected_sample24=8389 expected_pcm16=262 uart_payload_le=0601 pi_decoded_sample=262
+PASS index=17 dBFS=-60 expected_sample24=-8389 expected_pcm16=-263 uart_payload_le=F9FE pi_decoded_sample=-263
+PASS index=18 dBFS=-50 expected_sample24=26527 expected_pcm16=828 uart_payload_le=3C03 pi_decoded_sample=828
+PASS index=19 dBFS=-50 expected_sample24=-26527 expected_pcm16=-829 uart_payload_le=C3FC pi_decoded_sample=-829
+PASS index=20 dBFS=-40 expected_sample24=83886 expected_pcm16=2621 uart_payload_le=3D0A pi_decoded_sample=2621
+PASS index=21 dBFS=-40 expected_sample24=-83886 expected_pcm16=-2622 uart_payload_le=C2F5 pi_decoded_sample=-2622
+PASS index=22 dBFS=-30 expected_sample24=265271 expected_pcm16=8289 uart_payload_le=6120 pi_decoded_sample=8289
+PASS index=23 dBFS=-30 expected_sample24=-265271 expected_pcm16=-8290 uart_payload_le=9EDF pi_decoded_sample=-8290
+PASS index=24 dBFS=-20 expected_sample24=838861 expected_pcm16=26214 uart_payload_le=6666 pi_decoded_sample=26214
+PASS index=25 dBFS=-20 expected_sample24=-838861 expected_pcm16=-26215 uart_payload_le=9999 pi_decoded_sample=-26215
+PASS index=26 dBFS=-6 expected_sample24=4204263 expected_pcm16=32767 uart_payload_le=FF7F pi_decoded_sample=32767
+PASS index=27 dBFS=-6 expected_sample24=-4204263 expected_pcm16=-32768 uart_payload_le=0080 pi_decoded_sample=-32768
+PASS index=28 dBFS=-80 expected_sample24=839 expected_pcm16=26 uart_payload_le=1A00 pi_decoded_sample=26
+PASS index=29 dBFS=-80 expected_sample24=-839 expected_pcm16=-27 uart_payload_le=E5FF pi_decoded_sample=-27
+PASS index=30 dBFS=-60 expected_sample24=8389 expected_pcm16=262 uart_payload_le=0601 pi_decoded_sample=262
+PASS index=31 dBFS=-60 expected_sample24=-8389 expected_pcm16=-263 uart_payload_le=F9FE pi_decoded_sample=-263
+TEST_RESULT: PASS errors=0
