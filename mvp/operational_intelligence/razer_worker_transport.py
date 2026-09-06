@@ -46,10 +46,11 @@ from .providers import (
     ReasoningResult,
     SpeakerEmbeddingProvider,
 )
+from .speaker_registry import ObservationQuality
 
 
 PROTOCOL_NAME = "safe-field-razer-worker"
-PROTOCOL_VERSION = 1
+PROTOCOL_VERSION = 2
 SEGMENT_PATH = "/v1/inference/segment"
 REASONING_PATH = "/v1/inference/reasoning"
 HEALTH_PATH = "/v1/health"
@@ -68,6 +69,14 @@ _FORBIDDEN_REQUEST_KEY_PARTS = (
 _PROCESS_INSTANCE_ID = secrets.token_hex(16)
 _SPOOL_PREFIX = "safe_field_worker_"
 _SPOOL_MARKER = ".safe_field_spool.json"
+_OBSERVATION_QUALITY_FIELDS = {
+    "speech_seconds",
+    "speech_ratio",
+    "confidence",
+    "overlap_ratio",
+    "rms",
+    "clipped_ratio",
+}
 
 
 def _canonical_json(value: Any) -> bytes:
@@ -97,6 +106,36 @@ def _identifier(value: Any, field: str) -> str:
     if not isinstance(value, str) or not _ID_RE.fullmatch(value):
         raise ValueError(f"invalid {field}")
     return value
+
+
+def _observation_quality_to_dict(value: ObservationQuality) -> dict[str, float]:
+    if not isinstance(value, ObservationQuality):
+        raise ValueError("observation_quality provider result has invalid type")
+    result = {
+        field: _finite_number(getattr(value, field), f"observation_quality.{field}")
+        for field in _OBSERVATION_QUALITY_FIELDS
+    }
+    if result["speech_seconds"] < 0 or result["rms"] < 0:
+        raise ValueError("observation_quality duration/RMS cannot be negative")
+    for field in ("speech_ratio", "confidence", "overlap_ratio", "clipped_ratio"):
+        if not 0.0 <= result[field] <= 1.0:
+            raise ValueError(f"observation_quality.{field} must be in [0, 1]")
+    return result
+
+
+def _observation_quality_from_dict(value: Any) -> ObservationQuality:
+    if not isinstance(value, dict) or set(value) != _OBSERVATION_QUALITY_FIELDS:
+        raise ValueError("invalid observation_quality fields")
+    normalized = {
+        field: _finite_number(value[field], f"observation_quality.{field}")
+        for field in _OBSERVATION_QUALITY_FIELDS
+    }
+    if normalized["speech_seconds"] < 0 or normalized["rms"] < 0:
+        raise ValueError("observation_quality duration/RMS cannot be negative")
+    for field in ("speech_ratio", "confidence", "overlap_ratio", "clipped_ratio"):
+        if not 0.0 <= normalized[field] <= 1.0:
+            raise ValueError(f"observation_quality.{field} must be in [0, 1]")
+    return ObservationQuality(**normalized)
 
 
 def _contains_forbidden_request_key(value: Any) -> bool:
@@ -274,7 +313,7 @@ class WorkerProviders:
     asr: ASRProvider
     diarization: DiarizationProvider
     embedding: SpeakerEmbeddingProvider
-    reasoning: ReasoningProvider
+    reasoning: ReasoningProvider | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -288,6 +327,7 @@ class RemoteSegmentResult:
     audio_sha256: str
     asr: ASRResult
     turns: tuple[RemoteTurn, ...]
+    observation_qualities: dict[str, ObservationQuality]
     processing_status: str
     pending_stage: str | None
     pending_error: str | None
@@ -551,6 +591,7 @@ class _WorkerEngine:
             if len(str(asr.text).encode("utf-8")) > 256 * 1024:
                 raise _TransportFailure(502, "INVALID_PROVIDER_RESULT", "ASR text too large")
             encoded_turns: list[dict[str, Any]] = []
+            encoded_qualities: dict[str, dict[str, float]] = {}
             processing_status = "COMPLETE"
             pending_stage: str | None = None
             pending_error: str | None = None
@@ -561,6 +602,7 @@ class _WorkerEngine:
                     raise _TransportFailure(
                         502, "INVALID_PROVIDER_RESULT", "invalid diarization turns"
                     )
+                local_groups: dict[str, list[DiarizedTurn]] = {}
                 for turn in turns:
                     if not isinstance(turn, DiarizedTurn):
                         raise _TransportFailure(502, "INVALID_PROVIDER_RESULT", "turn type invalid")
@@ -575,6 +617,8 @@ class _WorkerEngine:
                         raise _TransportFailure(
                             502, "INVALID_PROVIDER_RESULT", "turn values invalid"
                         )
+                    local_speaker = _identifier(turn.local_speaker, "local_speaker")
+                    local_groups.setdefault(local_speaker, []).append(turn)
                     stage = "embedding"
                     embedding = tuple(
                         _finite_number(value, "embedding")
@@ -588,24 +632,38 @@ class _WorkerEngine:
                         )
                     encoded_turns.append(
                         {
-                            "local_speaker": _identifier(turn.local_speaker, "local_speaker"),
+                            "local_speaker": local_speaker,
                             "start": turn_start,
                             "end": turn_end,
                             "confidence": turn_confidence,
                             "embedding": list(embedding),
                         }
                     )
+                stage = "observation_quality"
+                quality_provider = getattr(self.providers.diarization, "observation_quality", None)
+                if not callable(quality_provider):
+                    raise _TransportFailure(
+                        502,
+                        "OBSERVATION_QUALITY_REQUIRED",
+                        "diarization provider must expose source-derived observation quality",
+                    )
+                for local_speaker, group in local_groups.items():
+                    encoded_qualities[local_speaker] = _observation_quality_to_dict(
+                        quality_provider(audio_path, group)
+                    )
             except _TransportFailure as exc:
                 processing_status = "PROCESSING_PENDING"
                 pending_stage = stage
                 pending_error = exc.code
                 encoded_turns = []
+                encoded_qualities = {}
                 retain_for_safety = exc.code == "PROVIDER_TIMEOUT"
             except Exception:
                 processing_status = "PROCESSING_PENDING"
                 pending_stage = stage
                 pending_error = "INVALID_PROVIDER_RESULT"
                 encoded_turns = []
+                encoded_qualities = {}
         except _TransportFailure as exc:
             # Cancellation cannot forcibly stop a provider-owned native
             # thread.  Retaining the temporary input on timeout avoids a
@@ -637,6 +695,7 @@ class _WorkerEngine:
                     "language": str(asr.language),
                 },
                 "turns": encoded_turns,
+                "observation_qualities": encoded_qualities,
                 "processing_status": processing_status,
                 "pending_stage": pending_stage,
                 "pending_error": pending_error,
@@ -650,6 +709,12 @@ class _WorkerEngine:
         )
 
     def _reason(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
+        if self.providers.reasoning is None:
+            raise _TransportFailure(
+                404,
+                "REASONING_NOT_CONFIGURED",
+                "reasoning is occurrence-local and is not exposed by this worker",
+            )
         if set(payload) != {"scope_id", "transcript"}:
             raise _TransportFailure(400, "INVALID_REASONING_PAYLOAD", "unexpected reasoning fields")
         try:
@@ -793,6 +858,13 @@ def make_razer_worker_server(
                         "version": PROTOCOL_VERSION,
                         "status": "READY",
                         "worker_id": engine.worker_id,
+                        "capabilities": {
+                            "segment_inference": True,
+                            "observation_quality": callable(
+                                getattr(engine.providers.diarization, "observation_quality", None)
+                            ),
+                            "grounded_reasoning": engine.providers.reasoning is not None,
+                        },
                     }
                 ),
             )
@@ -1005,6 +1077,17 @@ class RazerWorkerClient:
         if not isinstance(result, dict) or result.get("audio_sha256") != audio_sha256:
             raise ProviderUnavailable("RAZER_WORKER_AUDIO_PROVENANCE_ERROR")
         try:
+            expected_result_keys = {
+                "audio_sha256",
+                "asr",
+                "turns",
+                "observation_qualities",
+                "processing_status",
+                "pending_stage",
+                "pending_error",
+            }
+            if set(result) != expected_result_keys:
+                raise ValueError("unexpected segment result fields")
             asr_data = result["asr"]
             processing_status = str(result["processing_status"])
             pending_stage = result["pending_stage"]
@@ -1036,14 +1119,28 @@ class RazerWorkerClient:
                 if not embedding or len(embedding) > 8192:
                     raise ValueError("empty embedding")
                 turns.append(RemoteTurn(turn, embedding))
+            quality_data = result["observation_qualities"]
+            if not isinstance(quality_data, dict):
+                raise ValueError("observation_qualities must be an object")
+            observation_qualities = {
+                _identifier(local_speaker, "observation quality speaker"): (
+                    _observation_quality_from_dict(value)
+                )
+                for local_speaker, value in quality_data.items()
+            }
             if processing_status == "COMPLETE" and (not turns or len(turns) > 64):
                 raise ValueError("no turns")
-            if processing_status == "PROCESSING_PENDING" and turns:
-                raise ValueError("partial response must not contain turns")
+            if processing_status == "COMPLETE" and set(observation_qualities) != {
+                item.turn.local_speaker for item in turns
+            }:
+                raise ValueError("observation quality coverage mismatch")
+            if processing_status == "PROCESSING_PENDING" and (turns or observation_qualities):
+                raise ValueError("partial response must not contain turns or quality")
             remote = RemoteSegmentResult(
                 audio_sha256=audio_sha256,
                 asr=asr,
                 turns=tuple(turns),
+                observation_qualities=observation_qualities,
                 processing_status=processing_status,
                 pending_stage=pending_stage,
                 pending_error=pending_error,
@@ -1120,6 +1217,20 @@ class RazerDiarizationProxy(DiarizationProvider):
             )
         return [item.turn for item in result.turns]
 
+    def observation_quality(
+        self, audio_path: Path, group: Sequence[DiarizedTurn]
+    ) -> ObservationQuality:
+        """Return the worker-measured quality bound to this cached WAV result."""
+        local_speakers = {turn.local_speaker for turn in group}
+        if len(local_speakers) != 1:
+            raise ProviderUnavailable("RAZER_WORKER_QUALITY_GROUP_MISMATCH")
+        result = self.client._segment_sync(audio_path)
+        local_speaker = next(iter(local_speakers))
+        quality = result.observation_qualities.get(local_speaker)
+        if quality is None:
+            raise ProviderUnavailable("RAZER_WORKER_OBSERVATION_QUALITY_MISSING")
+        return quality
+
 
 class RazerEmbeddingProxy(SpeakerEmbeddingProvider):
     def __init__(self, client: RazerWorkerClient):
@@ -1152,21 +1263,29 @@ class RazerReasoningProxy(ReasoningProvider):
 
 
 def remote_pipeline_providers(
-    client: RazerWorkerClient, knowledge: KnowledgeProvider
+    client: RazerWorkerClient,
+    knowledge: KnowledgeProvider,
+    *,
+    reasoning: ReasoningProvider,
 ):
-    """Return the existing pipeline contract with DIAO kept on the Pi.
+    """Return the pipeline contract with DIAO and global reasoning on the Pi.
 
     The unannotated return avoids a runtime import cycle; the returned object is
-    an ordinary :class:`PipelineProviders` instance.
+    an ordinary :class:`PipelineProviders` instance. The supplied local
+    reasoner must enforce strict evidence support. It is deliberately
+    mandatory: this helper cannot silently route facts or hypotheses to the
+    audio worker.
     """
 
     from .pipeline import PipelineProviders
 
+    if not getattr(reasoning, "strict_support", False):
+        raise ValueError("Explicit local reasoning must enable strict_support")
     return PipelineProviders(
         asr=RazerASRProxy(client),
         diarization=RazerDiarizationProxy(client),
         embedding=RazerEmbeddingProxy(client),
-        reasoning=RazerReasoningProxy(client),
+        reasoning=reasoning,
         knowledge=knowledge,
     )
 

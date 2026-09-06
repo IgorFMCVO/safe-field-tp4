@@ -1,0 +1,36 @@
+SAFE-FIELD MVP PCM stream gain8 self-checking simulation
+started_utc=2026-09-06T16:40:15.060Z
+conversion=signed arithmetic shift 5 plus explicit PCM16 saturation
+protocol=UART_PCM16_V1 unchanged
+simulator=@veriflow/iverilog-wasm@0.1.4
+===== signed_conversion_and_saturation =====
+success=true
+stage=run
+PASS convert input=0 expected=0 actual=0
+PASS convert input=31 expected=0 actual=0
+PASS convert input=32 expected=1 actual=1
+PASS convert input=39519 expected=1234 actual=1234
+PASS convert input=-1 expected=-1 actual=-1
+PASS convert input=-32 expected=-1 actual=-1
+PASS convert input=-33 expected=-2 actual=-2
+PASS convert input=-39488 expected=-1234 actual=-1234
+PASS convert input=1048575 expected=32767 actual=32767
+PASS convert input=-1048576 expected=-32768 actual=-32768
+PASS convert input=1048576 expected=32767 actual=32767
+PASS convert input=-1048577 expected=-32768 actual=-32768
+PASS convert input=8388607 expected=32767 actual=32767
+PASS convert input=-8388608 expected=-32768 actual=-32768
+TEST_RESULT: PASS (signed >>>5, positive, negative, boundaries, saturation)
+verilog_mvp/pcm_stream_gain8/tb/tb_safe_field_pcm_s24_to_s16_sat.v:54: $finish called at 15000 (1ps)
+
+===== packet_protocol_gain8 =====
+success=true
+stage=run
+TEST_RESULT: PASS (gain8 payload, saturation, protocol, CRC, LEFT filter)
+verilog_mvp/pcm_stream_gain8/tb/tb_safe_field_pcm_packet_tx_gain8.v:185: $finish called at 57665000 (1ps)
+
+===== sustained_physical_rate_gain8 =====
+success=true
+stage=run
+TEST_RESULT: PASS (gain8, 320 samples, 10 packets, physical rate, zero overrun)
+verilog_mvp/pcm_stream_gain8/tb/tb_safe_field_pcm_sustained_gain8.v:69: $finish called at 2182885000 (1ps)

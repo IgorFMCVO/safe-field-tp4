@@ -1,0 +1,60 @@
+{
+  "variant": "mvp_pcm_stream_gain8",
+  "device": "GW1NSR-LV4CQN48PC6/I5",
+  "tool": "Gowin V1.9.11.03 Education",
+  "programmed": false,
+  "conversion": {
+    "input": "signed PCM24",
+    "arithmetic_shift": 5,
+    "relative_gain_vs_sample_23_8": 8,
+    "output": "signed PCM16 little-endian",
+    "saturation_min": -32768,
+    "saturation_max": 32767
+  },
+  "simulation": {
+    "pass": true,
+    "tests": 3,
+    "failed": 0
+  },
+  "synthesis": {
+    "pass": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "place_and_route": {
+    "pass": true,
+    "warnings": 7,
+    "errors": 0,
+    "warning_breakdown": {
+      "PA1001_i2s_rx_24_dangling_optimized_carry": 6,
+      "PR1014_sys_clk_generic_routing": 1
+    }
+  },
+  "sta": {
+    "pass": true,
+    "required_mhz": 27.0,
+    "actual_fmax_mhz": 37.342,
+    "worst_setup_slack_ns": 10.258,
+    "worst_hold_slack_ns": 0.566,
+    "setup_violated_endpoints": 0,
+    "hold_violated_endpoints": 0,
+    "setup_tns_ns": 0.0,
+    "hold_tns_ns": 0.0
+  },
+  "resources": {
+    "logic": {"used": 1430, "available": 4608, "percent": 32},
+    "registers": {"used": 1502, "available": 3573, "percent": 43},
+    "cls": {"used": 1699, "available": 2304, "percent": 74},
+    "io": {"used": 8, "available": 39, "percent": 21}
+  },
+  "bitstream": {
+    "path": "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/build/mvp_pcm_stream_gain8/impl/pnr/safe_field_mvp_pcm_stream_gain8.fs",
+    "bytes": 1168345,
+    "sha256": "9941D50499C18C943BA9E4EEE6857677EB51084D0B91C2D08A816FEC7C93D70E"
+  },
+  "protected_bitstream": {
+    "path": "C:/SAFE-FIELD/fpga/tp4-audio-inmp441/build/mvp_pcm_stream/impl/pnr/safe_field_mvp_pcm_stream.fs",
+    "sha256_after_build": "F46314D4A3478B6157A5253DF07E2AAB2022D305EA16E94E0F9F9A8706C0EC7B",
+    "unchanged": true
+  }
+}

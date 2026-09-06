@@ -27,6 +27,7 @@ from .providers import (
     ASRProvider,
     DiarizationProvider,
     KnowledgeProvider,
+    ProviderUnavailable,
     ReasoningProvider,
     SpeakerEmbeddingProvider,
 )
@@ -84,6 +85,9 @@ class AsyncSegmentPipeline:
         self._pending = 0
         self._completed = 0
         self._failed = 0
+        self._segment_generation = 0
+        self._last_consolidated_generation = -1
+        self._consolidation_queued = False
         self._thread = threading.Thread(target=self._worker, daemon=True, name="safe-field-pipeline")
         self._thread.start()
 
@@ -107,8 +111,24 @@ class AsyncSegmentPipeline:
         atomic_json(job_path, {**job, "status": ProcessingStatus.QUEUED.value})
         with self._condition:
             self._pending += 1
+            self._segment_generation += 1
         self._queue.put(job)
         self.timeline.append("SEGMENT_QUEUED", segment_id=metadata["segment_id"])
+
+    def submit_consolidation(self, force: bool = False) -> bool:
+        """Queue the global second pass after all earlier segment jobs."""
+        with self._condition:
+            if self._consolidation_queued:
+                return False
+            if not force and self._last_consolidated_generation == self._segment_generation:
+                return False
+            self._consolidation_queued = True
+            self._pending += 1
+            generation = self._segment_generation
+        job={"kind":"consolidation","generation":generation,"force":bool(force)}
+        atomic_json(self.session_root/"jobs"/"consolidation.json",{**job,"status":ProcessingStatus.QUEUED.value})
+        self._queue.put(job);self.timeline.append("GLOBAL_CONSOLIDATION_QUEUED",generation=generation)
+        return True
 
     def submit_confirmation(self, hypothesis_id: str, decision: str) -> None:
         validate_artifact_id(hypothesis_id, "hypothesis_id")
@@ -148,8 +168,10 @@ class AsyncSegmentPipeline:
             try:
                 if job["kind"] == "segment":
                     asyncio.run(self._process_segment(job))
-                else:
+                elif job["kind"] == "confirmation":
                     asyncio.run(self._process_confirmation(job))
+                else:
+                    asyncio.run(self._process_consolidation(job))
             except Exception as exc:  # source is preserved and explicitly retryable
                 failed = True
                 self._record_failure(job, exc)
@@ -160,7 +182,52 @@ class AsyncSegmentPipeline:
                         self._failed += 1
                     else:
                         self._completed += 1
+                    if job.get("kind")=="consolidation":
+                        self._consolidation_queued=False
+                        if not failed:self._last_consolidated_generation=job["generation"]
                     self._condition.notify_all()
+
+    async def _process_consolidation(self,job:dict)->None:
+        job_path=self.session_root/"jobs"/"consolidation.json"
+        atomic_json(job_path,{**job,"status":ProcessingStatus.PROCESSING.value})
+        transcripts=[]
+        for path in sorted((self.session_root/"transcripts").glob("segment_*.json")):
+            transcripts.append(TranscriptSegment(**json.loads(path.read_text(encoding="utf-8"))))
+        if not transcripts:raise ValueError("Cannot consolidate without transcripts")
+        result=await self.providers.reasoning.finalize_occurrence(
+            self.session_root,transcripts,[record.to_dict() for record in self.speaker_registry.records])
+        transcript_by_id={t.segment_id:t for t in transcripts}
+        for speaker_id,role in result.provisional_roles.items():
+            if speaker_id in {record.speaker_id for record in self.speaker_registry.records}:
+                self.speaker_registry.set_provisional_role(speaker_id,role)
+        for fact in result.facts:
+            if fact.status not in {EvidenceStatus.SUPPORTED,EvidenceStatus.OFFICER_CONFIRMED}:
+                raise ValueError(f"Global fact {fact.fact_id} is not supported")
+            if not fact.evidence_quote or fact.transcript_span is None or fact.timestamp is None:
+                raise ValueError(f"Global fact {fact.fact_id} lacks evidence span")
+            for segment_id in fact.source_segments:
+                transcript=transcript_by_id.get(segment_id)
+                if transcript is None:raise ValueError(f"Missing source transcript {segment_id}")
+                span=fact.transcript_span
+                if transcript.raw_transcript[span["start"]:span["end"]] != fact.evidence_quote:
+                    raise ValueError(f"Fact {fact.fact_id} evidence span mismatch")
+            self.fact_graph.add_fact(fact)
+            atomic_json(self.session_root/"facts"/f"{fact.fact_id}.json",fact.to_dict())
+        for hypothesis in result.hypotheses:
+            if not hypothesis.nature_code or not hypothesis.taxonomy_sources:
+                raise ValueError("Hypothesis must be a source-backed DIAO nature")
+            missing=[x for x in hypothesis.supporting_facts+hypothesis.contradictory_facts if not self.fact_graph.has_fact(x)]
+            if missing:raise ValueError(f"Hypothesis references missing facts: {missing}")
+            for old_path in (self.session_root/"hypotheses").glob("HYP_*.json"):
+                old=json.loads(old_path.read_text(encoding="utf-8"))
+                if old.get("status")==HypothesisStatus.PROPOSED.value and old.get("hypothesis_id")!=hypothesis.hypothesis_id:
+                    old["status"]=HypothesisStatus.SUPERSEDED.value;atomic_json(old_path,old)
+            path=self.session_root/"hypotheses"/f"{hypothesis.hypothesis_id}.json"
+            if not path.exists():atomic_json(path,hypothesis.to_dict())
+        atomic_json(job_path,{**job,"status":ProcessingStatus.COMPLETE.value,
+                    "facts":len(result.facts),"hypotheses":len(result.hypotheses)})
+        self.timeline.append("GLOBAL_CONSOLIDATION_COMPLETE",generation=job["generation"],
+                             facts=len(result.facts),hypotheses=len(result.hypotheses))
 
     async def _process_segment(self, job: dict) -> None:
         audio_path = Path(job["audio_path"])
@@ -298,7 +365,8 @@ class AsyncSegmentPipeline:
             if decision == "CONFIRM"
             else HypothesisStatus.OFFICER_REJECTED
         )
-        hypothesis.evidence_status = EvidenceStatus.OFFICER_CONFIRMED
+        hypothesis.evidence_status = (EvidenceStatus.OFFICER_CONFIRMED
+                                      if decision == "CONFIRM" else EvidenceStatus.INFERRED)
         hypothesis.officer_decision_at = utc_now()
         atomic_json(path, hypothesis.to_dict())
         self.timeline.append(
@@ -319,8 +387,36 @@ class AsyncSegmentPipeline:
                 missing_facts.append(fact_id)
         if missing_facts:
             raise ValueError(f"Confirmed hypothesis references missing facts: {missing_facts}")
-        guidance = await self.providers.knowledge.retrieve_guidance(hypothesis, facts)
-        guidance.ensure_supported()
+        try:
+            guidance = await self.providers.knowledge.retrieve_guidance(hypothesis, facts)
+            guidance.ensure_supported()
+        except ProviderUnavailable as exc:
+            # A provider must explicitly type an expected DIAO availability
+            # outcome.  Contract violations and integration bugs deliberately
+            # propagate to _record_failure so STOP cannot misreport them as a
+            # harmless lack of guidance.
+            status = (
+                "GUIDANCE_NOT_SUPPORTED"
+                if str(exc) == "GUIDANCE_NOT_SUPPORTED"
+                else "GUIDANCE_NOT_AVAILABLE"
+            )
+            atomic_json(
+                self.session_root / "guidance" / f"{hypothesis_id}.json",
+                {
+                    "hypothesis_id": hypothesis_id,
+                    "status": status,
+                    "items": [],
+                    "error_type": type(exc).__name__,
+                    "error": str(exc),
+                },
+            )
+            self.timeline.append(
+                status,
+                hypothesis_id=hypothesis_id,
+                error_type=type(exc).__name__,
+                reason=str(exc),
+            )
+            return
         atomic_json(
             self.session_root / "guidance" / f"{hypothesis_id}.json",
             {
@@ -349,7 +445,8 @@ class AsyncSegmentPipeline:
         self.timeline.append("GUIDANCE_READY", hypothesis_id=hypothesis_id)
 
     def _record_failure(self, job: dict, exc: Exception) -> None:
-        identifier = job.get("metadata", {}).get("segment_id") or job.get("hypothesis_id", "unknown")
+        identifier = (job.get("metadata", {}).get("segment_id") or job.get("hypothesis_id")
+                      or ("consolidation" if job.get("kind")=="consolidation" else "unknown"))
         failure = {
             **job,
             "status": ProcessingStatus.PROCESSING_PENDING.value,

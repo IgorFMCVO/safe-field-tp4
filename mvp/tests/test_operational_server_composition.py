@@ -45,10 +45,37 @@ class OperationalServerCompositionTests(unittest.TestCase):
         self.assertEqual(readiness["mode"], "LOCAL")
         self.assertEqual(readiness["knowledge"], "LOCAL_DIAO")
 
-    def test_razer_worker_defaults_to_the_validated_cpu_runtime(self):
+    def test_razer_worker_defaults_to_the_frozen_cuda_runtime(self):
         args = razer_worker_service.parser().parse_args([])
 
-        self.assertEqual(args.device, "cpu")
+        self.assertEqual(args.device, "cuda")
+
+    def test_razer_worker_composes_only_frozen_audio_providers(self):
+        models = Path("frozen-models")
+        asr = object()
+        embedding = object()
+        diarization = SimpleNamespace(embedding_provider=embedding)
+        with (
+            patch.object(razer_worker_service, "enable_cuda_dlls") as cuda,
+            patch.object(
+                razer_worker_service, "FrozenRecoveryASRProvider", return_value=asr
+            ) as asr_factory,
+            patch.object(
+                razer_worker_service, "RecoveryDiarizer", return_value=diarization
+            ) as diarization_factory,
+        ):
+            providers, readiness = razer_worker_service.compose_frozen_worker_providers(models)
+
+        cuda.assert_called_once_with()
+        asr_factory.assert_called_once_with(models.resolve())
+        self.assertEqual(diarization_factory.call_args.args, (models.resolve(),))
+        self.assertEqual(diarization_factory.call_args.kwargs, {"gap": 1.2, "window": 20.0})
+        self.assertIs(providers.asr, asr)
+        self.assertIs(providers.diarization, diarization)
+        self.assertIs(providers.embedding, embedding)
+        self.assertIsNone(providers.reasoning)
+        self.assertEqual(readiness["profile"], "FROZEN_GOOD_BASELINE")
+        self.assertEqual(readiness["observation_quality"], "REQUIRED")
 
     def test_remote_composition_uses_env_secrets_and_keeps_diao_on_pi(self):
         args = self.args("--ai-mode", "razer", "--razer-timeout-seconds", "12")
@@ -60,10 +87,14 @@ class OperationalServerCompositionTests(unittest.TestCase):
         knowledge = object()
         client = object()
         remote_bundle = object()
+        reasoning = SimpleNamespace(strict_support=True)
         with (
             patch.object(launcher, "build_local_ai_provider_bundle") as local_builder,
             patch.object(launcher, "MVPAsyncDIAOKnowledgeProvider", return_value=knowledge),
             patch.object(launcher, "RazerWorkerClient", return_value=client) as client_factory,
+            patch.object(
+                launcher, "StructuredOccurrenceReasoner", return_value=reasoning
+            ) as reasoning_factory,
             patch.object(
                 launcher, "remote_pipeline_providers", return_value=remote_bundle
             ) as remote_factory,
@@ -78,13 +109,24 @@ class OperationalServerCompositionTests(unittest.TestCase):
             timeout_seconds=12.0,
             allow_insecure_private_http=False,
         )
-        remote_factory.assert_called_once_with(client, knowledge=knowledge)
+        reasoning_factory.assert_called_once_with(
+            knowledge,
+            endpoint="http://127.0.0.1:18089",
+        )
+        remote_factory.assert_called_once_with(
+            client,
+            knowledge=knowledge,
+            reasoning=reasoning,
+        )
         self.assertIs(providers, remote_bundle)
         serialized = repr(readiness)
         for secret in environment.values():
             self.assertNotIn(secret, serialized)
         self.assertEqual(readiness["mode"], "RAZER_REMOTE")
         self.assertEqual(readiness["knowledge"], "LOCAL_DIAO")
+        self.assertEqual(readiness["reasoning"], "PI_LOCAL_STRUCTURED_VIA_LOOPBACK_LLM")
+        self.assertEqual(readiness["strict_support"], "ENABLED")
+        self.assertEqual(readiness["observation_quality"], "REMOTE_REQUIRED")
 
     def test_remote_mode_can_be_selected_by_env_but_requires_scope_secret(self):
         parser = launcher.build_argument_parser({"SAFE_FIELD_AI_MODE": "razer"})
@@ -115,9 +157,13 @@ class OperationalServerCompositionTests(unittest.TestCase):
             "CUSTOM_SCOPE": "custom-fixture-scope-secret",
         }
         client = object()
+        reasoning = SimpleNamespace(strict_support=True)
         with (
             patch.object(launcher, "MVPAsyncDIAOKnowledgeProvider", return_value=object()),
             patch.object(launcher, "RazerWorkerClient", return_value=client) as factory,
+            patch.object(
+                launcher, "StructuredOccurrenceReasoner", return_value=reasoning
+            ),
             patch.object(launcher, "remote_pipeline_providers", return_value=Mock()),
         ):
             _, readiness = launcher.compose_pipeline_providers(args, environment)
@@ -125,6 +171,39 @@ class OperationalServerCompositionTests(unittest.TestCase):
         rendered = repr(readiness)
         self.assertNotIn(environment["CUSTOM_TOKEN"], rendered)
         self.assertNotIn(environment["CUSTOM_SCOPE"], rendered)
+
+    def test_remote_pcm_source_is_always_physical_only_with_frozen_segmentation(self):
+        environment = {
+            "SAFE_FIELD_RAZER_WORKER_URL": "http://127.0.0.1:8766",
+            "SAFE_FIELD_RAZER_SCOPE_SECRET": "fixture-scope-secret",
+        }
+        providers = object()
+        pcm_source = object()
+        with (
+            patch.object(
+                launcher,
+                "compose_pipeline_providers",
+                return_value=(providers, {"mode": "RAZER_REMOTE"}),
+            ),
+            patch.object(launcher, "SerialPCMSource", return_value=pcm_source) as source_factory,
+            patch.object(launcher, "OperationalIntelligenceCore") as core_factory,
+            patch.object(launcher, "serve"),
+            patch("builtins.print"),
+        ):
+            result = launcher.main(
+                ["--ai-mode", "razer", "--pcm-port", "/dev/serial0"],
+                environment,
+            )
+
+        self.assertEqual(result, 0)
+        source_factory.assert_called_once_with("/dev/serial0")
+        self.assertIs(core_factory.call_args.kwargs["providers"], providers)
+        self.assertIs(core_factory.call_args.kwargs["pcm_source"], pcm_source)
+        self.assertTrue(core_factory.call_args.kwargs["physical_capture_only"])
+        self.assertIs(
+            core_factory.call_args.kwargs["segmentation"],
+            launcher.FROZEN_RECOVERY_SEGMENTATION,
+        )
 
     def test_tls_paths_can_come_from_environment_or_cli(self):
         environment = {

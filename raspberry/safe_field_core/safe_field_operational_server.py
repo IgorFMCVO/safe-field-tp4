@@ -17,7 +17,7 @@ REPOSITORY = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY))
 
 from mvp.operational_intelligence.core import OperationalIntelligenceCore  # noqa: E402
-from mvp.operational_intelligence.audio import PCMFormat  # noqa: E402
+from mvp.operational_intelligence.audio import PCMFormat, SegmenterConfig  # noqa: E402
 from mvp.operational_intelligence.http_api import (  # noqa: E402
     OperationalApiService,
     make_handler,
@@ -32,12 +32,16 @@ from mvp.operational_intelligence.razer_worker_transport import (  # noqa: E402
     RazerWorkerClient,
     remote_pipeline_providers,
 )
+from mvp.operational_intelligence.structured_reasoning import (  # noqa: E402
+    StructuredOccurrenceReasoner,
+)
 from operational_guidance.diao.mvp_adapter import MVPAsyncDIAOKnowledgeProvider  # noqa: E402
 from raspberry_mvp.pcm_stream import SerialPCMSource  # noqa: E402
 
 
 TLS_CERT_ENV = "SAFE_FIELD_OPERATIONAL_TLS_CERT"
 TLS_KEY_ENV = "SAFE_FIELD_OPERATIONAL_TLS_KEY"
+FROZEN_RECOVERY_SEGMENTATION = SegmenterConfig(speech_rms_threshold=150)
 
 
 def _is_loopback_bind(host: str) -> bool:
@@ -136,6 +140,17 @@ def build_argument_parser(environ: Mapping[str, str] | None = None):
         help="explicitly accept unencrypted worker traffic on a private LAN",
     )
     parser.add_argument(
+        "--structured-reasoning-endpoint",
+        default=environment.get(
+            "SAFE_FIELD_STRUCTURED_REASONING_ENDPOINT",
+            "http://127.0.0.1:18089",
+        ),
+        help=(
+            "Pi-loopback LLM endpoint; for Razer execution expose it only through "
+            "the authenticated SSH tunnel"
+        ),
+    )
+    parser.add_argument(
         "--diao-index",
         type=Path,
         default=REPOSITORY / "knowledge" / "diao" / "index",
@@ -228,14 +243,27 @@ def compose_pipeline_providers(
         )
     except (TypeError, ValueError) as exc:
         raise ConfigurationError(f"invalid Razer worker configuration: {exc}") from exc
-    providers = remote_pipeline_providers(client, knowledge=knowledge)
+    try:
+        reasoning = StructuredOccurrenceReasoner(
+            knowledge,
+            endpoint=args.structured_reasoning_endpoint,
+        )
+        providers = remote_pipeline_providers(
+            client,
+            knowledge=knowledge,
+            reasoning=reasoning,
+        )
+    except (TypeError, ValueError) as exc:
+        raise ConfigurationError(f"invalid structured reasoning configuration: {exc}") from exc
     readiness = {
         "mode": "RAZER_REMOTE",
         "transport": "CONFIGURED_NOT_PROBED",
         "asr": "REMOTE",
         "diarization": "REMOTE",
         "embedding": "REMOTE",
-        "reasoning": "REMOTE",
+        "reasoning": "PI_LOCAL_STRUCTURED_VIA_LOOPBACK_LLM",
+        "strict_support": "ENABLED",
+        "observation_quality": "REMOTE_REQUIRED",
         "knowledge": "LOCAL_DIAO",
     }
     return providers, readiness
@@ -278,7 +306,9 @@ def main(
         args.sessions_root,
         providers=providers,
         pcm=pcm_format,
+        segmentation=FROZEN_RECOVERY_SEGMENTATION if args.ai_mode == "razer" else None,
         pcm_source=pcm_source,
+        physical_capture_only=pcm_source is not None,
     )
     scheme = "https" if tls_context is not None else "http"
     print(f"SAFE_FIELD_OPERATIONAL_READY {scheme}://{args.host}:{args.port}", flush=True)

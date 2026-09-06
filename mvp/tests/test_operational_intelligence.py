@@ -78,7 +78,7 @@ class FixtureReasoning(ReasoningProvider):
             source_segments=[transcript.segment_id],
             source_speakers=[speaker],
             confidence=0.88,
-            status=EvidenceStatus.INFERRED,
+            status=EvidenceStatus.CAPTURED,
         )
         hypothesis = Hypothesis(
             hypothesis_id="HYP_001",

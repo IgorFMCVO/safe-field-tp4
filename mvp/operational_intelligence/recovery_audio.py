@@ -4,16 +4,23 @@ from dataclasses import asdict
 import math
 import os
 from pathlib import Path
+import threading
 import time
 import wave
 import numpy as np
 from .audio import ContinuousAudioRecorder, PCMFormat, SegmenterConfig
-from .providers import ASRResult
+from .local_ai import _force_offline
+from .providers import ASRProvider, ASRResult, ProviderUnavailable
 from .speechbrain_diarization import SpeechBrainLocalDiarizationProvider
 from .speaker_registry import ObservationQuality, cosine_similarity
 
 HOTWORDS = 'PMMG, guarnição, ocorrência, solicitante, vítima, autor, envolvido, testemunha, ameaça, atrito verbal, agressão, vestígio, DIAO, REDS, viatura'
 CONFIG = SegmenterConfig(speech_rms_threshold=150)
+FROZEN_ASR_MODEL = 'faster-whisper-large-v3-turbo'
+FROZEN_ASR_VARIANT = 'speech_asr'
+FROZEN_ASR_BEAM = 5
+FROZEN_DIARIZATION_GAP_SECONDS = 1.2
+FROZEN_DIARIZATION_WINDOW_SECONDS = 20.0
 
 
 def enable_cuda_dlls():
@@ -52,6 +59,83 @@ def prepare_asr_copy(path,target):
     gain=min(.08/max(rms,1e-9),.85/max(peak,1e-9))
     sf.write(str(target),audio*gain,16000,subtype='PCM_16')
     return {'dc_removed':True,'gain':gain,'denoise':False,'peak_limited_by_gain':True}
+
+
+class FrozenRecoveryASRProvider(ASRProvider):
+    """Exact ASR configuration selected by the approved digital Baseline B."""
+
+    model_name = FROZEN_ASR_MODEL
+    variant = FROZEN_ASR_VARIANT
+    beam_size = FROZEN_ASR_BEAM
+    device = 'cuda'
+    compute_type = 'float16'
+
+    def __init__(self, models_root):
+        self.model_path = (Path(models_root) / self.model_name).resolve()
+        required = ('config.json', 'model.bin')
+        missing = [name for name in required if not (self.model_path / name).is_file()]
+        if missing:
+            raise ValueError(
+                f'Frozen ASR model bundle is incomplete; missing: {", ".join(missing)}'
+            )
+        self._model = None
+        self._lock = threading.Lock()
+
+    def _load(self):
+        if self._model is None:
+            enable_cuda_dlls()
+            try:
+                from faster_whisper import WhisperModel
+                with _force_offline():
+                    self._model = WhisperModel(
+                        str(self.model_path),
+                        device=self.device,
+                        compute_type=self.compute_type,
+                        local_files_only=True,
+                    )
+            except Exception as exc:
+                raise ProviderUnavailable(f'FROZEN_ASR_MODEL_LOAD_FAILED: {exc}') from exc
+        return self._model
+
+    def _transcribe_sync(self, audio_path):
+        path = Path(audio_path).resolve()
+        if not path.is_file():
+            raise ProviderUnavailable(f'FROZEN_ASR_AUDIO_NOT_FOUND: {path}')
+        prepared = path.with_name(f'.{path.stem}.safe_field_speech_asr.wav')
+        with self._lock:
+            try:
+                prepare_asr_copy(path, prepared)
+                model = self._load()
+                with _force_offline():
+                    segments, info = model.transcribe(
+                        str(prepared),
+                        language='pt',
+                        task='transcribe',
+                        beam_size=self.beam_size,
+                        word_timestamps=True,
+                        hotwords=HOTWORDS,
+                        condition_on_previous_text=False,
+                        temperature=0,
+                        vad_filter=False,
+                    )
+                    materialized = list(segments)
+            except Exception as exc:
+                if isinstance(exc, ProviderUnavailable):
+                    raise
+                raise ProviderUnavailable(f'FROZEN_ASR_INFERENCE_FAILED: {exc}') from exc
+            finally:
+                prepared.unlink(missing_ok=True)
+        text = ''.join(segment.text for segment in materialized).strip()
+        confidence = sum(
+            math.exp(min(0.0, float(getattr(segment, 'avg_logprob', -20.0))))
+            for segment in materialized
+        ) / max(1, len(materialized))
+        detected = str(getattr(info, 'language', 'pt'))
+        return ASRResult(text, max(0.0, min(1.0, confidence)),
+                         'pt-BR' if detected == 'pt' else detected)
+
+    async def transcribe(self, audio_path):
+        return await asyncio.to_thread(self._transcribe_sync, audio_path)
 
 
 class RecoveryDiarizer(SpeechBrainLocalDiarizationProvider):

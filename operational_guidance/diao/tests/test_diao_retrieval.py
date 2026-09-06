@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from operational_guidance.diao.provider import DIAOKnowledgeProvider, GUIDANCE_NOT_SUPPORTED
 
@@ -79,6 +80,25 @@ class DIAORetrievalTests(unittest.TestCase):
             self.assertTrue(action["section"]["id"])
             self.assertTrue(action["page"]["pdf"])
             self.assertTrue(action["text"])
+
+    def test_confirmed_indexed_code_is_not_lost_to_global_reranking(self) -> None:
+        # The hypothesis->DIAO contract must navigate the confirmed indexed
+        # section even if an unconstrained global search would return nothing.
+        with patch.object(self.provider, "search", return_value=[]):
+            result = self.provider.retrieve_guidance(
+                {
+                    "label": "ROUBO",
+                    "nature_code": "C01.157",
+                    "status": "OFFICER_CONFIRMED",
+                },
+                [{"statement": "contexto longo e incidental sem valor de ranking"}],
+            )
+        self.assertEqual("SUPPORTED_BY_DIAO", result["status"])
+        self.assertGreater(len(result["priority_actions"]), 0)
+        self.assertTrue(all(
+            action["section"]["id"] == "C01.157"
+            for action in result["priority_actions"]
+        ))
 
     def test_unknown_query_never_creates_guidance(self) -> None:
         result = self.provider.retrieve_guidance(

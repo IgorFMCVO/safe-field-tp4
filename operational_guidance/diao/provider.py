@@ -6,6 +6,7 @@ import json
 import math
 import re
 import struct
+from difflib import SequenceMatcher
 from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable
@@ -240,6 +241,64 @@ class DIAOKnowledgeProvider:
             if chunk["pdf_page"] == int(page)
         ]
 
+    def lookup_natures(self, queries: Iterable[str], top_k: int = 12) -> list[dict[str, Any]]:
+        """Search the complete DIAO nature taxonomy without exposing procedures.
+
+        This is intentionally separate from ``retrieve_guidance``. Ranking is
+        generic over every section code in the index and contains no expected
+        nature, page, scenario label, or officer-confirmation shortcut.
+        """
+        clean_queries = [str(q).strip() for q in queries if str(q).strip()]
+        if not clean_queries or top_k < 1:
+            return []
+        ranked: list[tuple[float, str]] = []
+        for section_id, section in self.sections.items():
+            if not re.fullmatch(r"[A-Z]\d{2}\.\d{3}", section_id):
+                continue
+            title = str(section.get("title") or "")
+            definition_chunks = [self._chunk_by_id[x] for x in section["chunk_ids"]
+                                 if self._chunk_by_id[x].get("subsection") == "DEFINIÇÃO"]
+            if not definition_chunks:
+                definition_chunks = [self._chunk_by_id[section["chunk_ids"][0]]]
+            definition = " ".join(x["text"] for x in definition_chunks[:2])
+            representation = f"{title} {definition}"
+            rep_tokens = set(tokenize(representation))
+            rep_vector = self._nature_vectors[section_id]
+            best = 0.0
+            normalized_title = normalize_text(title)
+            for query in clean_queries:
+                query_tokens = set(tokenize(query))
+                semantic = max(0.0, dot(semantic_vector(query, SEMANTIC_DIMENSION), rep_vector))
+                coverage = len(query_tokens & rep_tokens) / max(1, len(query_tokens))
+                title_similarity = SequenceMatcher(None, normalize_text(query), normalized_title,
+                                                   autojunk=False).ratio()
+                exact_title = 1.0 if normalized_title and normalized_title in normalize_text(query) else 0.0
+                best = max(best, .48*semantic + .27*coverage + .15*title_similarity + .10*exact_title)
+            # Main operational natures carry their own procedure/role chunks;
+            # appendix-only legal references commonly contain a single
+            # definition. Prefer the complete operational taxonomy generically,
+            # without any scenario code/page hint.
+            operational_depth = min(
+                1.0,
+                math.log1p(max(0, len(section["chunk_ids"]) - 1)) / math.log(12),
+            )
+            combined = .82 * best + .18 * operational_depth
+            if combined > 0:
+                ranked.append((combined, section_id))
+        ranked.sort(key=lambda x:(-x[0],x[1]))
+        results=[]
+        for score, section_id in ranked[:top_k]:
+            section=self.sections[section_id]
+            definitions=[self._chunk_by_id[x] for x in section["chunk_ids"]
+                         if self._chunk_by_id[x].get("subsection")=="DEFINIÇÃO"]
+            chunk=(definitions or [self._chunk_by_id[section["chunk_ids"][0]]])[0]
+            results.append({"code":section_id,"label":section.get("title") or section_id,
+                            "definition":chunk["text"],"score":round(score,6),
+                            "operational_depth":len(section["chunk_ids"]),
+                            "source":self._format_hit(chunk,{"taxonomy":round(score,6),
+                                "operational_depth":len(section["chunk_ids"])})})
+        return results
+
     @staticmethod
     def _query_from_hypothesis(hypothesis: str | dict[str, Any], facts: Iterable[Any] | None) -> str:
         pieces: list[str] = []
@@ -273,15 +332,55 @@ class DIAOKnowledgeProvider:
                     "sources": [],
                 }
         query = self._query_from_hypothesis(hypothesis, facts)
-        hits = self.search(query, top_k=max(top_k * 3, 10))
-        supported = [
-            hit
-            for hit in hits
-            if hit["relevance"]["hybrid"] >= min_relevance
-            and hit["relevance"].get("nature_semantic", 0.0) >= 0.12
-            and hit["relevance"].get("query_coverage", 0.0) >= 0.12
-            and re.fullmatch(r"[A-Z]\d{2}\.\d{3}", hit["section"]["id"])
-        ]
+
+        # Once an officer confirms a taxonomy-backed hypothesis, its validated
+        # nature code is the navigation contract.  Re-running an unconstrained
+        # relevance search over a long occurrence can rank incidental facts
+        # above that section and incorrectly report that guidance is absent.
+        # Resolve any supplied code generically against the index first; no
+        # scenario-specific code, label, page, or expected result is embedded.
+        confirmed_section: dict[str, Any] | None = None
+        confirmed_code: str | None = None
+        if isinstance(hypothesis, dict) and hypothesis.get("nature_code"):
+            confirmed_code = str(hypothesis["nature_code"]).upper().replace(" ", "")
+            if re.fullmatch(r"[A-Z]\d{2}\.\d{3}", confirmed_code):
+                confirmed_section = self.get_section(confirmed_code)
+            if confirmed_section is None:
+                return {
+                    "status": GUIDANCE_NOT_SUPPORTED,
+                    "reason": "confirmed_nature_not_indexed",
+                    "query": query,
+                    "priority_actions": [],
+                    "sources": [],
+                }
+
+        if confirmed_section is not None:
+            definition_hits = [
+                hit for hit in confirmed_section["chunks"]
+                if (hit.get("section") or {}).get("subsection") == "DEFINIÇÃO"
+            ]
+            anchor = (definition_hits or confirmed_section["chunks"][:1])[0]
+            anchor = {
+                **anchor,
+                "relevance": {
+                    **(anchor.get("relevance") or {}),
+                    "hybrid": 1.0,
+                    "nature_semantic": 1.0,
+                    "query_coverage": 1.0,
+                    "exact_code": 1.0,
+                },
+            }
+            supported = [anchor]
+        else:
+            hits = self.search(query, top_k=max(top_k * 3, 10))
+            supported = [
+                hit
+                for hit in hits
+                if hit["relevance"]["hybrid"] >= min_relevance
+                and hit["relevance"].get("nature_semantic", 0.0) >= 0.12
+                and hit["relevance"].get("query_coverage", 0.0) >= 0.12
+                and re.fullmatch(r"[A-Z]\d{2}\.\d{3}", hit["section"]["id"])
+            ]
         if not supported:
             return {
                 "status": GUIDANCE_NOT_SUPPORTED,
@@ -295,7 +394,7 @@ class DIAOKnowledgeProvider:
         # tends to rank the definition or repeated headings above the actual
         # operational items.  Section navigation is deterministic and still
         # returns verbatim, fully sourced excerpts; no procedure is invented.
-        dominant_section = supported[0]["section"]["id"]
+        dominant_section = confirmed_code or supported[0]["section"]["id"]
         procedural_chunks = []
         seen_text: set[str] = set()
         for chunk in self.chunks:

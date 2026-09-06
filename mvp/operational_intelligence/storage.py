@@ -19,6 +19,7 @@ SESSION_DIRECTORIES = (
     "segments",
     "transcripts",
     "speakers",
+    "candidates",
     "facts",
     "hypotheses",
     "guidance",

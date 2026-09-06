@@ -111,6 +111,14 @@ class Fact(Serializable):
     evidence_quote: str | None = None
     timestamp: float | None = None
     qualifiers: list[str] = field(default_factory=list)
+    candidate_id: str | None = None
+    event_id: str | None = None
+    subject: str | None = None
+    target: str | None = None
+    modality: str | None = None
+    negation: bool | None = None
+    reported_by: str | None = None
+    direct_observation: bool | None = None
 
     def __post_init__(self) -> None:
         validate_artifact_id(self.fact_id, "fact_id")
@@ -124,6 +132,10 @@ class Fact(Serializable):
             validate_artifact_id(speaker_id, "source speaker_id")
         if not 0.0 <= self.confidence <= 1.0:
             raise ValueError("Fact confidence must be between 0 and 1")
+        if self.candidate_id is not None:
+            validate_artifact_id(self.candidate_id, "candidate_id")
+        if self.event_id is not None:
+            validate_artifact_id(self.event_id, "event_id")
 
 
 @dataclass(slots=True)
@@ -138,6 +150,8 @@ class Hypothesis(Serializable):
     evidence_status: EvidenceStatus = EvidenceStatus.INFERRED
     created_at: str = field(default_factory=utc_now)
     officer_decision_at: str | None = None
+    nature_code: str | None = None
+    taxonomy_sources: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         validate_artifact_id(self.hypothesis_id, "hypothesis_id")
@@ -151,6 +165,78 @@ class Hypothesis(Serializable):
             validate_artifact_id(segment_id, "hypothesis source segment_id")
         if not 0.0 <= self.confidence <= 1.0:
             raise ValueError("Hypothesis confidence must be between 0 and 1")
+
+
+@dataclass(slots=True)
+class FactCandidate(Serializable):
+    candidate_id: str
+    speaker_id: str
+    segment_id: str
+    timestamp: float
+    subject: str | None
+    action: str | None
+    target: str | None
+    object: str | None
+    location: str | None
+    time_reference: str | None
+    modality: str
+    negation: bool
+    reported_by: str
+    direct_observation: bool
+    transcript_span: dict[str, int]
+    status: EvidenceStatus = EvidenceStatus.CANDIDATE
+    classification: str = "INCIDENT_STATEMENT"
+
+    def __post_init__(self) -> None:
+        for value, name in ((self.candidate_id, "candidate_id"),
+                            (self.speaker_id, "speaker_id"),
+                            (self.segment_id, "segment_id")):
+            validate_artifact_id(value, name)
+        if self.reported_by != self.speaker_id:
+            raise ValueError("reported_by must be the source stable speaker")
+        if set(self.transcript_span) != {"start", "end"}:
+            raise ValueError("transcript_span requires start/end")
+        if self.transcript_span["start"] < 0 or self.transcript_span["end"] <= self.transcript_span["start"]:
+            raise ValueError("Invalid transcript_span")
+
+
+@dataclass(slots=True)
+class CandidateNature(Serializable):
+    code: str
+    label: str
+    supporting_fact_ids: list[str]
+    contradictory_fact_ids: list[str]
+    diao_taxonomy_sources: list[dict[str, Any]]
+    confidence: float
+
+    def __post_init__(self) -> None:
+        if not re.fullmatch(r"[A-Z]\d{2}\.\d{3}", self.code):
+            raise ValueError("Invalid DIAO nature code")
+        if not self.diao_taxonomy_sources:
+            raise ValueError("Candidate nature requires DIAO taxonomy source")
+        if not 0 <= self.confidence <= 1:
+            raise ValueError("Invalid candidate nature confidence")
+
+
+@dataclass(slots=True)
+class OfficerAssessment(Serializable):
+    assessment_id: str
+    officer_speaker_id: str
+    hypothesis_rejected: str
+    audio_segment_id: str
+    transcript: str
+    timestamp: float
+    supporting_observations: list[str]
+    status: str = "OFFICER_CONFIRMED_SOURCE"
+
+    def __post_init__(self) -> None:
+        for value, name in ((self.assessment_id, "assessment_id"),
+                            (self.officer_speaker_id, "officer_speaker_id"),
+                            (self.hypothesis_rejected, "hypothesis_rejected"),
+                            (self.audio_segment_id, "audio_segment_id")):
+            validate_artifact_id(value, name)
+        if self.status != "OFFICER_CONFIRMED_SOURCE":
+            raise ValueError("Invalid officer assessment status")
 
 
 @dataclass(slots=True)

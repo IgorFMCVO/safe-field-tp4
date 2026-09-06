@@ -97,8 +97,17 @@ class ReasoningProvider(ABC):
     async def analyze(self, transcript: TranscriptSegment) -> ReasoningResult:
         raise NotImplementedError
 
+    async def finalize_occurrence(
+        self, session_root: Path, transcripts: Sequence[TranscriptSegment], speakers: Sequence[dict]
+    ) -> ReasoningResult:
+        """Optional global pass after all currently captured segments are ready."""
+        return ReasoningResult()
+
 
 class KnowledgeProvider(ABC):
+    async def lookup_natures(self, queries: Sequence[str], top_k: int = 12) -> Sequence[dict]:
+        raise ProviderUnavailable("DIAO_NATURE_LOOKUP_NOT_AVAILABLE")
+
     @abstractmethod
     async def retrieve_guidance(
         self, hypothesis: Hypothesis, facts: Sequence[Fact]
@@ -127,6 +136,9 @@ class UnavailableReasoningProvider(ReasoningProvider):
 
 
 class UnavailableKnowledgeProvider(KnowledgeProvider):
+    async def lookup_natures(self, queries: Sequence[str], top_k: int = 12) -> Sequence[dict]:
+        raise ProviderUnavailable("DIAO_NATURE_LOOKUP_NOT_AVAILABLE")
+
     async def retrieve_guidance(
         self, hypothesis: Hypothesis, facts: Sequence[Fact]
     ) -> GuidanceResult:

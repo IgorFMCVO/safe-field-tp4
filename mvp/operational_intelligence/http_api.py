@@ -18,7 +18,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from .core import OperationalIntelligenceCore
-from .models import LifecycleState, utc_now
+from .models import LifecycleState, OfficerAssessment, utc_now
 
 
 API_VERSION = "1.0"
@@ -115,6 +115,84 @@ class OperationalApiService:
         self._record_watch(decision, hypothesis_id=hypothesis_id)
         return {**result, "decision": decision, "version": API_VERSION}
 
+    def consolidate_occurrence(self, payload: dict) -> dict:
+        timeout = payload.get("processing_timeout", 30.0)
+        force = payload.get("force", False)
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or timeout < 0
+            or timeout > 300
+        ):
+            raise ApiError(400, "INVALID_PROCESSING_TIMEOUT")
+        if not isinstance(force, bool):
+            raise ApiError(400, "INVALID_FORCE")
+        self._record_watch("GLOBAL_CONSOLIDATION_REQUESTED", force=force)
+        try:
+            result = self.core.consolidate_occurrence(float(timeout), force=force)
+        except (RuntimeError, ValueError) as exc:
+            raise ApiError(409, "CONSOLIDATION_REJECTED", str(exc)) from exc
+        return {**result, "version": API_VERSION}
+
+    def officer_assessment(self, payload: dict) -> dict:
+        timeout = payload.get("processing_timeout", 30.0)
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or timeout < 0
+            or timeout > 300
+        ):
+            raise ApiError(400, "INVALID_PROCESSING_TIMEOUT")
+
+        required_strings = (
+            "assessment_id",
+            "officer_speaker_id",
+            "hypothesis_rejected",
+            "audio_segment_id",
+            "transcript",
+        )
+        for field_name in required_strings:
+            value = payload.get(field_name)
+            if not isinstance(value, str) or not value.strip():
+                raise ApiError(400, "INVALID_OFFICER_ASSESSMENT", f"{field_name} is required")
+        timestamp = payload.get("timestamp")
+        if isinstance(timestamp, bool) or not isinstance(timestamp, (int, float)):
+            raise ApiError(400, "INVALID_OFFICER_ASSESSMENT", "timestamp must be numeric")
+        observations = payload.get("supporting_observations", [])
+        if not isinstance(observations, list) or any(
+            not isinstance(item, str) or not item.strip() for item in observations
+        ):
+            raise ApiError(
+                400,
+                "INVALID_OFFICER_ASSESSMENT",
+                "supporting_observations must contain non-empty strings",
+            )
+        status = payload.get("status", "OFFICER_CONFIRMED_SOURCE")
+        try:
+            assessment = OfficerAssessment(
+                assessment_id=payload["assessment_id"],
+                officer_speaker_id=payload["officer_speaker_id"],
+                hypothesis_rejected=payload["hypothesis_rejected"],
+                audio_segment_id=payload["audio_segment_id"],
+                transcript=payload["transcript"],
+                timestamp=float(timestamp),
+                supporting_observations=list(observations),
+                status=status,
+            )
+        except (TypeError, ValueError) as exc:
+            raise ApiError(400, "INVALID_OFFICER_ASSESSMENT", str(exc)) from exc
+        try:
+            result = self.core.record_officer_assessment(assessment, float(timeout))
+        except (RuntimeError, ValueError) as exc:
+            raise ApiError(409, "OFFICER_ASSESSMENT_REJECTED", str(exc)) from exc
+        self._record_watch(
+            "OFFICER_ASSESSMENT",
+            assessment_id=assessment.assessment_id,
+            hypothesis_rejected=assessment.hypothesis_rejected,
+            audio_segment_id=assessment.audio_segment_id,
+        )
+        return {**result, "version": API_VERSION}
+
     def guidance_action(self, payload: dict) -> dict:
         action_id = payload.get("action_id") or payload.get("chunk_id")
         status = str(payload.get("status", "")).upper()
@@ -174,7 +252,13 @@ class OperationalApiService:
                     "chunk_id": source.get("chunk_id"),
                 }
             )
-        status = guidance.get("status", "SUPPORTED") if items else "GUIDANCE_NOT_SUPPORTED"
+        explicit_status = str(guidance.get("status", "SUPPORTED")).upper()
+        if not items and explicit_status not in {
+            "GUIDANCE_NOT_AVAILABLE",
+            "GUIDANCE_NOT_SUPPORTED",
+        }:
+            explicit_status = "GUIDANCE_NOT_SUPPORTED"
+        status = explicit_status
         return {"status": status, "items": items}
 
     def wearable_state(self) -> dict:
@@ -200,7 +284,15 @@ class OperationalApiService:
         elif hypothesis and hypothesis.get("status") == "PROPOSED":
             state = "HYPOTHESIS_PROPOSED"
         elif hypothesis and hypothesis.get("status") == "OFFICER_CONFIRMED":
-            state = "GUIDANCE_READY" if guidance["items"] else "PROCESSING_PENDING"
+            if guidance["items"]:
+                state = "GUIDANCE_READY"
+            elif guidance["status"] in {
+                "GUIDANCE_NOT_AVAILABLE",
+                "GUIDANCE_NOT_SUPPORTED",
+            }:
+                state = guidance["status"]
+            else:
+                state = "PROCESSING_PENDING"
         else:
             state = "OCCURRENCE_ACTIVE"
         return {
@@ -382,6 +474,13 @@ def make_handler(
                     result = service.start(payload)
                 elif path == "/api/v1/occurrences/finish":
                     result = service.finish(payload)
+                elif path == "/api/v1/occurrences/consolidate":
+                    result = service.consolidate_occurrence(payload)
+                elif path in {
+                    "/api/v1/officer/assessment",
+                    "/api/v1/officer/assessments",
+                }:
+                    result = service.officer_assessment(payload)
                 elif path in DECISION_ROUTES:
                     result = service.hypothesis_decision(payload, DECISION_ROUTES[path])
                 elif path == "/api/v1/guidance/action":

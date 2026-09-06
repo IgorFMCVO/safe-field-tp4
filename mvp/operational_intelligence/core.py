@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import json
+import math
 from pathlib import Path
 import threading
 from typing import Any
 
 from .audio import ContinuousAudioRecorder, PCMFormat, SegmenterConfig
 from .history import build_preliminary_history
-from .models import LifecycleState
+from .models import LifecycleState, OfficerAssessment
 from .pipeline import AsyncSegmentPipeline, PipelineProviders
 from .pcm_source import PCMSource
 from .providers import (
@@ -67,6 +69,52 @@ def _pcm_transport_failure_fields(source_stats: dict[str, Any] | None) -> list[s
     if source_stats.get("last_error") and "last_error" not in failures:
         failures.append("last_error")
     return failures
+
+
+_NONBLOCKING_GUIDANCE_ERRORS = {
+    "GUIDANCE_NOT_AVAILABLE",
+    "GUIDANCE_NOT_SUPPORTED",
+}
+
+
+def _pending_failure_records(session_root: Path) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for path in sorted((session_root / "jobs").glob("pending_*.json")):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return []
+        if not isinstance(value, dict):
+            return []
+        records.append(value)
+    return records
+
+
+def _only_nonblocking_guidance_failures(
+    session_root: Path, failed_count: int
+) -> bool:
+    """Recognize legacy guidance failures without masking inference failures."""
+    if failed_count <= 0:
+        return False
+    records = _pending_failure_records(session_root)
+    if not records:
+        return False
+    return all(
+        item.get("kind") == "confirmation"
+        and str(item.get("error", "")) in _NONBLOCKING_GUIDANCE_ERRORS
+        for item in records
+    )
+
+
+def _has_unavailable_guidance(session_root: Path) -> bool:
+    for path in sorted((session_root / "guidance").glob("*.json")):
+        try:
+            value = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(value, dict) and value.get("status") in _NONBLOCKING_GUIDANCE_ERRORS:
+            return True
+    return False
 
 
 class OperationalIntelligenceCore:
@@ -259,6 +307,201 @@ class OperationalIntelligenceCore:
             pipeline = self._pipeline
         return pipeline.drain(timeout)
 
+    def consolidate_occurrence(
+        self, processing_timeout: float | None = 30.0, *, force: bool = False
+    ) -> dict[str, Any]:
+        """Run the occurrence-wide reasoning pass after queued segments.
+
+        The pipeline queue is FIFO, but draining first gives the caller a clear
+        boundary: every segment accepted before this method is consolidated.
+        A later segment advances the pipeline generation and therefore needs a
+        later consolidation request.
+        """
+        if processing_timeout is not None and (
+            isinstance(processing_timeout, bool)
+            or not isinstance(processing_timeout, (int, float))
+            or processing_timeout < 0
+        ):
+            raise ValueError("Invalid processing timeout")
+        if not isinstance(force, bool):
+            raise ValueError("force must be a boolean")
+        with self._stop_lock:
+            return self._consolidate_occurrence_locked(processing_timeout, force=force)
+
+    def _consolidate_occurrence_locked(
+        self, processing_timeout: float | None, *, force: bool
+    ) -> dict[str, Any]:
+        with self._lock:
+            if self.state is not LifecycleState.ACTIVE or self._pipeline is None or self._session is None:
+                raise RuntimeError("No active occurrence")
+            pipeline = self._pipeline
+            session = self._session
+
+        if not pipeline.drain(processing_timeout):
+            return {
+                "ok": False,
+                "queued": False,
+                "completed": False,
+                "reason": "PROCESSING_TIMEOUT",
+                "queue": pipeline.stats,
+            }
+        before = pipeline.stats
+        if before["failed"]:
+            return {
+                "ok": False,
+                "queued": False,
+                "completed": False,
+                "reason": "PROCESSING_FAILED_REQUIRES_REPLAY",
+                "queue": before,
+            }
+
+        transcript_count = len(list((session.root / "transcripts").glob("segment_*.json")))
+        if transcript_count == 0:
+            raise ValueError("Cannot consolidate without captured transcripts")
+
+        queued = pipeline.submit_consolidation(force=force)
+        if not queued:
+            job_path = session.root / "jobs" / "consolidation.json"
+            job = json.loads(job_path.read_text(encoding="utf-8")) if job_path.is_file() else None
+            return {
+                "ok": True,
+                "queued": False,
+                "completed": bool(job and job.get("status") == "COMPLETE"),
+                "reason": "ALREADY_CONSOLIDATED",
+                "transcript_count": transcript_count,
+                "queue": pipeline.stats,
+                "job": job,
+            }
+
+        if not pipeline.drain(processing_timeout):
+            return {
+                "ok": False,
+                "queued": True,
+                "completed": False,
+                "reason": "CONSOLIDATION_TIMEOUT",
+                "transcript_count": transcript_count,
+                "queue": pipeline.stats,
+            }
+        after = pipeline.stats
+        job_path = session.root / "jobs" / "consolidation.json"
+        job = json.loads(job_path.read_text(encoding="utf-8")) if job_path.is_file() else None
+        failed = after["failed"] > before["failed"] or not job or job.get("status") != "COMPLETE"
+        return {
+            "ok": not failed,
+            "queued": True,
+            "completed": not failed,
+            "reason": "CONSOLIDATION_FAILED" if failed else None,
+            "transcript_count": transcript_count,
+            "queue": after,
+            "job": job,
+        }
+
+    @staticmethod
+    def _normalized_evidence_text(value: str) -> str:
+        return " ".join(value.split()).casefold()
+
+    def record_officer_assessment(
+        self,
+        assessment: OfficerAssessment,
+        processing_timeout: float | None = 30.0,
+    ) -> dict[str, Any]:
+        """Persist a voice-derived rejection explanation and re-consolidate.
+
+        The submitted text is accepted only when it is traceable to the named
+        captured transcript. This keeps an API caller from injecting an
+        unsupported operational observation.
+        """
+        if not isinstance(assessment, OfficerAssessment):
+            raise TypeError("assessment must be OfficerAssessment")
+        if processing_timeout is not None and (
+            isinstance(processing_timeout, bool)
+            or not isinstance(processing_timeout, (int, float))
+            or processing_timeout < 0
+        ):
+            raise ValueError("Invalid processing timeout")
+
+        with self._stop_lock:
+            with self._lock:
+                if self.state is not LifecycleState.ACTIVE or self._pipeline is None or self._session is None:
+                    raise RuntimeError("No active occurrence")
+                pipeline = self._pipeline
+                session = self._session
+
+            if not pipeline.drain(processing_timeout):
+                raise RuntimeError("Processing must drain before officer assessment")
+            if pipeline.stats["failed"]:
+                raise RuntimeError("Failed jobs require replay before officer assessment")
+
+            hypothesis_path = session.root / "hypotheses" / f"{assessment.hypothesis_rejected}.json"
+            if not hypothesis_path.is_file():
+                raise ValueError("Rejected hypothesis does not exist")
+            hypothesis = json.loads(hypothesis_path.read_text(encoding="utf-8"))
+            if hypothesis.get("status") != "OFFICER_REJECTED":
+                raise ValueError("Officer assessment requires an OFFICER_REJECTED hypothesis")
+
+            transcript_path = session.root / "transcripts" / f"{assessment.audio_segment_id}.json"
+            if not transcript_path.is_file():
+                raise ValueError("Assessment audio segment transcript does not exist")
+            transcript = json.loads(transcript_path.read_text(encoding="utf-8"))
+            if assessment.officer_speaker_id not in transcript.get("speaker_ids", []):
+                raise ValueError("Officer speaker is absent from the assessment transcript")
+            start = transcript.get("start")
+            end = transcript.get("end")
+            if (
+                isinstance(assessment.timestamp, bool)
+                or not isinstance(assessment.timestamp, (int, float))
+                or not math.isfinite(assessment.timestamp)
+                or not isinstance(start, (int, float))
+                or not isinstance(end, (int, float))
+                or not float(start) <= assessment.timestamp <= float(end)
+            ):
+                raise ValueError("Assessment timestamp is outside the captured audio segment")
+
+            captured_text = transcript.get("corrected_transcript") or transcript.get("raw_transcript") or ""
+            normalized_captured = self._normalized_evidence_text(captured_text)
+            normalized_assessment = self._normalized_evidence_text(assessment.transcript)
+            if not normalized_assessment or normalized_assessment not in normalized_captured:
+                raise ValueError("Assessment transcript is not supported by captured audio")
+            for observation in assessment.supporting_observations:
+                normalized_observation = self._normalized_evidence_text(observation)
+                if not normalized_observation or normalized_observation not in normalized_assessment:
+                    raise ValueError("Supporting observation is not present in the assessment transcript")
+
+            assessment_path = (
+                session.root / "officer_assessments" / f"{assessment.assessment_id}.json"
+            )
+            serialized = assessment.to_dict()
+            if assessment_path.is_file():
+                existing = json.loads(assessment_path.read_text(encoding="utf-8"))
+                if existing != serialized:
+                    raise ValueError("Assessment ID already exists with different content")
+                return {
+                    "ok": True,
+                    "assessment_persisted": True,
+                    "idempotent": True,
+                    "assessment": existing,
+                    "consolidation": None,
+                }
+
+            atomic_json(assessment_path, serialized)
+            session.timeline.append(
+                "OFFICER_ASSESSMENT_RECORDED",
+                assessment_id=assessment.assessment_id,
+                officer_speaker_id=assessment.officer_speaker_id,
+                hypothesis_rejected=assessment.hypothesis_rejected,
+                audio_segment_id=assessment.audio_segment_id,
+            )
+            consolidation = self._consolidate_occurrence_locked(
+                processing_timeout, force=True
+            )
+            return {
+                "ok": bool(consolidation.get("ok")),
+                "assessment_persisted": True,
+                "idempotent": False,
+                "assessment": serialized,
+                "consolidation": consolidation,
+            }
+
     def stop(self, processing_timeout: float | None = None) -> dict[str, Any]:
         # Only one caller may advance the two-phase finalization at a time.
         # A second STOP after a timeout is a retry, not a second recorder close.
@@ -366,12 +609,17 @@ class OperationalIntelligenceCore:
             drained = pipeline.drain(processing_timeout)
             queue_stats = pipeline.stats
             pending = queue_stats["pending"] + queue_stats["failed"]
+            guidance_failure_only = _only_nonblocking_guidance_failures(
+                session.root, queue_stats["failed"]
+            )
 
-            # A timeout or failed provider means that consolidation is not
+            # A timeout or a failed inference provider means consolidation is not
             # complete.  Keep the occurrence and pipeline references alive,
             # publish no final history, and let STOP be retried safely after a
-            # timed-out worker completes.  Failed jobs require explicit replay.
-            if not drained or queue_stats["failed"]:
+            # timed-out worker completes.  Unavailable post-confirmation guidance
+            # is different: captured evidence is already durable and can close as
+            # an explicitly PARTIAL history.
+            if not drained or (queue_stats["failed"] and not guidance_failure_only):
                 reason = (
                     "PROCESSING_TIMEOUT"
                     if not drained
@@ -404,11 +652,29 @@ class OperationalIntelligenceCore:
                     "history_json": None,
                 }
 
-            session.finish(0)
+            unavailable_guidance = guidance_failure_only or _has_unavailable_guidance(
+                session.root
+            )
+            history_status = "PARTIAL" if unavailable_guidance else "COMPLETE"
+            final_reason = "GUIDANCE_NOT_AVAILABLE" if unavailable_guidance else None
+            final_pending = queue_stats["failed"] if guidance_failure_only else 0
+            if unavailable_guidance:
+                session.timeline.append(
+                    "HISTORY_PARTIAL",
+                    reason=final_reason,
+                    retained_processing_failures=final_pending,
+                )
+            session.finish(final_pending)
             # Clear an earlier timeout marker so FINISHED metadata cannot look
             # as though finalization were still blocked.
-            session.write_metadata("FINISHED", finalization_reason=None)
+            session.write_metadata(
+                "FINISHED",
+                finalization_reason=final_reason,
+                history_status=history_status,
+            )
             history_md, history_json = build_preliminary_history(session.root)
+            bo_md = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.md"
+            bo_txt = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.txt"
             pipeline.close()
 
             with self._lock:
@@ -428,13 +694,16 @@ class OperationalIntelligenceCore:
                 "capture": capture_stats,
                 "pcm_source": source_stats,
                 "processing_drained": True,
-                "pending_jobs": 0,
+                "pending_jobs": final_pending,
                 "queue": queue_stats,
                 "finalization_pending": False,
                 "retryable": False,
-                "reason": None,
+                "reason": final_reason,
+                "history_status": history_status,
                 "history_markdown": str(history_md),
                 "history_json": str(history_json),
+                "bo_markdown": str(bo_md),
+                "bo_text": str(bo_txt),
             }
 
     def status(self) -> dict[str, Any]:

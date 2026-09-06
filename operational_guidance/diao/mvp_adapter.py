@@ -41,15 +41,19 @@ class MVPAsyncDIAOKnowledgeProvider(KnowledgeProvider):
     ) -> None:
         self.local_provider = local_provider or DIAOKnowledgeProvider(index_dir=index_dir)
 
+    async def lookup_natures(self, queries: Sequence[str], top_k: int = 12) -> Sequence[dict]:
+        return await asyncio.to_thread(self.local_provider.lookup_natures, queries, top_k)
+
     async def retrieve_guidance(
         self, hypothesis: Hypothesis, facts: Sequence[Fact]
     ) -> GuidanceResult:
         if hypothesis.status != HypothesisStatus.OFFICER_CONFIRMED:
-            raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+            raise ValueError("DIAO procedure retrieval requires officer confirmation")
 
         hypothesis_payload = {
             "label": hypothesis.label,
             "description": hypothesis.label,
+            "nature_code": hypothesis.nature_code,
             "status": hypothesis.status.value,
         }
         fact_payloads = [fact.to_dict() for fact in facts]
@@ -59,7 +63,11 @@ class MVPAsyncDIAOKnowledgeProvider(KnowledgeProvider):
             fact_payloads,
         )
         if raw.get("status") == GUIDANCE_NOT_SUPPORTED:
-            raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+            # This is a valid, source-level negative result, distinct from a
+            # malformed adapter/provider contract.
+            raise ProviderUnavailable("GUIDANCE_NOT_SUPPORTED")
+        if raw.get("status") != "SUPPORTED_BY_DIAO":
+            raise ValueError("Unexpected DIAO guidance status")
 
         sources_by_chunk = {
             source.get("chunk_id"): source
@@ -69,14 +77,14 @@ class MVPAsyncDIAOKnowledgeProvider(KnowledgeProvider):
         items: list[GuidanceItem] = []
         for action in raw.get("priority_actions", []):
             if action.get("kind") != "SOURCE_EXCERPT_REQUIRES_FAITHFUL_SUMMARY":
-                raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+                raise ValueError("Unexpected DIAO priority action kind")
             source_hit = sources_by_chunk.get(action.get("chunk_id"))
             section = action.get("section") or {}
             page = action.get("page") or {}
             if not source_hit or not action.get("text"):
-                raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+                raise ValueError("DIAO action is not bound to a sourced passage")
             if not section.get("id") or not page.get("pdf") or not action.get("chunk_id"):
-                raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+                raise ValueError("DIAO action source metadata is incomplete")
             source = KnowledgeSource(
                 source_document=str(source_hit.get("source_document") or ""),
                 source_version=str(source_hit.get("source_version") or ""),
@@ -91,7 +99,7 @@ class MVPAsyncDIAOKnowledgeProvider(KnowledgeProvider):
             )
 
         if not items:
-            raise ProviderUnavailable("GUIDANCE_NOT_AVAILABLE")
+            raise ValueError("Supported DIAO result contains no guidance items")
         result = GuidanceResult(hypothesis_id=hypothesis.hypothesis_id, items=items)
         result.ensure_supported()
         return result

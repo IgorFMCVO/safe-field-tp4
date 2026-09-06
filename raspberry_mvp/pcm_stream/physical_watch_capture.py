@@ -52,6 +52,7 @@ def run_gate(port: str, duration: float, sessions_root: Path, occurrence_id: str
         pcm=PCMFormat(sample_rate=42_188, channels=1, sample_width=2),
         segmentation=SegmenterConfig(speech_rms_threshold=32_767),
         pcm_source=source,
+        physical_capture_only=True,
     )
     api = OperationalApiService(core)
     started_at = datetime.now(timezone.utc).isoformat()

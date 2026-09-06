@@ -49,7 +49,7 @@ from mvp.operational_intelligence.razer_worker_transport import (
     make_razer_worker_server,
     remote_pipeline_providers,
 )
-from mvp.operational_intelligence.speaker_registry import SpeakerRegistry
+from mvp.operational_intelligence.speaker_registry import ObservationQuality, SpeakerRegistry
 from mvp.operational_intelligence.storage import Timeline
 
 
@@ -91,6 +91,17 @@ class FixtureDiarization(DiarizationProvider):
             DiarizedTurn("LOCAL_02", 0.005, 0.010, 0.91),
         ]
 
+    def observation_quality(self, audio_path, group):
+        del audio_path
+        return ObservationQuality(
+            speech_seconds=sum(turn.end - turn.start for turn in group),
+            speech_ratio=0.90,
+            confidence=0.88,
+            overlap_ratio=0.0,
+            rms=0.04,
+            clipped_ratio=0.0,
+        )
+
 
 class FixtureEmbedding(SpeakerEmbeddingProvider):
     async def embed(self, audio_path: Path, start: float, end: float):
@@ -98,6 +109,8 @@ class FixtureEmbedding(SpeakerEmbeddingProvider):
 
 
 class FixtureReasoning(ReasoningProvider):
+    strict_support = True
+
     def __init__(self):
         self.paths: list[str] = []
 
@@ -135,6 +148,11 @@ class FixtureReasoning(ReasoningProvider):
 class FailingDiarization(DiarizationProvider):
     async def diarize(self, audio_path: Path, transcript: ASRResult):
         raise ProviderUnavailable("DIARIZATION_TEMPORARILY_UNAVAILABLE")
+
+
+class NoQualityDiarization(DiarizationProvider):
+    async def diarize(self, audio_path: Path, transcript: ASRResult):
+        return [DiarizedTurn("LOCAL_01", 0.0, 0.01, 0.90)]
 
 
 class SlowDiarization(DiarizationProvider):
@@ -193,6 +211,7 @@ class RazerWorkerTransportTests(unittest.TestCase):
             client = RazerWorkerClient(harness.url, bearer_token=TOKEN, timeout_seconds=2)
             asr = asyncio.run(RazerASRProxy(client).transcribe(audio))
             turns = asyncio.run(RazerDiarizationProxy(client).diarize(audio, asr))
+            quality = RazerDiarizationProxy(client).observation_quality(audio, [turns[0]])
             embedding = asyncio.run(
                 RazerEmbeddingProxy(client).embed(audio, turns[0].start, turns[0].end)
             )
@@ -209,6 +228,8 @@ class RazerWorkerTransportTests(unittest.TestCase):
 
         self.assertEqual(asr.text, "Eu vi o objeto na praça.")
         self.assertEqual(len(turns), 2)
+        self.assertEqual(quality.confidence, 0.88)
+        self.assertEqual(quality.speech_seconds, 0.005)
         self.assertEqual(list(embedding), [1.0, 0.0, 0.005])
         self.assertEqual(reasoning.facts[0].source_speakers, ["SPEAKER_01"])
         self.assertEqual(self.asr.calls, 1, "ASR/turn/embedding share one response")
@@ -402,7 +423,11 @@ class RazerWorkerTransportTests(unittest.TestCase):
             knowledge = LocalKnowledge()
             pipeline = AsyncSegmentPipeline(
                 self.root / "session",
-                remote_pipeline_providers(client, knowledge),
+                remote_pipeline_providers(
+                    client,
+                    knowledge,
+                    reasoning=self.reasoning,
+                ),
                 SpeakerRegistry(self.root / "session" / "speakers" / "registry.json"),
                 Timeline(self.root / "session" / "timeline.jsonl"),
             )
@@ -423,13 +448,63 @@ class RazerWorkerTransportTests(unittest.TestCase):
         )
         self.assertEqual(transcript["raw_transcript"], "Eu vi o objeto na praça.")
 
+    def test_missing_observation_quality_fails_closed_before_registry(self):
+        audio = self.root / "segment_without_quality.wav"
+        write_wav(audio)
+        providers = WorkerProviders(
+            self.asr,
+            NoQualityDiarization(),
+            FixtureEmbedding(),
+            self.reasoning,
+        )
+        with ServerHarness(providers) as harness:
+            client = RazerWorkerClient(harness.url, bearer_token=TOKEN, timeout_seconds=2)
+            result = asyncio.run(client.segment(audio))
+            self.assertEqual(result.processing_status, "PROCESSING_PENDING")
+            self.assertEqual(result.pending_stage, "observation_quality")
+            self.assertEqual(result.pending_error, "OBSERVATION_QUALITY_REQUIRED")
+            with self.assertRaisesRegex(
+                ProviderUnavailable, "OBSERVATION_QUALITY_REQUIRED"
+            ):
+                asyncio.run(RazerDiarizationProxy(client).diarize(audio, result.asr))
+
     def test_remote_bundle_keeps_knowledge_provider_local(self):
+        class StrictReasoning(FixtureReasoning):
+            strict_support = True
+
         with ServerHarness(self.providers) as harness:
             knowledge = LocalKnowledge()
             bundle = remote_pipeline_providers(
-                RazerWorkerClient(harness.url, bearer_token=TOKEN), knowledge
+                RazerWorkerClient(harness.url, bearer_token=TOKEN),
+                knowledge,
+                reasoning=StrictReasoning(),
             )
         self.assertIs(bundle.knowledge, knowledge)
+
+    def test_remote_bundle_preserves_explicit_strict_local_reasoner(self):
+        class StrictReasoning(FixtureReasoning):
+            strict_support = True
+
+        class NonStrictReasoning(FixtureReasoning):
+            strict_support = False
+
+        with ServerHarness(self.providers) as harness:
+            knowledge = LocalKnowledge()
+            reasoner = StrictReasoning()
+            bundle = remote_pipeline_providers(
+                RazerWorkerClient(harness.url, bearer_token=TOKEN),
+                knowledge,
+                reasoning=reasoner,
+            )
+        self.assertIs(bundle.reasoning, reasoner)
+        self.assertTrue(bundle.reasoning.strict_support)
+
+        with self.assertRaisesRegex(ValueError, "strict_support"):
+            remote_pipeline_providers(
+                RazerWorkerClient("http://127.0.0.1:1"),
+                knowledge,
+                reasoning=NonStrictReasoning(),
+            )
 
     def test_truncated_or_forged_response_is_provider_unavailable(self):
         class ForgedHandler(BaseHTTPRequestHandler):

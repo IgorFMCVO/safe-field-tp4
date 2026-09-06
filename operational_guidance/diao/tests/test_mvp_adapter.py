@@ -49,10 +49,20 @@ class UnsourcedLocalProvider:
         }
 
 
+class UnsupportedLocalProvider:
+    def retrieve_guidance(self, hypothesis, facts):
+        return {
+            "status": "GUIDANCE_NOT_SUPPORTED",
+            "reason": "no_sufficient_diao_support",
+            "priority_actions": [],
+            "sources": [],
+        }
+
+
 class MVPAdapterTests(unittest.IsolatedAsyncioTestCase):
     async def test_requires_officer_confirmation(self) -> None:
         provider = MVPAsyncDIAOKnowledgeProvider()
-        with self.assertRaisesRegex(ProviderUnavailable, "GUIDANCE_NOT_AVAILABLE"):
+        with self.assertRaisesRegex(ValueError, "requires officer confirmation"):
             await provider.retrieve_guidance(
                 make_hypothesis(HypothesisStatus.PROPOSED), [make_fact()]
             )
@@ -72,7 +82,14 @@ class MVPAdapterTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_blocks_unsourced_local_result(self) -> None:
         provider = MVPAsyncDIAOKnowledgeProvider(local_provider=UnsourcedLocalProvider())
-        with self.assertRaisesRegex(ProviderUnavailable, "GUIDANCE_NOT_AVAILABLE"):
+        with self.assertRaisesRegex(ValueError, "not bound to a sourced passage"):
+            await provider.retrieve_guidance(
+                make_hypothesis(HypothesisStatus.OFFICER_CONFIRMED), [make_fact()]
+            )
+
+    async def test_preserves_typed_not_supported_result(self) -> None:
+        provider = MVPAsyncDIAOKnowledgeProvider(local_provider=UnsupportedLocalProvider())
+        with self.assertRaisesRegex(ProviderUnavailable, "GUIDANCE_NOT_SUPPORTED"):
             await provider.retrieve_guidance(
                 make_hypothesis(HypothesisStatus.OFFICER_CONFIRMED), [make_fact()]
             )
