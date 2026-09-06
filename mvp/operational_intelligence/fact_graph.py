@@ -7,7 +7,7 @@ from enum import Enum
 from pathlib import Path
 import threading
 
-from .models import Fact
+from .models import Fact, EvidenceStatus
 from .storage import atomic_json
 
 
@@ -34,14 +34,19 @@ class FactRelation:
 
 
 class FactGraph:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, strict_support: bool = False):
         self.path = path
+        self.strict_support = strict_support
         self._facts: dict[str, Fact] = {}
         self._relations: list[FactRelation] = []
         self._lock = threading.RLock()
         self._save()
 
     def add_fact(self, fact: Fact) -> None:
+        if fact.status in {EvidenceStatus.CANDIDATE, EvidenceStatus.REJECTED_UNSUPPORTED}:
+            raise ValueError("Unsupported candidate cannot enter the operational FactGraph")
+        if self.strict_support and fact.status not in {EvidenceStatus.SUPPORTED, EvidenceStatus.OFFICER_CONFIRMED}:
+            raise ValueError("Operational graph requires supported or confirmed facts")
         with self._lock:
             existing = self._facts.get(fact.fact_id)
             if existing and existing.to_dict() != fact.to_dict():

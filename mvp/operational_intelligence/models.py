@@ -32,6 +32,9 @@ class LifecycleState(str, Enum):
 
 
 class EvidenceStatus(str, Enum):
+    CANDIDATE = "CANDIDATE"
+    SUPPORTED = "SUPPORTED"
+    REJECTED_UNSUPPORTED = "REJECTED_UNSUPPORTED"
     CAPTURED = "CAPTURED"
     INFERRED = "INFERRED"
     OFFICER_CONFIRMED = "OFFICER_CONFIRMED"
@@ -104,6 +107,10 @@ class Fact(Serializable):
     confidence: float
     status: EvidenceStatus
     created_at: str = field(default_factory=utc_now)
+    transcript_span: dict[str, int] | None = None
+    evidence_quote: str | None = None
+    timestamp: float | None = None
+    qualifiers: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         validate_artifact_id(self.fact_id, "fact_id")

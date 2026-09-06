@@ -77,7 +77,8 @@ class AsyncSegmentPipeline:
         self.providers = providers
         self.speaker_registry = speaker_registry
         self.timeline = timeline
-        self.fact_graph = FactGraph(session_root / "facts" / "fact_graph.json")
+        self.fact_graph = FactGraph(session_root / "facts" / "fact_graph.json",
+                                    strict_support=getattr(providers.reasoning, 'strict_support', False))
         self._queue: queue.SimpleQueue[Any] = queue.SimpleQueue()
         self._condition = threading.Condition()
         self._pending = 0
@@ -212,9 +213,13 @@ class AsyncSegmentPipeline:
             if norm == 0:
                 raise ValueError('Zero pooled speaker embedding')
             embedding = [value / norm for value in embedding]
-            record, similarity = self.speaker_registry.register(
-                embedding, segment_id, provider_confidence=min(turn.confidence for turn in group)
-            )
+            if hasattr(self.providers.diarization, 'observation_quality'):
+                quality = self.providers.diarization.observation_quality(audio_path, group)
+                record, similarity = self.speaker_registry.match(embedding, segment_id, quality)
+            else:
+                record, similarity = self.speaker_registry.register(
+                    embedding, segment_id, provider_confidence=min(turn.confidence for turn in group)
+                )
             if record.speaker_id not in speaker_ids:
                 speaker_ids.append(record.speaker_id)
             self.timeline.append(

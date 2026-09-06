@@ -10,9 +10,28 @@ import json
 import math
 from pathlib import Path
 import threading
+from dataclasses import dataclass
 from typing import Sequence
 
 from .models import MatchStatus, SpeakerRecord
+
+
+@dataclass(frozen=True)
+class ObservationQuality:
+    speech_seconds: float
+    speech_ratio: float
+    confidence: float
+    overlap_ratio: float
+    rms: float
+    clipped_ratio: float
+
+    def acceptable(self) -> bool:
+        values = (self.speech_seconds, self.speech_ratio, self.confidence,
+                  self.overlap_ratio, self.rms, self.clipped_ratio)
+        return (all(math.isfinite(x) for x in values) and self.speech_seconds >= 2.0
+                and .65 <= self.speech_ratio <= 1 and .70 <= self.confidence <= 1
+                and 0 <= self.overlap_ratio <= .10 and .003 <= self.rms <= .5
+                and 0 <= self.clipped_ratio <= .005)
 
 
 def cosine_similarity(left: Sequence[float], right: Sequence[float]) -> float:
@@ -82,8 +101,16 @@ class SpeakerRegistry:
         segment_id: str,
         provider_confidence: float = 1.0,
         known_officer: bool = False,
+        quality: ObservationQuality | None = None,
+        ambiguity_margin: float = 0.0,
     ) -> tuple[SpeakerRecord, float]:
         vector = list(float(value) for value in embedding)
+        if not vector or not all(math.isfinite(x) for x in vector) or sum(x*x for x in vector) == 0:
+            raise ValueError("Invalid speaker embedding")
+        if quality is not None and not quality.acceptable():
+            raise ValueError("SPEAKER_OBSERVATION_LOW_QUALITY")
+        if not 0 <= ambiguity_margin <= 1:
+            raise ValueError("Invalid ambiguity margin")
         if not 0.0 <= provider_confidence <= 1.0:
             raise ValueError("Provider confidence must be between 0 and 1")
         with self._lock:
@@ -101,7 +128,8 @@ class SpeakerRegistry:
                 reverse=True,
             )
             score, best = scored[0]
-            if score >= self.high_confidence:
+            ambiguous = len(scored) > 1 and score - scored[1][0] < ambiguity_margin
+            if score >= self.high_confidence and not ambiguous:
                 if segment_id not in best.segments:
                     best.segments.append(segment_id)
                 best.confidence = min(best.confidence, provider_confidence, score)
@@ -130,6 +158,12 @@ class SpeakerRegistry:
                 )
             self._save()
             return record, score
+
+    def match(self, embedding: Sequence[float], segment_id: str,
+              quality: ObservationQuality) -> tuple[SpeakerRecord, float]:
+        """Quality-gated stable match; local diarization IDs never enter this API."""
+        return self.register(embedding, segment_id, provider_confidence=quality.confidence,
+                             quality=quality, ambiguity_margin=.03)
 
     def set_provisional_role(self, speaker_id: str, role: str) -> None:
         with self._lock:

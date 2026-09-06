@@ -83,6 +83,7 @@ class OperationalIntelligenceCore:
         pcm: PCMFormat | None = None,
         segmentation: SegmenterConfig | None = None,
         pcm_source: PCMSource | None = None,
+        physical_capture_only: bool = False,
     ):
         self.sessions_root = sessions_root
         self.providers = providers or PipelineProviders(
@@ -95,6 +96,13 @@ class OperationalIntelligenceCore:
         self.pcm = pcm or PCMFormat()
         self.segmentation = segmentation or SegmenterConfig()
         self.pcm_source = pcm_source
+        self.physical_capture_only = physical_capture_only
+        if physical_capture_only:
+            from raspberry_mvp.pcm_stream.safe_field_pcm_receiver import SerialPCMSource
+            import re
+            if (type(pcm_source) is not SerialPCMSource or pcm_source._serial_factory is not None
+                    or not re.fullmatch(r'(?:COM\d+|/dev/tty[A-Za-z0-9]+|/dev/serial\d+)', pcm_source.port)):
+                raise ValueError('PHYSICAL_CAPTURE_ONLY requires the actual OS serial source, no injected factory')
         self.state = LifecycleState.STANDBY
         self._lock = threading.RLock()
         self._stop_lock = threading.Lock()
@@ -147,7 +155,7 @@ class OperationalIntelligenceCore:
             self.state = LifecycleState.ACTIVE
             try:
                 source_status = (
-                    self.pcm_source.start(self.ingest_pcm) if self.pcm_source else None
+                    self.pcm_source.start(self._ingest_source_pcm if self.physical_capture_only else self.ingest_pcm) if self.pcm_source else None
                 )
             except Exception as exc:
                 start_error = exc
@@ -207,6 +215,11 @@ class OperationalIntelligenceCore:
         }
 
     def ingest_pcm(self, pcm_bytes: bytes) -> None:
+        if self.physical_capture_only:
+            raise RuntimeError('PHYSICAL_CAPTURE_ONLY rejects direct PCM/file injection')
+        self._ingest_source_pcm(pcm_bytes)
+
+    def _ingest_source_pcm(self, pcm_bytes: bytes) -> None:
         # No ASR, diarization, reasoning, knowledge or wearable await exists here.
         with self._lock:
             if self.state is not LifecycleState.ACTIVE or self._recorder is None:
