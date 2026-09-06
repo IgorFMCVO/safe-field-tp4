@@ -77,6 +77,7 @@ class OperationalApiService:
         if root:
             with (root / "watch_events.jsonl").open("a", encoding="utf-8") as stream:
                 stream.write(json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n")
+            self.core.record_watch_event(action, **data)
         return event
 
     def start(self, payload: dict) -> dict:
@@ -131,12 +132,14 @@ class OperationalApiService:
         }
         if action_id not in allowed:
             raise ApiError(409, "GUIDANCE_ACTION_NOT_VISIBLE")
-        event = self._record_watch("ACTION_STATUS", action_id=action_id, status=status)
+        event = self._record_watch("ACTION_STATUS", action_id=action_id, status=status,
+                                   hypothesis_id=(state.get('hypothesis') or {}).get('hypothesis_id'))
         return {"ok": True, "version": API_VERSION, "event": event}
 
     def _latest_hypothesis(self, root: Path) -> dict | None:
         items = _json_files(root / "hypotheses")
-        return items[-1] if items else None
+        # IDs contain hashes, not chronological sequence numbers.
+        return max(items, key=lambda item: (item.get('created_at', ''), item.get('hypothesis_id', ''))) if items else None
 
     def _visible_guidance(self, root: Path, hypothesis: dict | None) -> dict:
         if not hypothesis or hypothesis.get("status") != "OFFICER_CONFIRMED":
@@ -145,6 +148,15 @@ class OperationalApiService:
         if not path.is_file():
             return {"status": "GUIDANCE_NOT_AVAILABLE", "items": []}
         guidance = _read_json(path)
+        action_states = {}
+        watch_path = root / 'watch_events.jsonl'
+        if watch_path.exists():
+            for line in watch_path.read_text(encoding='utf-8').splitlines():
+                if not line.strip():
+                    continue
+                event = json.loads(line)
+                if event.get('action') == 'ACTION_STATUS' and event.get('hypothesis_id') == hypothesis.get('hypothesis_id'):
+                    action_states[event.get('action_id')] = event.get('status')
         items = []
         for index, item in enumerate(guidance.get("items", [])[:5], 1):
             sources = item.get("sources") or []
@@ -155,7 +167,7 @@ class OperationalApiService:
                 {
                     "action_id": f"ACTION_{index:03d}",
                     "text": item.get("text", ""),
-                    "status": "PENDING",
+                    "status": action_states.get(f"ACTION_{index:03d}", "PENDING"),
                     "section": source.get("section"),
                     "page": source.get("page"),
                     "item": source.get("item"),

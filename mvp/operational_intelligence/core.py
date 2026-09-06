@@ -214,6 +214,12 @@ class OperationalIntelligenceCore:
             recorder = self._recorder
         recorder.ingest(pcm_bytes)
 
+    def record_watch_event(self, action: str, **data: Any) -> None:
+        """Persist accepted watch interactions in the occurrence timeline."""
+        with self._lock:
+            if self._session:
+                self._session.timeline.append('WATCH_COMMAND', action=action, **data)
+
     def confirm_hypothesis(self, hypothesis_id: str, decision: str) -> dict[str, Any]:
         with self._lock:
             if self.state is not LifecycleState.ACTIVE or self._pipeline is None:

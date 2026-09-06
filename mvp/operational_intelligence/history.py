@@ -36,6 +36,8 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
     pending = _load_json_files((session_root / "jobs").glob("pending_*.json"))
     fact_graph_path = session_root / "facts" / "fact_graph.json"
     fact_graph = json.loads(fact_graph_path.read_text(encoding="utf-8"))
+    watch_path = session_root / 'watch_events.jsonl'
+    watch_events = [json.loads(line) for line in watch_path.read_text(encoding='utf-8').splitlines() if line.strip()] if watch_path.exists() else []
 
     data = {
         "document_type": "HISTORICO_PRELIMINAR",
@@ -53,6 +55,8 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
             item for item in timeline if item["event"] == "HYPOTHESIS_OFFICER_DECISION"
         ],
         "guidance": guidance,
+        "watch_events": watch_events,
+        "guidance_actions": [event for event in watch_events if event.get('action') == 'ACTION_STATUS'],
         "pending_processing": pending,
         # Narrative uses only statements already stored as traceable facts.
         "preliminary_narrative": " ".join(fact["statement"] for fact in facts),
@@ -124,6 +128,10 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
             lines.append(f"- {item['text']} — {refs}")
     if not guidance:
         lines.append("- Nenhuma orientação consultada.")
+    lines.extend(['', '## Providências registradas pelo wearable', ''])
+    lines.extend(f"- {event['timestamp']} — {event['action_id']}: {event['status']}" for event in data['guidance_actions'])
+    if not data['guidance_actions']:
+        lines.append('- Nenhuma providência registrada.')
     lines.extend(["", "## Pendências", ""])
     lines.append(f"- Jobs de processamento pendentes: {len(pending)}")
     lines.extend(["", "## Histórico narrativo preliminar", ""])

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 import queue
 import threading
@@ -189,10 +190,30 @@ class AsyncSegmentPipeline:
             raise ValueError("Diarization returned no speaker turns")
 
         speaker_ids: list[str] = []
+        local_groups: dict[str, list] = {}
         for turn in turns:
-            embedding = await self.providers.embedding.embed(audio_path, turn.start, turn.end)
+            local_groups.setdefault(turn.local_speaker, []).append(turn)
+        for local_speaker, group in local_groups.items():
+            # Diarization may return several disjoint windows of the SAME local
+            # speaker. Register one duration-weighted embedding per local ID,
+            # rather than creating identities for short phonetic fragments.
+            observations = []
+            for turn in group:
+                vector = list(await self.providers.embedding.embed(audio_path, turn.start, turn.end))
+                duration = turn.end - turn.start
+                if duration <= 0 or not vector or not all(math.isfinite(v) for v in vector):
+                    raise ValueError('Invalid diarized speaker embedding')
+                observations.append((duration, vector))
+            width = len(observations[0][1])
+            if any(len(vector) != width for _, vector in observations):
+                raise ValueError('Inconsistent speaker embedding dimensions')
+            embedding = [sum(duration * vector[i] for duration, vector in observations) for i in range(width)]
+            norm = math.sqrt(sum(value * value for value in embedding))
+            if norm == 0:
+                raise ValueError('Zero pooled speaker embedding')
+            embedding = [value / norm for value in embedding]
             record, similarity = self.speaker_registry.register(
-                embedding, segment_id, provider_confidence=turn.confidence
+                embedding, segment_id, provider_confidence=min(turn.confidence for turn in group)
             )
             if record.speaker_id not in speaker_ids:
                 speaker_ids.append(record.speaker_id)
@@ -202,6 +223,8 @@ class AsyncSegmentPipeline:
                 speaker_id=record.speaker_id,
                 match_status=record.match_status.value,
                 similarity=similarity,
+                local_speaker=local_speaker,
+                pooled_windows=len(group),
             )
 
         transcript.speaker_ids = speaker_ids

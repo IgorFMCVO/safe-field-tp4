@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import http.client
 from http.server import ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -215,18 +216,18 @@ class OperationalApiTests(unittest.TestCase):
         )
         worker = threading.Thread(target=server.serve_forever, daemon=True)
         worker.start()
-        url = f"http://127.0.0.1:{server.server_port}/api/v1/occurrences/start"
+        connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=2)
         try:
-            request = urllib.request.Request(
-                url,
-                data=json.dumps({"occurrence_id": "X" * 64}).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
-            with self.assertRaises(urllib.error.HTTPError) as oversized:
-                urllib.request.urlopen(request, timeout=2)
-            self.assertEqual(oversized.exception.code, 413)
+            # Send headers only: rejection must not wait for the oversized body.
+            # Sending that body races the server's close on Windows (10053).
+            connection.putrequest("POST", "/api/v1/occurrences/start")
+            connection.putheader("Content-Type", "application/json")
+            connection.putheader("Content-Length", "128")
+            connection.endheaders()
+            response = connection.getresponse()
+            self.assertEqual(response.status, 413)
         finally:
+            connection.close()
             server.shutdown()
             server.server_close()
             worker.join(2)
