@@ -170,3 +170,14 @@ physically repaired. Baseline C must remain paused. The next action is external:
 power removed, compare or replace the INMP441 module with a known-good unit
 while preserving the already-validated pinout. Do not compensate by increasing
 speaker volume.
+
+## Direct operator-voice confirmation
+
+At the operator's request, a final six-second live-voice capture was run without
+speaker playback or volume changes. Capture
+`2b5b4982-f67c-49d3-bf10-859bf74e1b7d` retained 126912 samples / 7932 packets
+with zero CRC, sequence, source-counter, frame and overrun errors. RAW24 AC RMS
+was `8079.367134`, versus `12727.439954` for the silence reference: `0.634799x`
+or `-3.947274 dB`. The direct voice test therefore also produced
+`NO_CLEAR_UNSATURATED_ACOUSTIC_RESPONSE` and independently reinforces the same
+physical/microphone-suspect classification.

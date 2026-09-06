@@ -216,3 +216,34 @@ than a fictitious negative/extreme value.
 - BASELINE C remains paused. The next action requires powered-off physical
   substitution/comparison with a known-good INMP441; no further volume increase
   is justified.
+
+## Direct live-voice retest requested by operator
+
+The operator requested a short direct voice test. Two initial windows were
+excluded because each lost one UART packet. A final six-second capture pinned
+to one Raspberry CPU was valid:
+
+- label: `p0_raw24_voice_quick_final_20260906T181404Z`;
+- capture ID: `2b5b4982-f67c-49d3-bf10-859bf74e1b7d`;
+- 126912 samples / 7932 packets;
+- CRC, format, sequence/source loss, frame error and overrun: all `0`;
+- RAW24 RMS / AC RMS: `8080.277862` / `8079.367134`;
+- PCM16 RMS / AC RMS: `252.516188` / `252.480275`;
+- RAW24 voice/silence AC ratio: `0.634799x` (`-3.947274 dB`);
+- PCM16 voice/silence AC ratio: `0.634799x` (`-3.947280 dB`);
+- RAW24→PCM16 mismatches: `0`; UART→WAV byte-identical;
+- result: **FAIL — NO_CLEAR_UNSATURATED_ACOUSTIC_RESPONSE**.
+
+Remote Raspberry evidence hashes:
+
+```text
+694B6701E5B1275EB087E11399FB9F68C68956C6C6B50544EF99EF19365FE1AA  p0_raw24_voice_quick_final_20260906T181404Z.s24le
+7D2CA425195E65B783B6B80B68044D65E5BACDBE121C8CFED09C49DDEC5338937  p0_raw24_voice_quick_final_20260906T181404Z_pcm16.wav
+C1F2B293E073A1562812D186C3681CD85D36CF4DDDF204AA91ED5B3FACD85BF4  p0_raw24_voice_quick_final_20260906T181404Z.csv
+9556656AB7110AABBB66874A451991AD804750BF4B68A39FDF419A4666D49360  p0_raw24_voice_quick_final_20260906T181404Z_report.json
+4C93BF3C305479AF692E792D68A7A8705889CC889C60A8CF5656AA75A8D9492C  p0_raw24_voice_quick_final_20260906T181404Z_comparison.json
+```
+
+This live-voice retest confirms rather than changes the prior isolation:
+digital transport and amplitude preservation pass, while no acoustic response
+appears at FPGA RAW24 checkpoint A.
