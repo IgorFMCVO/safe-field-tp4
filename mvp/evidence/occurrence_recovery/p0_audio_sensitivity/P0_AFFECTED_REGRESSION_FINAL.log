@@ -1,0 +1,23 @@
+SAFE-FIELD P0_AUDIO_SENSITIVITY_ANOMALY — affected regression
+Date: 2026-09-06
+
+Command:
+mvp\evidence\recovery_venv\Scripts\python.exe -m unittest raspberry_mvp.pcm_stream.tests.test_pcm_protocol mvp.tests.test_pcm_source_integration mvp.tests.test_physical_acoustic_calibration mvp.tests.test_pcm_amplitude_identity mvp.tests.test_physical_c_orchestrator raspberry_mvp.raw24_diagnostic.test_raw24_protocol -v
+
+Suites covered:
+- PCM packet protocol and transport continuity
+- PCM source/Core integration and fail-closed persistence
+- physical acoustic calibration and SNR calculation
+- UART PCM16 to WAV amplitude identity
+- physical-C orchestration provenance gates
+- RAW24 diagnostic protocol, CRC and capture comparison
+
+Result:
+Ran 52 tests in 10.973s
+OK
+Failures: 0
+Errors: 0
+
+Frozen TP4 RTL changed: NO
+RAW24 RTL/bitstream changed: NO
+Hardware accessed by this regression: NO

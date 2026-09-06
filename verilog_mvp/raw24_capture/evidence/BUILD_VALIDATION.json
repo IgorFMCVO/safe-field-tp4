@@ -1,7 +1,7 @@
 {
   "mode": "RAW_I2S_24_CAPTURE",
   "result": "PASS",
-  "hardware_programming": "NOT_PERFORMED",
+  "hardware_programming": "NOT_PERFORMED_BY_THIS_EVIDENCE_UPDATE",
   "device": "GW1NSR-LV4CQN48PC6/I5",
   "tool": "Gowin V1.9.11.03 Education",
   "protocol": {
@@ -33,7 +33,24 @@
     "dropped_samples": 0,
     "overruns": 0,
     "python_golden_contract": "PASS",
-    "full_host_regression": "9/9 PASS"
+    "full_host_regression": "9/9 PASS",
+    "host_crc_implementation": "binascii.crc_hqx(payload, 0xFFFF)",
+    "host_crc_benchmark_mbps": 16.64,
+    "uart_headroom_ratio": 11.09,
+    "physical_recheck": {
+      "duration_seconds": 12.00604816401028,
+      "samples": 253168,
+      "valid_frames": 15823,
+      "crc_errors": 0,
+      "format_errors": 0,
+      "sequence_losses": 0,
+      "source_counter_losses": 0,
+      "i2s_frame_error_packets": 0,
+      "transport_overrun_packets": 0,
+      "raw24_to_pcm16_mismatches": 0,
+      "saturated_samples": 0,
+      "evidence": "mvp/evidence/occurrence_recovery/p0_audio_sensitivity/p0_raw24_transport_recheck_20260906T1758Z_report.json"
+    }
   },
   "pnr": {
     "result": "PASS",

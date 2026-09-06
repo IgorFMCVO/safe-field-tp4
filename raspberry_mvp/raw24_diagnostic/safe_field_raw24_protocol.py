@@ -8,10 +8,8 @@ instant.  A source stride of two keeps the 1.5 Mbaud link below 84% utilization.
 
 from __future__ import annotations
 
+import binascii
 from dataclasses import dataclass
-
-from raspberry_mvp.pcm_stream.safe_field_pcm_protocol import crc16_ccitt_false
-
 
 SYNC = b"\xA5\xC4"
 VERSION = 1
@@ -25,6 +23,19 @@ BAUD_RATE = 1_500_000
 SOURCE_SAMPLE_RATE = 42_187.5
 DIAGNOSTIC_SAMPLE_RATE = SOURCE_SAMPLE_RATE / SOURCE_STRIDE
 WAV_SAMPLE_RATE = 21_094
+
+
+def crc16_ccitt_false(payload: bytes) -> int:
+    """CRC-16/CCITT-FALSE using CPython's C implementation.
+
+    The diagnostic link runs at 83.5% UART utilization.  The original shared
+    bit-at-a-time Python implementation was mathematically correct but could
+    fall behind the continuous 1.5 Mbaud stream on a loaded Raspberry Pi.
+    ``binascii.crc_hqx`` uses the same polynomial and initial value in C.
+    Golden-wire tests keep the implementation tied to the RTL CRC bytes.
+    """
+
+    return binascii.crc_hqx(payload, 0xFFFF)
 
 
 def pcm16_gain8(sample24: int) -> int:

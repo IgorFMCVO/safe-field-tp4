@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "mode": "P0_RAW24_TIMED_STIMULUS_ANALYSIS",
+  "capture_id": "97ebbc74-690c-4ba1-9501-8deff545b91e",
+  "capture_started_at_utc": "2026-09-06T17:58:12.478628+00:00",
+  "playback_started_at_utc": "2026-09-06T17:58:19.247792+00:00",
+  "playback_finished_at_utc": "2026-09-06T17:58:27.072777+00:00",
+  "output": {
+    "device_index": 9,
+    "name": "Speakers (Realtek(R) Audio)",
+    "hostapi": "Windows DirectSound",
+    "endpoint_scalar": 0.08000000566244125,
+    "volume_changed": false
+  },
+  "stimulus": {
+    "path": "mvp/generated_audio/A_conflict_four_speakers/segment_001.wav",
+    "duration_s": 7.045,
+    "sample_rate_hz": 16000,
+    "minimum": -6232,
+    "maximum": 11066,
+    "rms": 1313.89,
+    "peak": 11066,
+    "clipped_samples": 0
+  },
+  "windows": {
+    "pre": {
+      "seconds": [0.5, 6.0],
+      "samples": 116015,
+      "raw24": {
+        "minimum": -28760,
+        "maximum": 21222,
+        "peak": 28760,
+        "rms": 8574.583257062055,
+        "dc_mean": -436.3204930399693,
+        "standard_deviation": 8563.474905646803,
+        "absolute_p95": 18038,
+        "absolute_p99": 22654
+      },
+      "pcm16": {
+        "minimum": -899,
+        "maximum": 663,
+        "peak": 899,
+        "rms": 267.9791640529247,
+        "dc_mean": -14.101719605223462,
+        "standard_deviation": 267.60787333462366,
+        "absolute_p95": 564,
+        "absolute_p99": 708
+      }
+    },
+    "playback": {
+      "seconds": [7.0, 14.3],
+      "samples": 153985,
+      "raw24": {
+        "minimum": -28104,
+        "maximum": 22406,
+        "peak": 28104,
+        "rms": 7940.666299637758,
+        "dc_mean": -385.0944665064779,
+        "standard_deviation": 7931.322927553855,
+        "absolute_p50": 4188,
+        "absolute_p95": 17886,
+        "absolute_p99": 23142
+      },
+      "pcm16": {
+        "minimum": -879,
+        "maximum": 700,
+        "peak": 879,
+        "rms": 248.17059416752411,
+        "dc_mean": -12.50296457447154,
+        "standard_deviation": 247.85544110693124,
+        "absolute_p50": 131,
+        "absolute_p95": 559,
+        "absolute_p99": 724
+      }
+    },
+    "post": {
+      "seconds": [15.0, 17.5],
+      "samples": 52735,
+      "raw24_standard_deviation": 7062.015000807365,
+      "pcm16_standard_deviation": 220.68947852269636
+    }
+  },
+  "ratios": {
+    "raw24_playback_to_pre_ac": 0.926180436673423,
+    "pcm16_playback_to_pre_ac": 0.9261888897278842,
+    "raw24_independent_signal_to_silence_ac": 0.6150289612834364,
+    "pcm16_independent_signal_to_silence_ac": 0.6150306800800955
+  },
+  "snr_audit_pcm16_300_3400_hz": {
+    "pre_rms": 20.82422169240464,
+    "playback_rms": 20.858843484229432,
+    "post_rms": 20.939580173618385,
+    "conservative_noise_rms": 20.939580173618385,
+    "signal_power_positive": false,
+    "noise_subtracted_signal_rms": 0.0,
+    "snr_db": null
+  },
+  "amplitude_boundaries": {
+    "raw24_to_pcm16": {
+      "formula": "clamp_signed16(raw24 >>> 5)",
+      "mismatches": 0,
+      "observed_normalized_gain": 8.000306335653914,
+      "observed_normalized_gain_db": 18.06213233318135,
+      "saturated_samples": 0
+    },
+    "uart_pcm16_to_wav": {
+      "byte_identical": true,
+      "gain": 1.0,
+      "gain_db": 0.0
+    }
+  },
+  "transport": {
+    "valid_frames": 23756,
+    "crc_errors": 0,
+    "format_errors": 0,
+    "sequence_losses": 0,
+    "source_counter_losses": 0,
+    "i2s_frame_error_packets": 0,
+    "transport_overrun_packets": 0
+  },
+  "acoustic_response_detected": false,
+  "classification": "E_MICROPHONE_SUSPECT",
+  "baseline_c": "PAUSED"
+}

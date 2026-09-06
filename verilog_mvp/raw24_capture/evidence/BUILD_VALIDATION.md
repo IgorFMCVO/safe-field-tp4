@@ -1,7 +1,7 @@
 # RAW_I2S_24_CAPTURE — build validation
 
 Result: **PASS** for self-checking simulation, synthesis, place-and-route and
-static timing. Hardware programming was **NOT PERFORMED**.
+static timing. This evidence-update step performed **NO HARDWARE PROGRAMMING**.
 
 Build timestamp: `2026-09-06T14:29:39-03:00`  
 Device: `GW1NSR-4C` / `GW1NSR-LV4CQN48PC6/I5`  
@@ -51,15 +51,34 @@ were therefore exercised with zero dropped samples and zero overruns.
 | Synthesis | PASS | `gowin_build_console.log` |
 | Place-and-route | PASS | Gowin report and console log |
 | Static timing | PASS | setup violations 0; hold violations 0; TNS 0 |
-| Hardware programming | NOT PERFORMED | deliberate safety boundary |
+| Hardware programming in this update | NOT PERFORMED | deliberate safety boundary |
 
 The extended sustained test changed testbench/evidence files only. The two
 synthesized RAW24 RTL hashes and generated bitstream hash remained unchanged,
 so P&R was not rerun for this test-only strengthening.
 
 The corrected Raspberry RAW24 host regression was rerun after the sustained-TB
-strengthening and passed all nine tests. No host source was edited by this
-validation step.
+strengthening and after the diagnostic host CRC optimization; all nine tests
+passed. The independent Python encoder still produces the exact RTL golden
+frame and CRC. The only host-source change was the equivalent CRC
+implementation described below; packet framing and amplitude handling were not
+changed.
+
+## Optimized host CRC and physical transport recheck
+
+The host parser now evaluates the same CRC-16/CCITT-FALSE contract with
+`binascii.crc_hqx(payload, 0xFFFF)`. This is an implementation optimization
+only: the 95-byte wire format, CRC coverage, RTL and bitstream are unchanged.
+
+- Raspberry benchmark: `16.64 Mbps`, `11.09×` headroom over the 1.5 Mbps UART.
+- Existing 12-second physical recheck: 253,168 samples / 15,823 valid frames.
+- CRC errors: 0; format errors: 0; resync bytes after lock: 0.
+- Sequence losses: 0; source-counter losses: 0.
+- I2S frame-error packets: 0; transport-overrun packets: 0.
+- RAW24→PCM16 mismatches: 0; saturated samples: 0.
+
+Physical recheck evidence:
+`mvp/evidence/occurrence_recovery/p0_audio_sensitivity/p0_raw24_transport_recheck_20260906T1758Z_report.json`.
 
 ## P&R and timing
 

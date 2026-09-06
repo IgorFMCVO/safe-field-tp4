@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "mode": "RAW24_SILENCE_SIGNAL_COMPARISON",
+  "generated_at_utc": "2026-09-06T17:59:37.035858+00:00",
+  "criterion": {
+    "domain": "AC_RMS_STANDARD_DEVIATION_DC_REJECTED",
+    "minimum_clear_signal_to_silence_ratio": 1.5,
+    "zero_saturated_silence_and_signal_samples": true
+  },
+  "silence": {
+    "report": "/home/safe-field/p0-raw24-diagnostic/evidence/p0_raw24_silence_20260906T1752Z_report.json",
+    "report_sha256": "19A2BBB05829C228095BC4D912027879C19DB22D2A7F9558BA1F1FC03BA3BD47",
+    "capture_id": "39f58c32-f41a-426a-838c-5af27ee46929",
+    "raw24_rms_including_dc": 12727.536153218076,
+    "raw24_ac_rms": 12727.439954498479,
+    "raw24_dc": 49.48470580800101,
+    "pcm16_ac_rms": 397.7328370295153,
+    "saturated_pcm16_samples": 0
+  },
+  "signal": {
+    "report": "/home/safe-field/p0-raw24-diagnostic/evidence/p0_raw24_signal_retry_20260906T1800Z_report.json",
+    "report_sha256": "B4A7212ADB623AED957E1554DF3EF4D1660A6C63D3C04B21EE7E90F64BCFA8A8",
+    "capture_id": "97ebbc74-690c-4ba1-9501-8deff545b91e",
+    "raw24_rms_including_dc": 7828.894267916164,
+    "raw24_ac_rms": 7827.744175012507,
+    "raw24_dc": -134.18863129314698,
+    "pcm16_ac_rms": 244.61789724844857,
+    "saturated_pcm16_samples": 0
+  },
+  "raw24_signal_to_silence_ratio": 0.6150289612834364,
+  "raw24_signal_to_silence_db": -4.222088662395976,
+  "pcm16_signal_to_silence_ratio": 0.6150306800800955,
+  "pcm16_signal_to_silence_db": -4.222064388324069,
+  "acoustic_response_detected": false,
+  "amplitude_boundaries": {
+    "i2s_raw24_to_pcm16": {
+      "formula": "clamp_signed16(raw24 >>> 5)",
+      "silence_mismatches": 0,
+      "signal_mismatches": 0,
+      "silence_normalized_gain_db": 18.061773364182855,
+      "signal_normalized_gain_db": 18.06213233318135,
+      "expected_unsaturated_normalized_gain_db": 18.06179973983887
+    },
+    "pcm16_uart_to_pi_wav": {
+      "silence_byte_identical": true,
+      "signal_byte_identical": true,
+      "gain_db": 0.0
+    }
+  },
+  "failed_gates": [
+    "NO_CLEAR_UNSATURATED_ACOUSTIC_RESPONSE"
+  ],
+  "pass": false
+}

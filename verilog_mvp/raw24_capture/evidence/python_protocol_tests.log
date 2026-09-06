@@ -9,6 +9,6 @@ test_crc_corruption_after_lock_is_counted (raspberry_mvp.raw24_diagnostic.test_r
 test_literal_rtl_wire_vector_is_independent_and_exact (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_literal_rtl_wire_vector_is_independent_and_exact) ... ok
 
 ----------------------------------------------------------------------
-Ran 9 tests in 2.957s
+Ran 9 tests in 3.002s
 
 OK
