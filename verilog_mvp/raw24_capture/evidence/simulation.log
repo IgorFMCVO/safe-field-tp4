@@ -1,0 +1,46 @@
+SAFE-FIELD RAW_I2S_24_CAPTURE self-checking simulation
+started_utc=2026-09-06T17:39:36.869Z
+simulator=@veriflow/iverilog-wasm@0.1.4
+hardware_programming=NOT_PERFORMED
+frame_bytes=95 sync=A5C4 version=01 type=21 count=16 stride=2
+pair=RAW24_LE_3_BYTES+GAIN8_PCM16_LE_2_BYTES
+crc=CRC16_CCITT_FALSE_BYTES_2_THROUGH_92
+uart=1500000 baud at 27MHz/18
+nominal_line_utilization_percent=83.49609375
+source_sha256 57D1CA1648D425E8971ECDF4A8028337FEE1B6C18C20955AA3CF27320FA00BC0 verilog_tp4/rtl/frozen_baseline/i2s_clock_gen.v
+source_sha256 F093FD39DEE74F1AF3FAF10F58CD811C02B30ED5096596C364C5F87BC05EE07C verilog_tp4/rtl/frozen_baseline/i2s_rx_24.v
+source_sha256 7F0CB30AC3C12A060FBC893B7DAE2BE5FF2E3EB9C9365EA95E342D4F5711EA34 verilog_tp4/rtl/frozen_baseline/uart_tx_byte.v
+source_sha256 9F036127F8AAC317E7CF825EDE8C02ED30BBE66E88AFA15F27B534E9147DC4D5 verilog_mvp/pcm_stream_gain8/rtl/safe_field_pcm_s24_to_s16_sat.v
+source_sha256 0E9FA45D432761183F9CB12DE18848F7E48566D804995855537E961EECA03B9B verilog_mvp/raw24_capture/rtl/safe_field_raw24_packet_tx.v
+source_sha256 C416B810D1A8E7F84717435528055AD86909E254FDED0DCFCA4499C326317367 verilog_mvp/raw24_capture/tb/tb_safe_field_raw24_packet_tx.v
+source_sha256 1C33EE2BB09FF8D8B155AC8ECD2484959F8BE4F0F707F739122E11F64C6E5353 verilog_mvp/raw24_capture/tb/tb_safe_field_raw24_sustained.v
+===== protocol_and_i2s_chain =====
+success=true
+stage=run
+PASS pair=0 source_counter=0 raw24=-8388608 pcm16=-32768
+PASS pair=1 source_counter=2 raw24=-1048576 pcm16=-32768
+PASS pair=2 source_counter=4 raw24=-8389 pcm16=-263
+PASS pair=3 source_counter=6 raw24=-32 pcm16=-1
+PASS pair=4 source_counter=8 raw24=-1 pcm16=-1
+PASS pair=5 source_counter=10 raw24=0 pcm16=0
+PASS pair=6 source_counter=12 raw24=1 pcm16=0
+PASS pair=7 source_counter=14 raw24=31 pcm16=0
+PASS pair=8 source_counter=16 raw24=32 pcm16=1
+PASS pair=9 source_counter=18 raw24=839 pcm16=26
+PASS pair=10 source_counter=20 raw24=26527 pcm16=828
+PASS pair=11 source_counter=22 raw24=265271 pcm16=8289
+PASS pair=12 source_counter=24 raw24=1048575 pcm16=32767
+PASS pair=13 source_counter=26 raw24=4204263 pcm16=32767
+PASS pair=14 source_counter=28 raw24=8388606 pcm16=32767
+PASS pair=15 source_counter=30 raw24=8388607 pcm16=32767
+PASS CRC expected=69b9 actual=69b9
+TEST_RESULT: PASS (95 bytes, RAW24 LE + gain8 PCM16 LE, stride2 LEFT, CRC bytes2..92)
+verilog_mvp/raw24_capture/tb/tb_safe_field_raw24_packet_tx.v:300: $finish called at 233525000 (1ps)
+
+===== sustained_physical_rate =====
+success=true
+stage=run
+TEST_RESULT: PASS (20 x 95 UART bytes validated, physical rate, 1.5 Mbaud, zero loss)
+verilog_mvp/raw24_capture/tb/tb_safe_field_raw24_sustained.v:201: $finish called at 4255255000 (1ps)
+
+OVERALL_RESULT=PASS

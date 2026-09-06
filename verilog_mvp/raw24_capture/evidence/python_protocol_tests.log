@@ -1,0 +1,14 @@
+test_boundaries_sign_crc_and_stream_chunking (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_boundaries_sign_crc_and_stream_chunking) ... ok
+test_capture_refuses_to_overwrite_prior_label_before_opening_uart (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_capture_refuses_to_overwrite_prior_label_before_opening_uart) ... ok
+test_capture_statistics_preserve_dc_and_report_distribution (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_capture_statistics_preserve_dc_and_report_distribution) ... ok
+test_comparison_fails_closed_for_stale_or_invalid_evidence (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_comparison_fails_closed_for_stale_or_invalid_evidence) ... ok
+test_comparison_rejects_real_pcm_saturation (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_comparison_rejects_real_pcm_saturation) ... ok
+test_comparison_reopens_artifacts_and_keeps_all_boundaries_explicit (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_comparison_reopens_artifacts_and_keeps_all_boundaries_explicit) ... ok
+test_continuity_distinguishes_loss_from_duplicate_or_reset (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_continuity_distinguishes_loss_from_duplicate_or_reset) ... ok
+test_crc_corruption_after_lock_is_counted (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_crc_corruption_after_lock_is_counted) ... ok
+test_literal_rtl_wire_vector_is_independent_and_exact (raspberry_mvp.raw24_diagnostic.test_raw24_protocol.Raw24ProtocolTests.test_literal_rtl_wire_vector_is_independent_and_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.957s
+
+OK

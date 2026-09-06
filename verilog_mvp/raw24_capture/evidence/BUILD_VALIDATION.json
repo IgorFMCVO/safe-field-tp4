@@ -1,0 +1,67 @@
+{
+  "mode": "RAW_I2S_24_CAPTURE",
+  "result": "PASS",
+  "hardware_programming": "NOT_PERFORMED",
+  "device": "GW1NSR-LV4CQN48PC6/I5",
+  "tool": "Gowin V1.9.11.03 Education",
+  "protocol": {
+    "frame_bytes": 95,
+    "sync_hex": "A5C4",
+    "version": 1,
+    "type_hex": "21",
+    "samples_per_packet": 16,
+    "source_stride": 2,
+    "pair": "signed RAW24 little-endian + gain8 signed PCM16 little-endian",
+    "crc": "CRC-16/CCITT-FALSE over bytes 2..92",
+    "uart_baud": 1500000,
+    "nominal_line_utilization_percent": 83.49609375
+  },
+  "architecture": {
+    "banks": 2,
+    "left_only": true,
+    "energy_detector_present": false,
+    "audio_fsm_present": false,
+    "led": "GPIO17 neutral mirror"
+  },
+  "simulation": {
+    "result": "PASS",
+    "source_left_samples": 640,
+    "retained_samples": 320,
+    "packets": 20,
+    "uart_frames_fully_decoded": 20,
+    "uart_bytes_fully_decoded": 1900,
+    "dropped_samples": 0,
+    "overruns": 0,
+    "python_golden_contract": "PASS",
+    "full_host_regression": "9/9 PASS"
+  },
+  "pnr": {
+    "result": "PASS",
+    "logic_used": 1233,
+    "logic_available": 4608,
+    "registers_used": 1623,
+    "registers_available": 3573,
+    "cls_used": 1674,
+    "cls_available": 2304,
+    "io_used": 8,
+    "io_available": 39,
+    "warnings": 7,
+    "errors": 0
+  },
+  "sta": {
+    "result": "PASS",
+    "constraint_mhz": 27.0,
+    "actual_fmax_mhz": 33.647,
+    "worst_setup_slack_ns": 7.316,
+    "worst_hold_slack_ns": 0.708,
+    "setup_tns_ns": 0.0,
+    "hold_tns_ns": 0.0,
+    "setup_violated_endpoints": 0,
+    "hold_violated_endpoints": 0
+  },
+  "bitstream": {
+    "path": "build/mvp_raw24_capture/impl/pnr/safe_field_mvp_raw24_capture.fs",
+    "bytes": 1168345,
+    "sha256": "B0B665EBB20DAEAB3C3ABCCDCE96858FA8084DCDB1F9B7587EC5EBC72ECF21F1"
+  }
+}
