@@ -1,0 +1,27 @@
+{
+  "generated_at_utc": "2026-09-08T01:38:02.084515+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_asr\\voice_asr_blind_20260908T013516Z\\conditioned_denoised_16k.wav",
+  "input_sha256": "886E9C1050CCBD6BF2E934CFCF4694D33AFAA31BB5F6AA345ED0D15D39E1CE08",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 16000,
+    "samples": 173196,
+    "duration_s": 10.82475,
+    "minimum": -3989,
+    "maximum": 4735,
+    "mean": -0.7218815677036421,
+    "mean_absolute": 779.4212972585972,
+    "rms": 976.9099114956356,
+    "standard_deviation": 976.9096447806279,
+    "peak_absolute": 4735,
+    "zero_samples": 84,
+    "nonzero_samples": 173112,
+    "unique_samples": 6034
+  },
+  "asr": {
+    "text": "Tchau, tchau.",
+    "confidence": 0.5194691175656919,
+    "language": "pt-BR"
+  }
+}

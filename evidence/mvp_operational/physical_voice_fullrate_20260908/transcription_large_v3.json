@@ -1,0 +1,27 @@
+{
+  "generated_at_utc": "2026-09-08T01:44:42.161609+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_fullrate_20260908\\conditioned_fullrate_16k.wav",
+  "input_sha256": "DAB380BE25B51311C1E57B2891F0412D070349F52097128F96F5DEA1170420E9",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 16000,
+    "samples": 172698,
+    "duration_s": 10.793625,
+    "minimum": -1154,
+    "maximum": 1001,
+    "mean": -0.5025478002061402,
+    "mean_absolute": 163.967220234166,
+    "rms": 206.1597365949542,
+    "standard_deviation": 206.1591240731523,
+    "peak_absolute": 1154,
+    "zero_samples": 333,
+    "nonzero_samples": 172365,
+    "unique_samples": 1539
+  },
+  "asr": {
+    "text": "Obrigado por assistir",
+    "confidence": 0.44998136546955075,
+    "language": "pt-BR"
+  }
+}

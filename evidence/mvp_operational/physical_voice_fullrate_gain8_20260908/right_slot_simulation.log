@@ -1,0 +1,3 @@
+TEST_RESULT: PASS (WS=1 selected, WS=0 rejected, zero loss)
+verilog_mvp/pcm_stream_gain8_right/tb/tb_right_slot_selector.v:54: $finish called at 58325000 (1ps)
+

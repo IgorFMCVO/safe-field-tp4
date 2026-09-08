@@ -1,0 +1,37 @@
+Reading netlist file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\gwsynthesis\safe_field_mvp_pcm_stream_gain8_right.vg"
+Parsing netlist file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\gwsynthesis\safe_field_mvp_pcm_stream_gain8_right.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'i2s_rx_24' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\verilog_mvp\pcm_stream_gain8\constraints\safe_field_mvp_pcm_stream_gain8.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.power.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.pin.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.rpt.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.tr.html" completed
+Generate file "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\build\mvp_pcm_stream_gain8_right\impl\pnr\safe_field_mvp_pcm_stream_gain8_right.tr" completed
+Mon Sep  7 22:52:00 2026
+

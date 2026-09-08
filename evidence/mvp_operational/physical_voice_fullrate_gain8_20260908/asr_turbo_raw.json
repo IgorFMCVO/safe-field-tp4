@@ -1,0 +1,27 @@
+{
+  "generated_at_utc": "2026-09-08T01:54:17.083872+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_fullrate_gain8_20260908\\voice_gain8.wav",
+  "input_sha256": "CDCFD0DD4BA1B011461702F3DBA5475A0BDA58E28DFB40750756340027236F8A",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 42188,
+    "samples": 455360,
+    "duration_s": 10.793590594481843,
+    "minimum": -635,
+    "maximum": 638,
+    "mean": -8.081990073787772,
+    "mean_absolute": 123.95806175333801,
+    "rms": 154.52320981428846,
+    "standard_deviation": 154.31170988540632,
+    "peak_absolute": 638,
+    "zero_samples": 945,
+    "nonzero_samples": 454415,
+    "unique_samples": 1229
+  },
+  "asr": {
+    "text": "Obrigado.",
+    "confidence": 0.5203153012698187,
+    "language": "pt-BR"
+  }
+}

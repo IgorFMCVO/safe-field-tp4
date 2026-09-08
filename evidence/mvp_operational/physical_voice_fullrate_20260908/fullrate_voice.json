@@ -1,0 +1,29 @@
+{
+  "captured_at_utc": "2026-09-08T01:43:44.664129+00:00",
+  "output_wav": "/home/safe-field/p0-raw24-diagnostic/evidence/fullrate_voice/fullrate_voice_blind_20260908T014322Z.wav",
+  "exact_sample_rate_hz": 42187.5,
+  "wav_header_sample_rate_hz": 42188,
+  "samples_written": 455360,
+  "duration_from_samples_s": 10.793718518518519,
+  "wall_time_s": 10.817531458000076,
+  "valid_frames": 14230,
+  "crc_errors": 1,
+  "format_errors": 0,
+  "startup_candidate_errors": 0,
+  "discarded_bytes": 76,
+  "startup_alignment_discarded_bytes": 0,
+  "resync_discarded_bytes": 76,
+  "sequence_losses": 1,
+  "sample_losses": 32,
+  "sequence_discontinuities": 0,
+  "sample_discontinuities": 0,
+  "i2s_frame_error_packets": 0,
+  "transport_overrun_packets": 0,
+  "failed_acceptance_gates": [
+    "crc_errors",
+    "resync_discarded_bytes",
+    "sequence_losses",
+    "sample_losses"
+  ],
+  "acceptance_pass": false
+}

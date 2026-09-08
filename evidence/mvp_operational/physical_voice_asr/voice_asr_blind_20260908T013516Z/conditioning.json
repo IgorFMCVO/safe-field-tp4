@@ -1,0 +1,36 @@
+{
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_asr\\voice_asr_blind_20260908T013516Z\\raw_pcm16.wav",
+  "target": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_asr\\voice_asr_blind_20260908T013516Z\\conditioned_16k.wav",
+  "source_rate_hz": 21094,
+  "target_rate_hz": 16000,
+  "filter_hz": [
+    80.0,
+    7600.0
+  ],
+  "target_rms": 0.1,
+  "peak_limit": 0.9,
+  "max_gain": 64.0,
+  "applied_gain": 64.0,
+  "applied_gain_db": 36.12359947967774,
+  "input": {
+    "sample_count": 173196,
+    "rms": 0.003231548839388765,
+    "peak": 0.015946301696589994,
+    "dc": -0.0003628036737994369,
+    "clipped_samples": 0
+  },
+  "filtered_before_gain": {
+    "sample_count": 173196,
+    "rms": 0.0005109133612855821,
+    "peak": 0.0024268149139948032,
+    "dc": -1.4227384606416446e-07,
+    "clipped_samples": 0
+  },
+  "conditioned": {
+    "sample_count": 173196,
+    "rms": 0.03269845512227725,
+    "peak": 0.1553161544956674,
+    "dc": -9.105526148106525e-06,
+    "clipped_samples": 0
+  }
+}

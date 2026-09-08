@@ -1,0 +1,27 @@
+{
+  "generated_at_utc": "2026-09-08T01:36:16.642304+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_asr\\voice_asr_blind_20260908T013516Z\\conditioned_16k.wav",
+  "input_sha256": "06FCB7C09EFC069D7C8D4EF65E1F6A01FF23AB8566C638705D64AA26782DC161",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 16000,
+    "samples": 173196,
+    "duration_s": 10.82475,
+    "minimum": -4397,
+    "maximum": 5089,
+    "mean": -0.7976685373796162,
+    "mean_absolute": 855.4901441141827,
+    "rms": 1071.4649534788375,
+    "standard_deviation": 1071.4646565605008,
+    "peak_absolute": 5089,
+    "zero_samples": 57,
+    "nonzero_samples": 173139,
+    "unique_samples": 6539
+  },
+  "asr": {
+    "text": "Se inscreva no canal.",
+    "confidence": 0.5742516868118521,
+    "language": "pt-BR"
+  }
+}

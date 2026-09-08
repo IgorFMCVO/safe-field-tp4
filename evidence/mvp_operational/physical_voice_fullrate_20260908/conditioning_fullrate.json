@@ -1,0 +1,38 @@
+{
+  "source": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_fullrate_20260908\\fullrate_voice.wav",
+  "target": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\physical_voice_fullrate_20260908\\conditioned_fullrate_16k.wav",
+  "source_rate_hz": 42188,
+  "target_rate_hz": 16000,
+  "filter_hz": [
+    80.0,
+    7600.0
+  ],
+  "noise_profile_samples": 11200,
+  "noise_reduction": 0.8,
+  "target_rms": 0.1,
+  "peak_limit": 0.9,
+  "max_gain": 256.0,
+  "applied_gain": 256.0,
+  "applied_gain_db": 48.16479930623699,
+  "input": {
+    "sample_count": 172698,
+    "rms": 0.0005104116442419806,
+    "peak": 0.002032343884413339,
+    "dc": -5.105054618976739e-05,
+    "clipped_samples": 0
+  },
+  "filtered_before_gain": {
+    "sample_count": 172698,
+    "rms": 2.457600840622134e-05,
+    "peak": 0.00013756381838269326,
+    "dc": -2.7208414366758813e-10,
+    "clipped_samples": 0
+  },
+  "conditioned": {
+    "sample_count": 172698,
+    "rms": 0.006291458151992663,
+    "peak": 0.035216337505969475,
+    "dc": -6.965354077890256e-08,
+    "clipped_samples": 0
+  }
+}
