@@ -1,0 +1,34 @@
+name: Validate SAFE-FIELD TP5
+on:
+  pull_request:
+    paths: ["verilog_tp5/**", "assembly_tp5/**", "docs_tp5/**", "scripts/**", ".github/workflows/validate-tp5.yml", "README_TP5.md"]
+  push:
+    branches: ["tp5/final-integration-v1"]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install TP5 toolchains
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu qemu-user
+      - name: Preflight
+        run: python3 scripts/preflight.py
+      - name: Verilog compile and self-checking simulations
+        run: make -C verilog_tp5 test
+      - name: Assembly static library, stand-alone executable and QEMU
+        run: |
+          make -C assembly_tp5 test
+          make -C assembly_tp5 disasm
+      - name: Verify required generated evidence
+        run: |
+          test -f assembly_tp5/build/libsafe_field_tp5.a
+          test -f assembly_tp5/build/tp5_demo.objdump.txt
+          test -f assembly_tp5/build/tp5_uart_demo.objdump.txt
+          test -f verilog_tp5/build/tb_arithmetic.vcd
+          test -f verilog_tp5/build/tb_command_rx.vcd
+          test -f verilog_tp5/build/tb_gpio_oe.vcd
+          test -f verilog_tp5/build/tb_tp5_integration.vcd
