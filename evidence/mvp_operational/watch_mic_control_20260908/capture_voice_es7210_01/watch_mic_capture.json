@@ -1,0 +1,35 @@
+{
+  "status": "STATUS audio=READY psram=8388608",
+  "header": "PCM_BEGIN 16000 2 512000 7923 329.005 316.217",
+  "trailer": "PCM_END 512000",
+  "sample_rate_hz": 16000,
+  "channels": 2,
+  "frames": 128000,
+  "duration_s": 8.0,
+  "capture_elapsed_ms": 7923,
+  "firmware_ac_rms": [
+    329.005,
+    316.217
+  ],
+  "channel_stats": [
+    {
+      "minimum": -2974,
+      "maximum": 2331,
+      "dc": -0.3113515625,
+      "ac_rms": 329.00486065351987,
+      "peak": 2974,
+      "clipping": 0,
+      "unique": 3495
+    },
+    {
+      "minimum": -2647,
+      "maximum": 2157,
+      "dc": -0.3044609375,
+      "ac_rms": 316.21724054453455,
+      "peak": 2647,
+      "clipping": 0,
+      "unique": 3363
+    }
+  ],
+  "selected_channel": 0
+}

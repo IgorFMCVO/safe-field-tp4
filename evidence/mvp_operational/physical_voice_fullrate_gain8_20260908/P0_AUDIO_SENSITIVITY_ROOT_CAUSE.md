@@ -89,6 +89,32 @@ antes da conversão PCM16/UART/WAV.
 
 ## Ação física mínima
 
+## Controle independente pelo microfone do wearable
+
+Em 2026-09-07/08 foi executada uma captura independente com os dois microfones
+do Waveshare ESP32-S3 Touch AMOLED 2.06. A primeira tentativa retornou zeros
+porque o firmware diagnóstico acionava o ADC do ES8311; ela foi rejeitada. O
+BSP oficial confirma que os microfones pertencem ao ADC ES7210, com MCLK=GPIO16,
+BCLK=GPIO41, LRCK=GPIO45 e DIN=GPIO42. O firmware foi corrigido para essa rota,
+incluindo a alimentação MIC VDD/BLDO2 em 3,3 V.
+
+Na captura válida, sincronizada pelo visor por 8 s, foram recebidos 128.000
+frames estéreo. O canal selecionado mediu RMS AC `329,005`, pico `2.974`,
+3.495 valores distintos e clipping `0`. O ASR large-v3-turbo transcreveu:
+`Teste Safety Field, teste de áudio, teste de gravação de áudio do Safety Field.`
+com confiança `0,766`. Assim, o controle independente demonstra que voz normal,
+captura PCM16, transporte USB/WAV e ASR produzem sinal útil quando alimentados
+por um microfone operacional.
+
+Evidência:
+`evidence/mvp_operational/watch_mic_control_20260908/capture_voice_es7210_01/`.
+SHA-256 do WAV mono:
+`617D16574E97086F55600F3C4AE6F5BD928B443A8A4288E9082985B832EB0C70`.
+
+Esse A/B reforça a classificação **E — MICROPHONE SUSPECT** para o INMP441 ou
+seu caminho acústico interno, sem alterar o TP4 ou inferir falha a partir da
+tentativa ES8311 zerada.
+
 Com alimentação desligada, realizar um único A/B substituindo o módulo por um
 INMP441 conhecido como bom, mantendo exatamente VDD=3,3 V, GND, L/R=GND e os
 pins 41/42/43. Continuidade elétrica e porta livre não testam o transdutor MEMS
@@ -97,4 +123,3 @@ nem o caminho acústico interno; por isso não excluem esta causa.
 Arquivos principais: `voice_gain8.wav`, `quiet_gain8.wav`, `right_quiet.wav`,
 `gain8_voice_vs_quiet.png`, `voice_gain8.json`, `right_quiet.json`,
 `asr_turbo_raw.json`, logs de build/programação e restauração nesta pasta.
-

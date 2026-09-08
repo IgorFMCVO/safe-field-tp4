@@ -1,0 +1,27 @@
+{
+  "generated_at_utc": "2026-09-08T02:08:39.981650+00:00",
+  "input": "C:\\SAFE-FIELD\\fpga\\tp4-audio-inmp441\\evidence\\mvp_operational\\watch_mic_control_20260908\\capture_voice_es7210_01\\watch_mic_mono.wav",
+  "input_sha256": "617D16574E97086F55600F3C4AE6F5BD928B443A8A4288E9082985B832EB0C70",
+  "wav": {
+    "channels": 1,
+    "sample_width_bytes": 2,
+    "sample_rate_hz": 16000,
+    "samples": 128000,
+    "duration_s": 8.0,
+    "minimum": -2974,
+    "maximum": 2331,
+    "mean": -0.3113515625,
+    "mean_absolute": 174.5219921875,
+    "rms": 329.0050079762275,
+    "standard_deviation": 329.00486065351987,
+    "peak_absolute": 2974,
+    "zero_samples": 1169,
+    "nonzero_samples": 126831,
+    "unique_samples": 3495
+  },
+  "asr": {
+    "text": "Teste Safety Field, teste de �udio, teste de grava��o de �udio do Safety Field.",
+    "confidence": 0.7656181293042588,
+    "language": "pt-BR"
+  }
+}
