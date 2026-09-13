@@ -4,12 +4,25 @@
 serial_path: .asciz "/dev/serial0"
 okmsg: .ascii "SAFE-FIELD TP5 UART round-trip: PASS\n"
 .equ okmsg_len, .-okmsg
+rttmsg: .ascii "RTT_NS="
+.equ rttmsg_len, .-rttmsg
+newline: .ascii "\n"
 errmsg: .ascii "SAFE-FIELD TP5 UART round-trip: FAIL\n"
 .equ errmsg_len, .-errmsg
 .text
 .global _start
 _start:
+    // Optional argv[1] selects a device. The test harness uses a PTY.
+    // Default remains the physical Pi serial device; no fake hardware mode.
+    ldr x0,[sp]
+    cmp x0,#2
+    b.hi fail
     LOAD_ADDR x0,serial_path
+    ldr x1,[sp]
+    cmp x1,#2
+    b.ne open_device
+    ldr x0,[sp,#16]
+open_device:
     bl sf_open_rw_noctty
     cmp x0,#0
     b.lt fail
@@ -21,6 +34,9 @@ _start:
     bl sf_build_command
     cmp x0,#11
     b.ne fail_close
+    LOAD_ADDR x0,t_start
+    bl sf_clock_gettime
+    cbnz x0,fail_close
     mov x0,x19
     LOAD_ADDR x1,txbuf
     mov x2,#11
@@ -31,6 +47,20 @@ _start:
     mov x2,#12
     bl sf_read_exact
     cbnz x0,fail_close
+    LOAD_ADDR x0,t_end
+    bl sf_clock_gettime
+    cbnz x0,fail_close
+    // RTT = (end.sec-start.sec)*1e9 + end.nsec-start.nsec.
+    LOAD_ADDR x0,t_start
+    ldp x1,x2,[x0]
+    LOAD_ADDR x0,t_end
+    ldp x3,x4,[x0]
+    sub x3,x3,x1
+    sub x4,x4,x2
+    movz x5,#0xCA00
+    movk x5,#0x3B9A,lsl #16
+    madd x21,x3,x5,x4
+    tbnz x21,#63,fail_close
     LOAD_ADDR x20,rxbuf
     ldrb w0,[x20,#0]
     cmp w0,#0x5A
@@ -55,8 +85,7 @@ _start:
     ldrb w1,[x20,#11]
     cmp w0,w1
     b.ne fail_close
-    // A correct CRC alone does not prove a correct operation.
-    // Wire data32 is big-endian; expected PING response is 0x54503501.
+    // Wire data32 is big-endian. CRC validity is not semantic validity.
     ldr w0,[x20,#6]
     rev w0,w0
     movz w1,#0x3501
@@ -67,9 +96,27 @@ _start:
     tbnz w0,#7,fail_close
     mov x0,x19
     bl sf_close
+    mov x0,x21
+    LOAD_ADDR x1,numberbuf
+    mov x2,#32
+    bl sf_u64_to_ascii
+    cbnz x1,fail
+    mov x22,x0
     mov x0,#1
     LOAD_ADDR x1,okmsg
     mov x2,#okmsg_len
+    bl sf_write_all
+    mov x0,#1
+    LOAD_ADDR x1,rttmsg
+    mov x2,#rttmsg_len
+    bl sf_write_all
+    mov x0,#1
+    LOAD_ADDR x1,numberbuf
+    mov x2,x22
+    bl sf_write_all
+    mov x0,#1
+    LOAD_ADDR x1,newline
+    mov x2,#1
     bl sf_write_all
     mov x0,#0
     mov x8,#SYS_exit
@@ -89,4 +136,7 @@ fail:
 .balign 16
 txbuf: .skip 16
 rxbuf: .skip 16
+t_start: .skip 16
+t_end: .skip 16
+numberbuf: .skip 32
 .section .note.GNU-stack,"",%progbits

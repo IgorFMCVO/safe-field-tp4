@@ -4,7 +4,8 @@ AR := $(CROSS)ar
 LD := $(CROSS)ld
 CC := $(CROSS)gcc
 OBJDUMP := $(CROSS)objdump
-RUNNER ?= $(if $(filter aarch64 arm64,$(shell uname -m)),,qemu-aarch64)
+HOST := $(shell uname -s)/$(shell uname -m)
+RUNNER ?= $(if $(filter Linux/aarch64 Linux/arm64,$(HOST)),,qemu-aarch64)
 PYTHON ?= python3
 BUILD := build
 LIBOBJ := $(addprefix $(BUILD)/,io_syscalls.o buffer.o parse.o arithmetic.o protocol.o)
@@ -28,6 +29,7 @@ test: all $(BUILD)/abi_tests
 	$(CHECK) --log $(BUILD)/qemu_run.log -- $(RUNNER) $(BUILD)/tp5_demo
 	grep -q 'stand-alone: PASS' $(BUILD)/qemu_run.log
 	$(CHECK) --log $(BUILD)/assembly_abi_tests.log -- $(RUNNER) $(BUILD)/abi_tests
+	$(CHECK) --log $(BUILD)/uart_client_pty.log -- $(PYTHON) tests/uart_client_pty.py --runner '$(RUNNER)'
 	$(PYTHON) tests/reference_tests.py
 disasm: all
 	$(OBJDUMP) -d $(BUILD)/tp5_demo > $(BUILD)/tp5_demo.objdump.txt
