@@ -1,9 +1,19 @@
 .text
+// Widened signed 32-bit result with 15 fractional bits.
+// (-1)*(-1)=32768 is VALID: the result has not been narrowed to 16 bits.
 .global sf_q15_mul
 .type sf_q15_mul,%function
-// Signed Q1.15 low16 inputs -> signed, saturated Q1.15 in w0.
-// Arithmetic shift rounds down; (-1)*(-1) saturates to 32767.
 sf_q15_mul:
+    sxth w0,w0
+    sxth w1,w1
+    smull x2,w0,w1
+    asr x2,x2,#15
+    mov w0,w2
+    ret
+// Explicit narrowing to signed Q1.15; saturate instead of wraparound.
+.global sf_q15_mul_sat16
+.type sf_q15_mul_sat16,%function
+sf_q15_mul_sat16:
     sxth w0,w0
     sxth w1,w1
     smull x2,w0,w1

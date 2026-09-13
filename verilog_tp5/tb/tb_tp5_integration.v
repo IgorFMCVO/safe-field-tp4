@@ -33,7 +33,7 @@ endtask
 task recv_byte;
  output[7:0]v;integer k;
  begin @(negedge uart_tx);
- // First data bit: 1.5 periods after start, not former 2.5-period offset.
+ // Data bit 0 at 1.5 periods after start, not the former 2.5-period offset.
  repeat(CPB+CPB/2)@(posedge clk);#1;
  for(k=0;k<8;k=k+1)begin v[k]=uart_tx;repeat(CPB)@(posedge clk);#1;end
  if(uart_tx!==1'b1)begin $display("FAIL stop bit");fails=fails+1;end
@@ -62,7 +62,8 @@ initial begin
  @(negedge clk);pi_signal=0;
  exchange(8'h01,16'h0042,32'h0,32'h54503501,0);
  exchange(8'h10,16'h0043,32'h40004000,32'h00002000,0);
- exchange(8'h10,16'h0044,32'h80008000,32'h00007FFF,0);
+ // MAC output is 32 bits with F=15: +1.0 = 32768, not narrowed Q1.15.
+ exchange(8'h10,16'h0044,32'h80008000,32'h00008000,0);
  exchange(8'h11,16'h0045,32'h3E004000,32'h00004200,0);
  exchange(8'hEE,16'h0046,32'h0,32'hFFFFFFFF,1);
  exchange(8'h01,16'hFFFF,32'h0,32'h54503501,0);

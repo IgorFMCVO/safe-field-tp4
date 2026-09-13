@@ -10,6 +10,7 @@ typedef struct { uint64_t value, status; } sf_result;
 extern sf_result sf_ascii_to_u64(const char *, uint64_t);
 extern sf_result sf_u64_to_ascii(uint64_t, char *, uint64_t);
 extern int32_t sf_q15_mul(int32_t, int32_t);
+extern int32_t sf_q15_mul_sat16(int32_t, int32_t);
 extern void sf_add128(uint64_t, uint64_t, uint64_t, uint64_t, uint64_t *);
 extern void sf_memzero(void *, uint64_t);
 extern uint64_t sf_ring_push(void *, uint64_t, uint64_t *, uint32_t);
@@ -49,9 +50,10 @@ int main(void) {
  for(i=0;i<8;++i)for(j=0;j<8;++j){
   int64_t prod=(int64_t)v[i]*v[j];
   int64_t q=prod>=0?prod/32768:-((-prod+32767)/32768);
+  CHECK(sf_q15_mul(v[i],v[j])==q);
   if(q>32767)q=32767;
   if(q< -32768)q=-32768;
-  CHECK(sf_q15_mul(v[i],v[j])==q);
+  CHECK(sf_q15_mul_sat16(v[i],v[j])==q);
  }
  uint64_t sum[2];sf_add128(UINT64_MAX,0,1,0,sum);CHECK(sum[0]==0 && sum[1]==1);
  sf_add128(UINT64_MAX,UINT64_MAX,1,0,sum);CHECK(sum[0]==0 && sum[1]==0);
