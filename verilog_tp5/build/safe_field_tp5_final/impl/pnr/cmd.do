@@ -1,0 +1,20 @@
+-d C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final.vg
+-p GW1NSR-4C-QFN48P-6
+-pn GW1NSR-LV4CQN48PC6/I5
+-cst C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\constraints\safe_field_tp5.cst
+-cfg C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\device.cfg
+-sdc C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\constraints\safe_field_tp5.sdc
+-bit
+-tr
+-ph
+-warning_all
+-tt
+-timing
+-cst_error
+-convert_sdp32_36_to_sdp16_18
+-place_option 0
+-route_option 0
+-clock_route_order 0
+-correct_hold 1
+-route_maxfan 23
+-global_freq 50.000

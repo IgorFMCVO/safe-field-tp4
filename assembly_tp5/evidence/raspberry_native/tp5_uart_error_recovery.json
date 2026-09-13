@@ -1,0 +1,9 @@
+{
+  "physical": true,
+  "intentional_bad_crc_frames": 1,
+  "bad_frame_rejected": true,
+  "fpga_crc_error_counter": 1,
+  "valid_ping_after_error": true,
+  "recovered_ping_flags": "0x01",
+  "pass": true
+}

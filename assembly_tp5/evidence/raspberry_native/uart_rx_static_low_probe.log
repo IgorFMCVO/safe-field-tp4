@@ -1,0 +1,15 @@
+{
+  "physical": true,
+  "baud": 1500000,
+  "bytes_received": 126339,
+  "raw_frames_crc_valid": 1329,
+  "tp5_responses_crc_valid": 0,
+  "response_sequences": [],
+  "raw_packet_flags_or": "0x0C",
+  "rx_line_low_seen": false,
+  "command_crc_valid_seen": false,
+  "command_checksum_error_seen": false,
+  "command_framing_error_seen": false,
+  "raw24_overrun_seen": false,
+  "i2s_frame_error_seen": false
+}

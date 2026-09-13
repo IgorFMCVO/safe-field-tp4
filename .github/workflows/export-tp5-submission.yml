@@ -1,0 +1,30 @@
+name: Export TP5 validated submission
+on:
+  push:
+    branches: ["tp5/final-integration-v1"]
+    paths: [".github/workflows/export-tp5-submission.yml"]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 72759423a1e06e3b2eef5721e75679a56ea3a2ee
+          persist-credentials: false
+      - name: Export committed files only, without rebuilding or changing evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/tp5-submission"
+          git archive --format=tar HEAD README_TP5.md verilog_tp5 assembly_tp5 docs_tp5 scripts | tar -xf - -C "$RUNNER_TEMP/tp5-submission"
+          git rev-parse HEAD > "$RUNNER_TEMP/tp5-submission/SOURCE_COMMIT.txt"
+      - name: Preserve exact validated sources and physical evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: tp5-validated-submission-7275942
+          path: ${{ runner.temp }}/tp5-submission/
+          if-no-files-found: error
+          retention-days: 7

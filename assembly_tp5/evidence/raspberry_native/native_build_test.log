@@ -1,0 +1,15 @@
+mkdir -p build
+as -g -I . -o build/main.o src/main.S
+as -g -I . -o build/io_syscalls.o src/io_syscalls.S
+as -g -I . -o build/buffer.o src/buffer.S
+as -g -I . -o build/parse.o src/parse.S
+as -g -I . -o build/arithmetic.o src/arithmetic.S
+as -g -I . -o build/protocol.o src/protocol.S
+ar rcs build/libsafe_field_tp5.a build/io_syscalls.o build/buffer.o build/parse.o build/arithmetic.o build/protocol.o
+ld -static -z noexecstack -e _start -o build/tp5_demo build/main.o build/libsafe_field_tp5.a
+as -g -I . -o build/uart_client.o src/uart_client.S
+ld -static -z noexecstack -e _start -o build/tp5_uart_demo build/uart_client.o build/libsafe_field_tp5.a
+gcc -O2 -Wall -Wextra -static -Wl,-z,noexecstack -o build/abi_tests tests/abi_tests.c build/libsafe_field_tp5.a
+python3 ../scripts/run_checked.py --timeout 30 --log build/qemu_run.log --  build/tp5_demo
+python3: can't open file '/home/safe-field/tp5-final-4df9885/assembly_tp5/../scripts/run_checked.py': [Errno 2] No such file or directory
+make: *** [Makefile:30: test-offline] Error 2

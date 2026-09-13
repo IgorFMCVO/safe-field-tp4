@@ -1,0 +1,5 @@
+io_syscalls.o
+buffer.o
+parse.o
+arithmetic.o
+protocol.o

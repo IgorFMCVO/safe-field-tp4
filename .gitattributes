@@ -1,0 +1,23 @@
+*.sh text eol=lf
+*.py text eol=lf
+*.S text eol=lf
+*.v text eol=lf
+*.md text eol=lf
+*.tcl text eol=lf
+*.cst text eol=lf
+*.sdc text eol=lf
+*.json text eol=lf
+*.csv text eol=lf
+*.log text eol=lf
+Makefile text eol=lf
+*.ps1 text eol=crlf
+
+# Preserve generated/vendor artifacts byte-for-byte and keep binary diffs quiet.
+*.pdf binary
+*.fs binary
+*.bin binary
+*.binx binary
+*.db binary
+*.a binary
+*.o binary
+*.vcd -text
