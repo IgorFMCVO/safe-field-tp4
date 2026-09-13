@@ -55,6 +55,16 @@ _start:
     ldrb w1,[x20,#11]
     cmp w0,w1
     b.ne fail_close
+    // A correct CRC alone does not prove a correct operation.
+    // Wire data32 is big-endian; expected PING response is 0x54503501.
+    ldr w0,[x20,#6]
+    rev w0,w0
+    movz w1,#0x3501
+    movk w1,#0x5450,lsl #16
+    cmp w0,w1
+    b.ne fail_close
+    ldrb w0,[x20,#10]
+    tbnz w0,#7,fail_close
     mov x0,x19
     bl sf_close
     mov x0,#1
@@ -75,8 +85,8 @@ fail:
     mov x0,#1
     mov x8,#SYS_exit
     svc #0
-
 .bss
 .balign 16
 txbuf: .skip 16
 rxbuf: .skip 16
+.section .note.GNU-stack,"",%progbits
