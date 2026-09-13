@@ -5,7 +5,10 @@ reg clk=0,pi_signal=0,i2s_sd=0,uart_rx=1;
 wire i2s_sck,i2s_ws,led,uart_tx;
 integer fails=0,transactions=0;
 reg[7:0]rxbytes[0:11];always #5 clk=~clk;
-safe_field_tp5_top #(.POR_BITS(3),.HALF_PERIOD_CLKS(2),.WINDOW_LOG2(2),
+// This contract test isolates commands; RAW24 arbitration is covered by the
+// physical-rate coexistence test.  The slow SCK prevents a packet starting
+// halfway through this response-only decoder.
+safe_field_tp5_top #(.POR_BITS(3),.HALF_PERIOD_CLKS(1000),.WINDOW_LOG2(2),
  .THRESHOLD_ON(24'd10),.THRESHOLD_OFF(24'd5),.ATTACK_WINDOWS(1),
  .RELEASE_WINDOWS(1),.UART_CLKS_PER_BIT(CPB))dut(
  .sys_clk(clk),.pi_signal(pi_signal),.i2s_sd(i2s_sd),.uart_rx(uart_rx),

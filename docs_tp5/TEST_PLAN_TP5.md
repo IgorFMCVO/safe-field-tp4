@@ -13,18 +13,22 @@
 9. Executar em QEMU AArch64 e validar stdout/syscalls.
 10. Gerar objdump.
 
-## Gate fisico final
+## Estado dos gates fisicos (13/09/2026)
+
+Concluidos: programacao SRAM, smoke FPGA->Pi RAW24 (3966 frames/63456 amostras em 3 s, CRC/perdas/frame errors 0), ensaios nativos do Pi 4 e sentido Pi->FPGA. Probe limpo: 2650 RAW24, resposta valida, flags `0x94`, `rx_low_seen=true`, checksum/framing/I2S/overrun zero. PING + 3 operacoes, CRC rejection/recovery, burst 100/100 e estabilidade final 600 s passaram.
+
+## Gate fisico final restante
 
 Executar uma unica sessao apos instalar um microfone funcional:
 
-- programar TP5 em SRAM;
+- manter a imagem SRAM final e registrar fotos/terminal autorizados;
 - validar GPIO17->Tang->LED;
 - executar PING ARM->FPGA->ARM;
 - enviar vetores Q15 e FP16 reais pela UART;
-- manter 10 minutos de telemetria continua;
+- manter a duracao de estabilidade definida pelo projeto, sem chamar o smoke de 3 s de estabilidade;
 - registrar frames, sequence, CRC errors, framing errors e perdas;
 - capturar audio real e comprovar variacao voz/silencio;
 - medir round-trip UART com `clock_gettime`;
 - salvar fotos, terminal e hashes.
 
-Nenhum PASS fisico novo deve ser registrado antes desta sessao.
+Os gates físicos acima estão PASS. Permanecem somente a geração do PDF/ZIP e o vídeo de defesa, que não são testes de hardware.

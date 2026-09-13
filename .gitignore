@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.tmp
+*.bak
+*.swp
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+node_modules/
+.env
+.env.*
+Igor_Monteiro_PB_TP5.ZIP
+tp5_zip_verify_*/
+docs_tp5/output/pdf/preview/
+*.tr

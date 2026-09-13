@@ -1,0 +1,2 @@
+SAFE-FIELD TP5 ARM64 stand-alone: PASS
+ascii_to_u64(12345)=12345

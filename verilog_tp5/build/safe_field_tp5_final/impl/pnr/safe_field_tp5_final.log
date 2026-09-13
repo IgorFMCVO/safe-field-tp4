@@ -1,0 +1,160 @@
+Reading netlist file: "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final.vg"
+Parsing netlist file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final.vg" completed
+WARN  (PA1001) : Dangling net 'n7_1_SUM'(source:'n7_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n8_1_SUM'(source:'n8_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n9_1_SUM'(source:'n9_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n10_1_SUM'(source:'n10_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n11_1_SUM'(source:'n11_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n12_1_SUM'(source:'n12_s0') in module 'sf_raw24_i2s_rx_24' has no destination
+WARN  (PA1001) : Dangling net 'n61_1_SUM'(source:'n61_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n62_1_SUM'(source:'n62_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n63_1_SUM'(source:'n63_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n64_1_SUM'(source:'n64_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n65_1_SUM'(source:'n65_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n66_1_SUM'(source:'n66_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n67_1_SUM'(source:'n67_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'n68_1_SUM'(source:'n68_s0') in module 'sf_command_rx' has no destination
+WARN  (PA1001) : Dangling net 'SOA[0]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[1]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[2]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[3]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[4]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[5]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[6]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[7]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[8]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[9]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[10]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[11]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[12]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[13]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[14]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[15]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[16]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[17]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[0]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[1]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[2]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[3]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[4]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[5]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[6]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[7]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[8]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[9]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[10]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[11]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[12]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[13]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[14]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[15]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[16]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOB[17]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[0]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[1]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[2]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[3]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[4]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[5]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[6]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[7]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[8]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[9]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[10]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[11]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[12]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[13]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[14]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[32]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[33]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[34]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[35]'(source:'product_31_s0') in module 'sf_fixed_q15_mac' has no destination
+WARN  (PA1001) : Dangling net 'SOA[0]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[1]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[2]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[3]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[4]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[5]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[6]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[7]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[8]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[9]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[10]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[11]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[12]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[13]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[14]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[15]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[16]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOA[17]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[0]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[1]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[2]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[3]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[4]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[5]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[6]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[7]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[8]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[9]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[10]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[11]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[12]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[13]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[14]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[15]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[16]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'SOB[17]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[0]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[1]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[2]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[3]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[4]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[5]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[6]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[7]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[8]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[9]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[22]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[23]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[24]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[25]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[26]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[27]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[28]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[29]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[30]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[31]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[32]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[33]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[34]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+WARN  (PA1001) : Dangling net 'DOUT[35]'(source:'n66_s0') in module 'sf_fp16_mul' has no destination
+Processing netlist completed
+Reading constraint file: "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\constraints\safe_field_tp5.cst"
+Physical Constraint parsed completed
+Running placement......
+[10%] Placement Phase 0 completed
+[20%] Placement Phase 1 completed
+[30%] Placement Phase 2 completed
+[50%] Placement Phase 3 completed
+Running routing......
+[60%] Routing Phase 0 completed
+[70%] Routing Phase 1 completed
+[80%] Routing Phase 2 completed
+WARN  (PR1014) : Generic routing resource will be used to clock signal 'sys_clk_d' by the specified constraint. And then it may lead to the excessive delay or skew
+[90%] Routing Phase 3 completed
+Running timing analysis......
+[95%] Timing analysis completed
+Placement and routing completed
+Bitstream generation in progress......
+Bitstream generation completed
+Running power analysis......
+[100%] Power analysis completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.power.html" completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.pin.html" completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.rpt.html" completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.rpt.txt" completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.tr.html" completed
+Generate file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\pnr\safe_field_tp5_final.tr" completed
+Sun Sep 13 16:59:45 2026
+

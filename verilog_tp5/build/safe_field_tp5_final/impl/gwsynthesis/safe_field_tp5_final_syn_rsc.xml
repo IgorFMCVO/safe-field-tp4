@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Module name="safe_field_tp5_top" Register="174" Alu="69" Lut="209" T_Register="2252(174)" T_Alu="166(69)" T_Lut="1992(209)" T_MULT18X18="2(0)">
+ <SubModule name="clock_master" Register="23" Lut="25" T_Register="23(23)" T_Lut="25(25)"/>
+ <SubModule name="receiver" Register="58" Alu="6" Lut="15" T_Register="58(58)" T_Alu="6(6)" T_Lut="15(15)"/>
+ <SubModule name="energy_observer" Register="129" Alu="32" Lut="259" T_Register="129(129)" T_Alu="32(32)" T_Lut="259(259)"/>
+ <SubModule name="cmdrx" Register="126" Alu="8" Lut="47" T_Register="183(126)" T_Alu="8(8)" T_Lut="140(47)">
+  <SubModule name="rx0" Register="57" Lut="93" T_Register="57(57)" T_Lut="93(93)"/>
+ </SubModule>
+ <SubModule name="raw24_transport" Register="1505" Alu="46" Lut="930" T_Register="1551(1505)" T_Alu="46(46)" T_Lut="1063(930)">
+  <SubModule name="converter" Lut="50" T_Lut="50(50)"/>
+  <SubModule name="byte_transmitter" Register="46" Lut="83" T_Register="46(46)" T_Lut="83(83)"/>
+ </SubModule>
+ <SubModule name="q15" MULT18X18="1" T_MULT18X18="1(1)"/>
+ <SubModule name="fp16" Alu="5" Lut="23" MULT18X18="1" T_Alu="5(5)" T_Lut="23(23)" T_MULT18X18="1(1)"/>
+ <SubModule name="response_tx" Register="86" Lut="172" T_Register="134(86)" T_Lut="258(172)">
+  <SubModule name="tx0" Register="48" Lut="86" T_Register="48(48)" T_Lut="86(86)"/>
+ </SubModule>
+</Module>

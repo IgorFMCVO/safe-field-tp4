@@ -9,7 +9,10 @@ module audio_energy_detector #(
     reg [WINDOW_LOG2-1:0] sample_count; reg [31+WINDOW_LOG2:0] sum_abs; integer attack_count; integer release_count; reg [23:0] mag_now; reg [31+WINDOW_LOG2:0] sum_next; reg [23:0] avg_next;
     always @* begin
         if(sample_data[23]) mag_now=(~sample_data[23:0])+1'b1; else mag_now=sample_data[23:0];
-        sum_next=sum_abs+mag_now; avg_next=sum_next>>WINDOW_LOG2;
+        sum_next=sum_abs+mag_now;
+        // Explicit slice documents the divide-by-2^WINDOW_LOG2 operation and
+        // avoids an implicit wide-to-24-bit truncation warning.
+        avg_next=sum_next[WINDOW_LOG2+23:WINDOW_LOG2];
     end
     always @(posedge clk or negedge reset_n) begin
         if(!reset_n) begin sample_count<=0;sum_abs<=0;magnitude<=0;frame_valid<=0;energy<=0;sound_active<=0;attack_count<=0;release_count<=0;end

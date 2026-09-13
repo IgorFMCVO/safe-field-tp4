@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gowin-synthesis-project>
+<Project>
+    <Version>beta</Version>
+    <Device id="GW1NSR-4C" package="QFN48P" speed="6" partNumber="GW1NSR-LV4CQN48PC6/I5"/>
+    <FileList>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\audio_energy_detector.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_clock_gen.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_rx_24.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\safe_field_tp5_top.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_command_rx.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fixed_q15_mac.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fp16_mul.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_gpio_oe.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_telemetry_tx.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_rx_byte.v" type="verilog"/>
+        <File path="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_tx_byte.v" type="verilog"/>
+    </FileList>
+    <OptionList>
+        <Option type="disable_insert_pad" value="0"/>
+        <Option type="global_freq" value="50.000"/>
+        <Option type="looplimit" value="2000"/>
+        <Option type="output_file" value="C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final.vg"/>
+        <Option type="print_all_synthesis_warning" value="1"/>
+        <Option type="ram_rw_check" value="0"/>
+        <Option type="top_module" value="safe_field_tp5_top"/>
+        <Option type="vcc" value="1.2"/>
+        <Option type="verilog_language" value="verilog-2001"/>
+        <Option type="vhdl_language" value="vhdl-1993"/>
+    </OptionList>
+</Project>

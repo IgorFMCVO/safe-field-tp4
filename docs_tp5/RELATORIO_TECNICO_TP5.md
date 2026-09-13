@@ -5,11 +5,11 @@
 **Projeto:** SAFE-FIELD  
 **Plataformas-alvo:** Raspberry Pi Zero 2 W / Tang Nano 4K  
 **Bancada de desenvolvimento:** Raspberry Pi 4 Model B / Tang Nano 4K GW1NSR-4C  
-**Data:** setembro de 2026
+**Data:** 13 de setembro de 2026
 
 ## 1. Resumo
 
-O TP5 consolida o SAFE-FIELD como prototipo embarcado ARM64-FPGA. A Tang Nano 4K executa aquisicao I2S, logica de atividade, unidades aritmeticas em ponto fixo e ponto flutuante, recepcao de comandos, CRC, handshaking e telemetria. O Raspberry executa codigo Assembly AArch64 modular, biblioteca estatica, syscalls Linux, manipulacao de buffers, conversoes de texto e montagem de quadros digitais. O projeto preserva a baseline TP4 e adiciona uma camada TP5 isolada, reproduzivel e testavel.
+O TP5 consolida o SAFE-FIELD como protótipo embarcado ARM64-FPGA. A imagem final foi sintetizada, roteada e temporizada no Gowin sem violações; cinco testes WASM passaram; a biblioteca/cliente Assembly passou nos ensaios nativos do Pi 4. FPGA↔Pi, operações numéricas, rejeição CRC, burst e estabilidade de 600 s foram verificados fisicamente.
 
 ## 2. Evolucao TP1-TP5
 
@@ -35,11 +35,11 @@ ARM->FPGA usa 11 bytes: `A6 6A`, versao `05`, comando, sequence de 16 bits, payl
 
 ## 7. Testes e casos de borda
 
-Os testbenches cobrem Q1.15 positivo/negativo, limite e saturacao; FP16 normal, sinal, zero, overflow, NaN e underflow; CRC valido/invalido; OE/tri-state; e uma integracao top-level PING ARM->FPGA->UART com validacao de resposta e CRC. O CI compila o top, executa os VCDs, cross-compila AArch64, cria a biblioteca estatica, executa `tp5_demo` em QEMU e gera objdump.
+Os testbenches cobrem Q1.15 positivo/negativo, limite e saturacao; FP16 normal, sinal, zero, overflow, NaN e underflow; CRC valido/invalido; OE/tri-state; e integracao top-level. O log WASM `docs_tp5/evidence/simulation/tp5_wasm_self_checking.log` registra cinco testes PASS. A sessão física confirmou PING + três operações e rejeição/recuperação CRC.
 
 ## 8. Desempenho e estabilidade
 
-A instrumentacao final usa `clock_gettime`/`perf_counter_ns` para RTT, sequence para perda, CRC/framing counters para integridade e logs com duracao. `assembly_tp5/tests/uart_performance.py` executa N round-trips reais e grava CSV/JSON com media, mediana, p95 e throughput. O gate fisico exige 10 minutos de telemetria continua. Valores TP5 fisicos so serao inseridos depois da sessao real; nenhum numero e estimado neste relatorio.
+A instrumentação final usa `clock_gettime`/`perf_counter_ns` para RTT, sequence para perda, CRC/framing counters para integridade e logs com duração. O burst físico obteve 100/100, média 8,226915 ms, p95 11,895486 ms e 121,552 comandos/s. A rodada final de 600 s obteve 597/597 comandos e 791045 RAW24, sem perdas ou erros; RTT médio 1,747516 ms e p95 3,698757 ms. Dois coletores anteriores falharam por starvation instrumental Python (byte/CRC), preservados como histórico; a coleta chunked/C CRC passou sem alteração RTL.
 
 ## 9. Hardware externo e pinout
 
@@ -51,7 +51,7 @@ O enunciado define Raspberry Pi Zero 2 W. A bancada disponivel utiliza Raspberry
 
 ## 11. Evidencia fisica e limitacao atual
 
-A baseline TP4 ja comprovou comunicacao bidirecional, CRC, DSP/BSRAM, GPIO e operacao do Tang. Entretanto, o modulo INMP441 atualmente usado no ciclo de recuperacao do MVP apresentou resposta acustica anomala. A evidencia TP5 de audio sera produzida apenas depois da troca/contraprova do modulo. Isso evita transformar um defeito de bancada em evidencia academica falsa.
+A imagem final foi programada em SRAM. No probe limpo, GPIO14/pino 8 chegou ao FPGA pin 46 (`rx_low_seen=true`), com 2650 RAW24, uma resposta válida, flags `0x94` e zero checksum/framing/I²S/overrun. Q15 e FP16 produziram os valores esperados. A evidência acústica INMP441 após reparo e o smoke RAW24 final também são PASS.
 
 ## 12. Integracao com o MVP SAFE-FIELD
 
@@ -59,4 +59,4 @@ O TP5 e o MVP compartilham o mesmo principio: FPGA para processamento determinis
 
 ## 13. Conclusao
 
-A entrega TP5 deixa implementados e documentados os artefatos exigidos para arquitetura, Verilog avancado, protocolo bidirecional, Assembly modular, biblioteca estatica, syscalls, parsing, buffers, ponto fixo/flutuante, telemetria e testes. O unico gate que nao pode ser fabricado por software e a nova sessao fisica final com microfone funcional e o video de defesa. O pacote inclui checklist e roteiro para que esses dois passos sejam executados uma unica vez, sem retrabalho.
+A entrega TP5 tem os gates de software e hardware PASS, com evidências, fotos, PDF e ZIP auditados. Permanece pendente somente a gravação/upload do vídeo com operador; o link permanece `PENDENTE_LINK_FINAL`.

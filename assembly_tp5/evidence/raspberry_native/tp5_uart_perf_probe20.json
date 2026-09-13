@@ -1,0 +1,13 @@
+{
+  "hardware": true,
+  "baud": 1500000,
+  "count": 20,
+  "pass": 6,
+  "fail": 14,
+  "mean_rtt_us": 190589.527,
+  "median_rtt_us": 88797.5655,
+  "p95_rtt_us": 286554.906,
+  "throughput_commands_s": 5.246878019693075,
+  "raw24_bytes_discarded": 61891,
+  "crc_frames_recovered": 2
+}

@@ -1,0 +1,52 @@
+$date
+	Sun Sep 13 17:04:26 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_gpio_oe $end
+$var wire 1 ! pin $end
+$var wire 1 " din $end
+$var reg 1 # dout $end
+$var reg 1 $ external_drive_en $end
+$var reg 1 % external_value $end
+$var reg 1 & oe $end
+$scope module dut $end
+$var wire 1 ' data_in $end
+$var wire 1 ( data_out $end
+$var wire 1 ) output_enable $end
+$var wire 1 ! pin $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+1)
+1(
+1'
+1&
+0%
+0$
+1#
+1"
+1!
+$end
+#1000
+0"
+0'
+0!
+1$
+0)
+0&
+#2000
+1"
+1'
+1!
+1%
+#3000

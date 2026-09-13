@@ -1,5 +1,23 @@
 # Protocolo ARM<->FPGA TP5
 
+## Transporte coexistente RAW24 + comandos
+
+O fluxo acústico aprovado permanece o produtor prioritário do UART TX: pacotes
+RAW24 de 95 bytes (`A5 C4`, versão `01`, tipo `21`, CRC-16/CCITT-FALSE em
+bytes 2..92), a 1.500.000 baud e divisor `CLKS_PER_BIT=18` no clock de 27 MHz.
+O receptor de comandos usa o mesmo divisor no pino RX 46. Um comando recebido
+enquanto um pacote RAW24 está em curso fica retido pelo `command_valid`; a
+resposta só toma posse do TX depois do stop bit do byte 94. O RAW24 volta a
+admitir o próximo pacote após a resposta de 12 bytes. Assim não há muxagem no
+meio de uma palavra UART nem dois drivers no pino 39.
+
+**Estado observado na imagem final:** RAW24 FPGA->Pi e comandos Pi->FPGA foram verificados fisicamente. Probe limpo: 2650 frames, resposta válida, flags `0x94`, `rx_low_seen=true`, sem checksum/framing/I²S/overrun; PING + 3 operações confirmaram sequência e CRC.
+
+O atraso adicional máximo de uma resposta é um pacote RAW24 restante (95
+bytes) mais a própria resposta (12 bytes). A aquisição I²S e as duas banks de
+RAW24 não são pausadas por comandos; se a reserva exceder a capacidade do
+transporte, o contador/flag de overrun continua explícito no pacote RAW24.
+
 ## ARM -> FPGA (11 bytes)
 
 | Byte | Conteudo |

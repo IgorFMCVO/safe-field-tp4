@@ -1,0 +1,19 @@
+rm -rf build
+mkdir -p build
+as -g -I . -o build/main.o src/main.S
+as -g -I . -o build/io_syscalls.o src/io_syscalls.S
+as -g -I . -o build/buffer.o src/buffer.S
+as -g -I . -o build/parse.o src/parse.S
+as -g -I . -o build/arithmetic.o src/arithmetic.S
+as -g -I . -o build/protocol.o src/protocol.S
+ar rcs build/libsafe_field_tp5.a build/io_syscalls.o build/buffer.o build/parse.o build/arithmetic.o build/protocol.o
+ld -static -z noexecstack -e _start -o build/tp5_demo build/main.o build/libsafe_field_tp5.a
+as -g -I . -o build/uart_client.o src/uart_client.S
+ld -static -z noexecstack -e _start -o build/tp5_uart_demo build/uart_client.o build/libsafe_field_tp5.a
+gcc -O2 -Wall -Wextra -static -Wl,-z,noexecstack -o build/abi_tests tests/abi_tests.c build/libsafe_field_tp5.a
+python3 ../scripts/run_checked.py --timeout 30 --log build/qemu_run.log --  build/tp5_demo
+SAFE-FIELD TP5 ARM64 stand-alone: PASS
+ascii_to_u64(12345)=12345
+grep -q 'stand-alone: PASS' build/qemu_run.log
+python3 ../scripts/run_checked.py --timeout 30 --log build/assembly_abi_tests.log --  build/abi_tests
+make: *** [Makefile:32: test-offline] Error 1

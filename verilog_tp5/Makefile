@@ -4,7 +4,7 @@ PYTHON ?= python3
 BUILD := build
 RTL := $(wildcard rtl/*.v)
 CHECK := $(PYTHON) ../scripts/run_checked.py --timeout 30
-.PHONY: all test clean compile-top arithmetic command gpio integration
+.PHONY: all test clean compile-top arithmetic command gpio integration coexist
 all: test
 $(BUILD):
 	mkdir -p $(BUILD)
@@ -24,6 +24,9 @@ gpio: $(BUILD)/tb_gpio_oe.vvp
 integration: $(BUILD)/tb_tp5_integration.vvp
 	$(CHECK) --log $(BUILD)/tb_tp5_integration.log -- $(VVP) $<
 	grep -q 'TEST_RESULT: PASS' $(BUILD)/tb_tp5_integration.log
-test: compile-top arithmetic command gpio integration
+coexist: $(BUILD)/tb_tp5_raw24_coexist.vvp
+	$(CHECK) --log $(BUILD)/tb_tp5_raw24_coexist.log -- $(VVP) $<
+	grep -q 'TEST_RESULT: PASS' $(BUILD)/tb_tp5_raw24_coexist.log
+test: compile-top arithmetic command gpio integration coexist
 clean:
 	rm -rf $(BUILD)

@@ -1,0 +1,36 @@
+{
+  "physical": true,
+  "baud": 1500000,
+  "tests": [
+    {
+      "test": "Q15_HALF_SQUARED",
+      "payload_hex": "0x40004000",
+      "expected_hex": "0x00002000",
+      "actual_hex": "0x00002000",
+      "flags_hex": "0x01",
+      "rtt_us": 5072.911,
+      "pass": true
+    },
+    {
+      "test": "Q15_NEG_ONE_SQUARED",
+      "payload_hex": "0x80008000",
+      "expected_hex": "0x00008000",
+      "actual_hex": "0x00008000",
+      "flags_hex": "0x01",
+      "rtt_us": 7864.298,
+      "pass": true
+    },
+    {
+      "test": "FP16_1P5_TIMES_2",
+      "payload_hex": "0x3E004000",
+      "expected_hex": "0x00004200",
+      "actual_hex": "0x00004200",
+      "flags_hex": "0x01",
+      "rtt_us": 7936.647,
+      "pass": true
+    }
+  ],
+  "checksum_errors": 0,
+  "sequence_losses": 0,
+  "pass": true
+}

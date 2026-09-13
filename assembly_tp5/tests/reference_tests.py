@@ -17,4 +17,10 @@ for v in vectors:
     f=build(*v)
     assert len(f)==11
     assert crc8(f[2:10])==f[10]
-print("TEST_RESULT: PASS assembly reference protocol vectors=3")
+responses=[(0x01,0x002a,0x54503501,0),(0x10,0x002b,0x2000,0),
+           (0x10,0x002c,0x8000,0),(0x11,0x002d,0x4200,0)]
+for typ,seq,data,flags in responses:
+    body=bytes([5,typ,seq>>8,seq&255])+data.to_bytes(4,'big')+bytes([flags])
+    frame=bytes([0x5a,0xa5])+body+bytes([crc8(body)])
+    assert len(frame)==12 and crc8(frame[2:11])==frame[11]
+print("TEST_RESULT: PASS assembly reference command_vectors=3 response_vectors=4")

@@ -1,0 +1,1 @@
+run_on_pi.sh: line 5: set: pipefail: invalid option name

@@ -1,0 +1,39 @@
+*** GOWIN Tcl Command Line Console  *** 
+alog error: failed to open log file: 'C:/Users/igors/AppData/Local/GowinSemi/IDE/cache/sh.log'
+current device: GW1NSR-4C  GW1NSR-LV4CQN48PC6/I5
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/audio_energy_detector.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/i2s_clock_gen.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/i2s_rx_24.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/safe_field_tp5_top.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_command_rx.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_fixed_q15_mac.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_fp16_mul.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_gpio_oe.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_raw24_capture_preserved.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/sf_telemetry_tx.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/uart_rx_byte.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/rtl/uart_tx_byte.v"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/constraints/safe_field_tp5.cst"
+add new file: "C:/SAFE-FIELD/tp5_final_worktree/verilog_tp5/constraints/safe_field_tp5.sdc"
+GowinSynthesis start
+Running parser ...
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\audio_energy_detector.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_clock_gen.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_rx_24.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\safe_field_tp5_top.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_command_rx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fixed_q15_mac.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fp16_mul.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_gpio_oe.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v'
+ERROR (EX3436) : All identifiers need to have initial value("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":66)
+ERROR (EX3928) : Module 'sf_raw24_packet_tx' is ignored due to previous errors("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":79)
+Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v' ignored due to errors
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_telemetry_tx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_rx_byte.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_tx_byte.v'
+GowinSynthesis finish
+
+    while executing
+"run all"
+    (file "verilog_tp5\scripts\build_safe_field_tp5_final.tcl" line 52)
