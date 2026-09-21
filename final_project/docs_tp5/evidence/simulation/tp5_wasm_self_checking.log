@@ -1,0 +1,58 @@
+SAFE-FIELD TP5 self-checking simulation
+finished_utc=2026-09-13T20:04:27.468Z
+simulator=@veriflow/iverilog-wasm@0.1.4
+hardware_programming=NOT_PERFORMED
+uart=1500000 baud at 27MHz/18
+raw24_and_tp5_commands=COEXIST_ON_ONE_UART_TX
+source_sha256 EF60A3FF9E7C8DCCD54B1807C7EB2667A5603B6A559C05166ADCCCE5B1993FC0 verilog_tp5/rtl/audio_energy_detector.v
+source_sha256 FCC9B057E1DDF0DFC6F0479F4D5BB85334AB99D877CDCEBCA81B571BE9027FB8 verilog_tp5/rtl/i2s_clock_gen.v
+source_sha256 AFC93F046D9F539F7128DA7B3C90C6C58BC097812D9774A8A8EB643638864E66 verilog_tp5/rtl/i2s_rx_24.v
+source_sha256 CDC821EB6B962893021FB1868976E0B9875C6BF70626DFE78DAF0EBA4C4EE3D1 verilog_tp5/rtl/safe_field_tp5_top.v
+source_sha256 B8B324EF9D234B650916526C75BFD8D4577A55B1E4E606211A9EDD93F7C64798 verilog_tp5/rtl/sf_command_rx.v
+source_sha256 26BBBB0367B43FE89079D9E794468BA9949553B8E5DB8147A6636CE6EBFA673D verilog_tp5/rtl/sf_fixed_q15_mac.v
+source_sha256 233AFD991291DA9195EA11E1147714B44721E58C0AAAABC52C4867BC2C22762B verilog_tp5/rtl/sf_fp16_mul.v
+source_sha256 8DF3BFCE98B72409B00D877961A4E9F8B7645F8A23D3C3B66E11B157A6B2262E verilog_tp5/rtl/sf_gpio_oe.v
+source_sha256 A5DBAA90C074612109A0D1D1C0622476D9734E7FF4C86C94F6C0997630C35AE3 verilog_tp5/rtl/sf_raw24_capture_preserved.v
+source_sha256 6098A590E8982DC23F84431140CE098DC4FA2EBB1264D88F67CDE313A340CDC5 verilog_tp5/rtl/sf_telemetry_tx.v
+source_sha256 0CB5EAAAC994756E71008D9FA62429691323EC2DD21D549DA8C943EE20F51347 verilog_tp5/rtl/uart_rx_byte.v
+source_sha256 72B57A75820608E7418916E2E83DFF74EA3AD53D66FD97B5C0874726F3A58484 verilog_tp5/rtl/uart_tx_byte.v
+source_sha256 9B6BF1E5FE4776FFC121FC6FB40F02F73459A2A901C11714A7A7F35D918BFBC2 verilog_tp5/tb/tb_arithmetic.v
+source_sha256 316DEF7EF6E8057CAB804BD839A3E7B0AA5E8A18D6CE9E8E3CA772C34F4D7F9A verilog_tp5/tb/tb_command_rx.v
+source_sha256 7059F231D31C898118134BEA32BDF9286F98F861F42CA7B0EC41C83C6247F17C verilog_tp5/tb/tb_gpio_oe.v
+source_sha256 C0AC75975BACDE5D2D605546544792571BBFFE55950F05BBECF7F5709BC913F1 verilog_tp5/tb/tb_tp5_integration.v
+source_sha256 986F520C51D16710DFA07077B17F0F98CF5FEC79A5A730938C6636B8F19F0B95 verilog_tp5/tb/tb_tp5_raw24_coexist.v
+===== tb_arithmetic =====
+success=true
+stage=run
+VCD info: dumpfile build/tb_arithmetic.vcd opened for output.
+TEST_RESULT: PASS arithmetic checks=23
+verilog_tp5/tb/tb_arithmetic.v:50: $finish called at 23000 (1ps)
+
+===== tb_command_rx =====
+success=true
+stage=run
+VCD info: dumpfile build/tb_command_rx.vcd opened for output.
+TEST_RESULT: PASS command_rx hold+CRC+recovery
+verilog_tp5/tb/tb_command_rx.v:27: $finish called at 53930000 (1ps)
+
+===== tb_gpio_oe =====
+success=true
+stage=run
+VCD info: dumpfile build/tb_gpio_oe.vcd opened for output.
+TEST_RESULT: PASS gpio_oe
+
+===== tb_tp5_integration =====
+success=true
+stage=run
+VCD info: dumpfile build/tb_tp5_integration.vcd opened for output.
+TEST_RESULT: PASS tp5_integration transactions=8
+verilog_tp5/tb/tb_tp5_integration.v:76: $finish called at 300055000 (1ps)
+
+===== tb_tp5_raw24_coexist =====
+success=true
+stage=run
+VCD info: dumpfile build/tb_tp5_raw24_coexist.vcd opened for output.
+TEST_RESULT: PASS RAW24 95-byte CRC frame + deferred TP5 PING response, no TX collision
+verilog_tp5/tb/tb_tp5_raw24_coexist.v:24: $finish called at 388396000 (1ps)
+
+OVERALL_RESULT=PASS

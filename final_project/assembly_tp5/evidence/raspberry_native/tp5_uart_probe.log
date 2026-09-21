@@ -1,0 +1,13 @@
+{
+  "hardware": true,
+  "baud": 1500000,
+  "count": 3,
+  "pass": 0,
+  "fail": 3,
+  "mean_rtt_us": null,
+  "median_rtt_us": null,
+  "p95_rtt_us": null,
+  "throughput_commands_s": null,
+  "raw24_bytes_discarded": 0,
+  "crc_frames_recovered": 0
+}

@@ -1,0 +1,51 @@
+GowinSynthesis start
+Running parser ...
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\audio_energy_detector.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_clock_gen.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\i2s_rx_24.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\safe_field_tp5_top.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_command_rx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fixed_q15_mac.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fp16_mul.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_gpio_oe.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_telemetry_tx.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_rx_byte.v'
+Analyzing Verilog file 'C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_tx_byte.v'
+Compiling module 'safe_field_tp5_top'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\safe_field_tp5_top.v":4)
+Compiling module 'sf_raw24_i2s_clock_gen'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":4)
+Compiling module 'sf_raw24_i2s_rx_24'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":18)
+Compiling module 'audio_energy_detector(THRESHOLD_ON=24'b000000000010111011100000,THRESHOLD_OFF=24'b000000000001011101110000)'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\audio_energy_detector.v":2)
+Compiling module 'sf_command_rx(UART_CLKS_PER_BIT=18)'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_command_rx.v":2)
+Compiling module 'uart_rx_byte(CLKS_PER_BIT=18)'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_rx_byte.v":3)
+Compiling module 'sf_raw24_packet_tx'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":58)
+Extracting RAM for identifier 'raw_bank0'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":62)
+Extracting RAM for identifier 'raw_bank1'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":62)
+Extracting RAM for identifier 'pcm_bank0'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":63)
+Extracting RAM for identifier 'pcm_bank1'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":63)
+Compiling module 'sf_raw24_pcm_s24_to_s16_sat'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":50)
+Compiling module 'sf_raw24_uart_tx_byte'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_raw24_capture_preserved.v":35)
+Compiling module 'sf_fixed_q15_mac'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fixed_q15_mac.v":2)
+Compiling module 'sf_fp16_mul'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_fp16_mul.v":3)
+Compiling module 'sf_telemetry_tx'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\sf_telemetry_tx.v":4)
+Compiling module 'uart_tx_byte(CLKS_PER_BIT=18)'("C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\rtl\uart_tx_byte.v":2)
+NOTE  (EX0101) : Current top module is "safe_field_tp5_top"
+[5%] Running netlist conversion ...
+Running device independent optimization ...
+[10%] Optimizing Phase 0 completed
+[15%] Optimizing Phase 1 completed
+[25%] Optimizing Phase 2 completed
+Running inference ...
+[30%] Inferring Phase 0 completed
+[40%] Inferring Phase 1 completed
+[50%] Inferring Phase 2 completed
+[55%] Inferring Phase 3 completed
+Running technical mapping ...
+[60%] Tech-Mapping Phase 0 completed
+[65%] Tech-Mapping Phase 1 completed
+[75%] Tech-Mapping Phase 2 completed
+[80%] Tech-Mapping Phase 3 completed
+[90%] Tech-Mapping Phase 4 completed
+[95%] Generate netlist file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final.vg" completed
+[100%] Generate report file "C:\SAFE-FIELD\tp5_final_worktree\verilog_tp5\build\safe_field_tp5_final\impl\gwsynthesis\safe_field_tp5_final_syn.rpt.html" completed
+GowinSynthesis finish

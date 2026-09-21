@@ -1,0 +1,8 @@
+PTY_CASE: PASS valid
+PTY_CASE: PASS raw24_interleaved
+PTY_CASE: PASS fragmented
+PTY_CASE: PASS crc_recovery
+PTY_CASE: PASS payload
+PTY_CASE: PASS error_flag
+PTY_CASE: PASS eof
+UART_CLIENT_PTY: PASS cases=7 HARDWARE=false

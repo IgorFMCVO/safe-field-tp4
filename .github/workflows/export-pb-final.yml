@@ -1,0 +1,27 @@
+name: Export SAFE-FIELD PB final snapshot
+on:
+  push:
+    branches: ["final/assessment-2026-09-21"]
+    paths: [".github/workflows/export-pb-final.yml"]
+permissions:
+  contents: read
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Export preserved TP4 and final tree
+        run: |
+          git archive --format=zip --output=SAFE_FIELD_REPO_PB_SNAPSHOT.zip HEAD final_project assembly_tp4 docs_tp4 verilog_tp4
+          sha256sum SAFE_FIELD_REPO_PB_SNAPSHOT.zip > SAFE_FIELD_REPO_PB_SNAPSHOT.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: safe-field-pb-snapshot
+          path: |
+            SAFE_FIELD_REPO_PB_SNAPSHOT.zip
+            SAFE_FIELD_REPO_PB_SNAPSHOT.zip.sha256
+          retention-days: 7
+          if-no-files-found: error
