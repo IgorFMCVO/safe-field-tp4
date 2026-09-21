@@ -1,0 +1,3 @@
+Technical baseline: 72759423a1e06e3b2eef5721e75679a56ea3a2ee
+PB documentation branch: final/assessment-2026-09-21
+No new physical tests or FPGA reprogramming in this consolidation.

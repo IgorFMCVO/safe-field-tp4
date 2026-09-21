@@ -1,0 +1,49 @@
+name: Validate SAFE-FIELD TP5
+on:
+  pull_request:
+    paths: ["verilog_tp5/**", "assembly_tp5/**", "docs_tp5/**", "scripts/**", ".github/workflows/validate-tp5.yml", "README_TP5.md"]
+  push:
+    branches: ["tp5/final-integration-v1"]
+permissions:
+  contents: read
+concurrency:
+  group: tp5-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install TP5 toolchains
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y iverilog gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu qemu-user
+      - name: Preflight
+        run: python3 scripts/preflight.py
+      - name: Verilog compile and self-checking simulations
+        run: make -C verilog_tp5 test
+      - name: Assembly static library, real ABI tests and stand-alone QEMU
+        run: |
+          make -C assembly_tp5 test
+          make -C assembly_tp5 disasm
+      - name: Verify generated evidence
+        run: |
+          test -s assembly_tp5/build/libsafe_field_tp5.a
+          test -s assembly_tp5/build/assembly_abi_tests.log
+          test -s assembly_tp5/build/tp5_demo.objdump.txt
+          test -s assembly_tp5/build/tp5_uart_demo.objdump.txt
+          test -s verilog_tp5/build/tb_arithmetic.vcd
+          test -s verilog_tp5/build/tb_command_rx.vcd
+          test -s verilog_tp5/build/tb_gpio_oe.vcd
+          test -s verilog_tp5/build/tb_tp5_integration.vcd
+      - name: Preserve simulation and emulation evidence (not hardware)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tp5-simulation-emulation-${{ github.sha }}
+          path: |
+            assembly_tp5/build/
+            verilog_tp5/build/
+          if-no-files-found: warn
+          retention-days: 7
