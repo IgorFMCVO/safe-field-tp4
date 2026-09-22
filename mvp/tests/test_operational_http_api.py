@@ -183,9 +183,10 @@ class OperationalApiTests(unittest.TestCase):
         with self.assertRaises(ApiError):
             fresh.saved_occurrence_snapshot("MISSING")
 
-    def test_demo_page_is_a_read_only_authenticated_api_shell(self):
+    def test_demo_page_exposes_only_read_only_saved_artifacts(self):
         session = OccurrenceSession.create(self.core.sessions_root, "OCC_DEMO_001")
         session.write_metadata("FINISHED")
+        (session.root / "audio" / "raw.wav").write_bytes(b"RIFFfixture")
         fresh = OperationalApiService(OperationalIntelligenceCore(self.core.sessions_root, providers()))
         self.assertEqual(fresh.list_saved_occurrences()[0]["occurrence_id"], "OCC_DEMO_001")
         page = demo_html().decode("utf-8")
@@ -203,9 +204,18 @@ class OperationalApiTests(unittest.TestCase):
         try:
             with urllib.request.urlopen(base + "/demo?occurrence_id=OCC_DEMO_001", timeout=2) as response:
                 self.assertEqual(response.status, 200)
-                self.assertIn(b"Autentica", response.read())
+                self.assertIn(b"Leitura somente", response.read())
+            with urllib.request.urlopen(base + "/api/v1/occurrences/saved", timeout=2) as response:
+                self.assertEqual(response.status, 200)
+            with urllib.request.urlopen(base + "/api/v1/occurrences/saved/OCC_DEMO_001", timeout=2) as response:
+                self.assertEqual(response.status, 200)
+            with urllib.request.urlopen(base + "/api/v1/occurrences/saved/OCC_DEMO_001/audio", timeout=2) as response:
+                self.assertEqual(response.read(), b"RIFFfixture")
+            request = urllib.request.Request(
+                base + "/api/v1/occurrences/start", data=b"{}", method="POST",
+            )
             with self.assertRaises(urllib.error.HTTPError) as denied:
-                urllib.request.urlopen(base + "/api/v1/occurrences/saved", timeout=2)
+                urllib.request.urlopen(request, timeout=2)
             self.assertEqual(denied.exception.code, 401)
         finally:
             server.shutdown(); server.server_close(); worker.join(2)
