@@ -453,8 +453,8 @@ def demo_html() -> bytes:
 main{max-width:980px;margin:auto;padding:28px}h1{color:#65e2bd;margin:0 0 6px}h2{font-size:20px;color:#9fc8ff;margin:0 0 12px}
 .card{background:#151e29;border:1px solid #2d4054;border-radius:12px;padding:20px;margin:16px 0}.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
 .label{color:#9aabb9;font-size:13px;text-transform:uppercase}.value{font-weight:650;overflow-wrap:anywhere}.pill{display:inline-block;background:#20384b;color:#9fdbff;border-radius:999px;padding:4px 10px;font-size:14px}
-audio{width:100%;margin-top:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d141d;padding:14px;border-radius:8px;font:15px ui-monospace,monospace}.muted{color:#aab8c4}.error{color:#ffaf9d}.list a{color:#8fcbff}
-</style><main><h1>SAFE-FIELD — Ocorrência</h1><p id="notice" class="muted">Autenticação necessária para carregar evidências.</p><div id="content"></div>
+audio{width:100%;margin-top:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d141d;padding:14px;border-radius:8px;font:15px ui-monospace,monospace}.muted{color:#aab8c4}.error{color:#ffaf9d}.list a{color:#8fcbff}input,button{font:16px system-ui;padding:10px;border-radius:8px;border:1px solid #40566d}input{width:min(100%,480px);background:#0d141d;color:#eef4f8}button{margin-left:8px;background:#65e2bd;color:#06120e;font-weight:700;cursor:pointer}
+</style><main><h1>SAFE-FIELD — Ocorrência</h1><p id="notice" class="muted">Autenticação necessária para carregar evidências.</p><section id="auth" class="card"><h2>ACESSO</h2><p class="muted">Informe o token operacional já configurado no Core. Ele é usado apenas nesta página e não é armazenado.</p><input id="token" type="password" autocomplete="off" placeholder="Token de acesso"><button id="load" type="button">CARREGAR</button></section><div id="content"></div>
 <script>
 const params=new URLSearchParams(location.search), id=params.get('occurrence_id');
 const content=document.querySelector('#content'), notice=document.querySelector('#notice');
@@ -475,8 +475,8 @@ function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcri
  loadAudio(); }
 async function loadAudio(){try{const r=await api('/api/v1/occurrences/saved/'+encodeURIComponent(id)+'/audio');const b=await r.blob(),a=document.querySelector('#audio');a.src=URL.createObjectURL(b);a.onloadedmetadata=()=>document.querySelector('#duration').textContent=a.duration.toFixed(2)+' s'}catch(e){document.querySelector('#duration').textContent='Indisponível';}}
 async function list(){const r=await api('/api/v1/occurrences/saved');const items=await r.json();content.innerHTML='<section class="card"><h2>Ocorrências recentes</h2><div class="list">'+items.map(x=>`<p><a href="/demo?occurrence_id=${encodeURIComponent(x.occurrence_id)}">Abrir</a> — ${esc(x.occurrence_id)} · ${esc(x.status)}</p>`).join('')+'</div></section>'}
-async function boot(){token=prompt('Token de acesso SAFE-FIELD (não é armazenado):')||'';if(!token){notice.textContent='Autenticação necessária.';return}try{if(id){const r=await api('/api/v1/occurrences/saved/'+encodeURIComponent(id));render(await r.json())}else await list();notice.textContent='Leitura somente — evidências carregadas do disco.'}catch(e){notice.className='error';notice.textContent='Não foi possível carregar a ocorrência: '+e.message}}
-boot();</script></main></html>"""
+async function boot(){token=document.querySelector('#token').value.trim();if(!token){notice.textContent='Informe o token de acesso.';return}try{if(id){const r=await api('/api/v1/occurrences/saved/'+encodeURIComponent(id));render(await r.json())}else await list();document.querySelector('#auth').hidden=true;notice.className='muted';notice.textContent='Leitura somente — evidências carregadas do disco.'}catch(e){notice.className='error';notice.textContent='Não foi possível carregar a ocorrência: '+e.message}}
+document.querySelector('#load').addEventListener('click',boot);document.querySelector('#token').addEventListener('keydown',e=>{if(e.key==='Enter')boot()});</script></main></html>"""
     return page.encode("utf-8")
 
 
