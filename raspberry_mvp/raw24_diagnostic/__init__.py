@@ -8,6 +8,7 @@ from .safe_field_raw24_protocol import (
     encode_frame,
     pcm16_gain8,
 )
+from .operational_raw24_source import SerialRaw24PCMSource, SharedRaw24TP5Parser
 
 __all__ = [
     "FRAME_SIZE",
@@ -16,4 +17,6 @@ __all__ = [
     "decode_frame",
     "encode_frame",
     "pcm16_gain8",
+    "SerialRaw24PCMSource",
+    "SharedRaw24TP5Parser",
 ]

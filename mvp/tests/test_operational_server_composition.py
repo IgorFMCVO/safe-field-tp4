@@ -172,7 +172,7 @@ class OperationalServerCompositionTests(unittest.TestCase):
         self.assertNotIn(environment["CUSTOM_TOKEN"], rendered)
         self.assertNotIn(environment["CUSTOM_SCOPE"], rendered)
 
-    def test_remote_pcm_source_is_always_physical_only_with_frozen_segmentation(self):
+    def test_remote_raw24_source_is_explicitly_selected_and_physical_only(self):
         environment = {
             "SAFE_FIELD_RAZER_WORKER_URL": "http://127.0.0.1:8766",
             "SAFE_FIELD_RAZER_SCOPE_SECRET": "fixture-scope-secret",
@@ -185,7 +185,7 @@ class OperationalServerCompositionTests(unittest.TestCase):
                 "compose_pipeline_providers",
                 return_value=(providers, {"mode": "RAZER_REMOTE"}),
             ),
-            patch.object(launcher, "SerialPCMSource", return_value=pcm_source) as source_factory,
+            patch.object(launcher, "SerialRaw24PCMSource", return_value=pcm_source) as source_factory,
             patch.object(launcher, "OperationalIntelligenceCore") as core_factory,
             patch.object(launcher, "serve"),
             patch("builtins.print"),
@@ -204,6 +204,27 @@ class OperationalServerCompositionTests(unittest.TestCase):
             core_factory.call_args.kwargs["segmentation"],
             launcher.FROZEN_RECOVERY_SEGMENTATION,
         )
+
+    def test_legacy_transport_remains_an_explicit_compatibility_choice(self):
+        environment = {
+            "SAFE_FIELD_RAZER_WORKER_URL": "http://127.0.0.1:8766",
+            "SAFE_FIELD_RAZER_SCOPE_SECRET": "fixture-scope-secret",
+        }
+        with (
+            patch.object(launcher, "compose_pipeline_providers", return_value=(object(), {})),
+            patch.object(launcher, "SerialPCMSource") as legacy_source,
+            patch.object(launcher, "OperationalIntelligenceCore"),
+            patch.object(launcher, "serve"),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(
+                launcher.main(
+                    ["--ai-mode", "razer", "--pcm-port", "/dev/serial0", "--audio-transport", "legacy_pcm16"],
+                    environment,
+                ),
+                0,
+            )
+        legacy_source.assert_called_once_with("/dev/serial0")
 
     def test_tls_paths_can_come_from_environment_or_cli(self):
         environment = {

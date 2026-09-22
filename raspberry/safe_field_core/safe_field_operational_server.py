@@ -37,6 +37,11 @@ from mvp.operational_intelligence.structured_reasoning import (  # noqa: E402
 )
 from operational_guidance.diao.mvp_adapter import MVPAsyncDIAOKnowledgeProvider  # noqa: E402
 from raspberry_mvp.pcm_stream import SerialPCMSource  # noqa: E402
+from raspberry_mvp.raw24_diagnostic import SerialRaw24PCMSource  # noqa: E402
+from raspberry_mvp.raw24_diagnostic.operational_raw24_source import (  # noqa: E402
+    EXACT_SAMPLE_RATE as TP5_RAW24_SAMPLE_RATE,
+    WAV_SAMPLE_RATE as TP5_RAW24_WAV_SAMPLE_RATE,
+)
 
 
 TLS_CERT_ENV = "SAFE_FIELD_OPERATIONAL_TLS_CERT"
@@ -89,6 +94,15 @@ def build_argument_parser(environ: Mapping[str, str] | None = None):
         help=(
             "optional additive FPGA PCM UART (for example /dev/serial0); "
             "opened only when WATCH START is accepted"
+        ),
+    )
+    parser.add_argument(
+        "--audio-transport",
+        choices=("tp5_raw24", "legacy_pcm16"),
+        default="tp5_raw24",
+        help=(
+            "explicit FPGA audio transport: tp5_raw24 decodes A5 C4/v01/type21 "
+            "frames and their embedded PCM16; legacy_pcm16 is A5 C3/v01/type20"
         ),
     )
     parser.add_argument(
@@ -296,12 +310,15 @@ def main(
         providers, ai_readiness = compose_pipeline_providers(args, environment)
     except ConfigurationError as exc:
         parser.error(str(exc))
-    pcm_source = SerialPCMSource(args.pcm_port) if args.pcm_port else None
-    pcm_format = (
-        PCMFormat(sample_rate=42_188, channels=1, sample_width=2)
-        if pcm_source is not None
-        else None
-    )
+    pcm_source = None
+    pcm_format = None
+    if args.pcm_port:
+        if args.audio_transport == "tp5_raw24":
+            pcm_source = SerialRaw24PCMSource(args.pcm_port)
+            pcm_format = PCMFormat(sample_rate=TP5_RAW24_WAV_SAMPLE_RATE, channels=1, sample_width=2)
+        else:
+            pcm_source = SerialPCMSource(args.pcm_port)
+            pcm_format = PCMFormat(sample_rate=42_188, channels=1, sample_width=2)
     core = OperationalIntelligenceCore(
         args.sessions_root,
         providers=providers,
@@ -317,8 +334,12 @@ def main(
     print(
         "PCM_SOURCE_READY "
         + (
-            f"UART_PCM16_V1 port={args.pcm_port} baud=1500000 rate=42188"
-            if args.pcm_port
+            (
+                f"UART_RAW24_TP5_PCM16_V1 port={args.pcm_port} baud=1500000 "
+                f"raw_rate={TP5_RAW24_SAMPLE_RATE} wav_header_rate={TP5_RAW24_WAV_SAMPLE_RATE}"
+                if args.audio_transport == "tp5_raw24"
+                else f"UART_PCM16_V1 port={args.pcm_port} baud=1500000 rate=42188"
+            ) if args.pcm_port
             else "DISABLED"
         ),
         flush=True,

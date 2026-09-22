@@ -147,8 +147,10 @@ class OperationalIntelligenceCore:
         self.physical_capture_only = physical_capture_only
         if physical_capture_only:
             from raspberry_mvp.pcm_stream.safe_field_pcm_receiver import SerialPCMSource
+            from raspberry_mvp.raw24_diagnostic.operational_raw24_source import SerialRaw24PCMSource
             import re
-            if (type(pcm_source) is not SerialPCMSource or pcm_source._serial_factory is not None
+            if (type(pcm_source) not in (SerialPCMSource, SerialRaw24PCMSource)
+                    or pcm_source._serial_factory is not None
                     or not re.fullmatch(r'(?:COM\d+|/dev/tty[A-Za-z0-9]+|/dev/serial\d+)', pcm_source.port)):
                 raise ValueError('PHYSICAL_CAPTURE_ONLY requires the actual OS serial source, no injected factory')
         self.state = LifecycleState.STANDBY
