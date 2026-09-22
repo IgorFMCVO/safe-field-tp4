@@ -1,6 +1,6 @@
 # SAFE-FIELD — relatório de consolidação do Projeto de Bloco
 
-**Aluno:** Igor de Freitas Monteiro. **Professor:** Dácio Souza. **Instituição:** Instituto Infnet. **Disciplina:** Sistemas Digitais Embarcados. **Consolidação:** 21/09/2026.
+**Aluno:** Igor de Freitas Monteiro. **Professor:** Dácio Souza. **Instituição:** Instituto Infnet. **Disciplina:** Sistemas Digitais Embarcados. **Consolidação final:** 22/09/2026.
 
 ## 1. Objeto e fronteira da entrega
 
@@ -67,18 +67,27 @@ OE/tri-state dinâmico é demonstrador simulado. A BRAM/NEON histórica é apont
 
 Melhorias futuras: front-end acústico e montagem, caracterização espectral, filtragem/reamostragem adequada, orçamento temporal externo mais completo e ensaios de maior duração/carga. Não foram implementadas nesta consolidação.
 
+### Demonstração operacional final - 22/09/2026
+
+Após a consolidação da baseline técnica, foi realizada uma demonstração operacional complementar, sem reclassificar os ensaios técnicos anteriores. A ocorrência exibida no vídeo final é `20260922T054343Z_6db89a43`: estado `FINISHED`, arquivo `raw.wav` com 37,45 s, 49.367 quadros válidos, transcrição persistida e visível no dashboard e segmento `segment_0001` indicado como `COMPLETE`. O painel read-only carrega as evidências diretamente do armazenamento e permite reproduzir o áudio original.
+
+A captura de tela final preserva também o histórico do processamento, por isso o cabeçalho apresenta `COMPLETE / REJECTED conforme lista`. A análise estruturada mostrada nessa ocorrência contém listas vazias de fatos capturados, hipóteses inferidas e confirmações do policial. Portanto, a demonstração comprova captura, persistência, reprodução e transcrição, mas não é apresentada como prova de diarização multi-interlocutor robusta, análise jurídica automática ou geração definitiva de BO/REDS.
+
+Vídeo final no Google Drive: https://drive.google.com/file/d/1Pjdgc01Xwe8fCwiFhzkd-NzHbMATUtnK/view?usp=drive_link
+
+
 ## 7. Rastreabilidade, evidências e entrega
 
 Os arquivos sob `final_project/assembly_tp5`, `verilog_tp5` e `docs_tp5` mantêm os nomes de origem para preservar builds e referências. O ZIP institucional reúne o relatório geral, essa árvore final e o histórico recuperado dos TPs. Há manifesto SHA-256 e conferência de integridade. O bitstream da cópia institucional conserva SHA-256 `2672D28A5C72F980C53447EC7B3DCF7A953828F6336A9B91ADE2DAAC478D2F18`; exportações Git podem normalizar finais de linha, devendo ser conferidas antes de programação.
 
-O relatório detalhado TP5 integra o PDF geral como anexo, com diagramas, waveform, fotos e dados. As etiquetas TP5 do anexo identificam a etapa que produziu as medições. Não houve nova sessão física em 21/09. O uso de IA como apoio à implementação e documentação não substitui a demonstração individual de aprendizado e a arguição.
+O relatório detalhado TP5 integra o PDF geral como anexo, com diagramas, waveform, fotos e dados. As etiquetas TP5 do anexo identificam a etapa que produziu as medições. Os ensaios técnicos da baseline não foram repetidos na consolidação; em 22/09 foi realizada a demonstração operacional complementar descrita acima. O uso de IA como apoio à implementação e documentação não substitui a demonstração individual de aprendizado e a arguição.
 
-Vídeo fornecido: https://www.loom.com/share/dd65ae3944f94fa897e1196fe789a90b
+Vídeo final: https://drive.google.com/file/d/1Pjdgc01Xwe8fCwiFhzkd-NzHbMATUtnK/view?usp=drive_link
 Código técnico: https://github.com/IgorFMCVO/safe-field-tp4/tree/72759423a1e06e3b2eef5721e75679a56ea3a2ee
 CI: https://github.com/IgorFMCVO/safe-field-tp4/actions/runs/34782568776
 
-O enunciado solicita Google Drive acadêmico; somente Loom foi fornecido. Não se confirma substituição autorizada, duração, webcam ou acesso anônimo. A entrega no Moodle e a apresentação ao vivo não foram realizadas por esta consolidação.
+O vídeo final foi fornecido pelo autor em Google Drive. Antes da submissão, recomenda-se apenas conferir o compartilhamento em uma janela anônima. A entrega no Moodle e a apresentação ao vivo permanecem atos separados deste pacote.
 
 ## Fontes locais
 
-Enunciado final fornecido; transcrição de 18/09 (diretrizes administrativas e de defesa); pacotes históricos `safe_field_tp1_entrega_final (1).zip`, `igor_monteiro_PB_TP2.zip`, `igor_monteiro_PB_TP3(1).zip`; baseline TP4; fontes e evidências técnicas de `7275942`; relatório final TP5 de nove páginas. As conclusões de cada etapa conservam o alcance original das evidências.
+Enunciado final fornecido; transcrição de 18/09 (diretrizes administrativas e de defesa); pacotes históricos `safe_field_tp1_entrega_final (1).zip`, `igor_monteiro_PB_TP2.zip`, `igor_monteiro_PB_TP3(1).zip`; baseline TP4; fontes e evidências técnicas de `7275942`; relatório final TP5 de nove páginas; demonstração operacional de 22/09/2026 e captura do dashboard final. As conclusões de cada etapa conservam o alcance original das evidências.
