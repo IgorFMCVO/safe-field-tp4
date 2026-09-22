@@ -461,9 +461,9 @@ const content=document.querySelector('#content'), notice=document.querySelector(
 const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 async function api(path){const r=await fetch(path);if(!r.ok)throw new Error('HTTP '+r.status);return r}
 function field(label,value){return `<div><div class="label">${esc(label)}</div><div class="value">${esc(value||'Indisponível')}</div></div>`}
-function jobs(items){if(!items.length)return 'Indisponível';return items.map(x=>`${esc(x.segment_id||x.hypothesis_id||x.kind||'job')}: ${esc(x.status||'PENDING')}`).join('\n')}
+function jobs(items){if(!items.length)return 'Indisponível';return items.map(x=>`${esc(x.segment_id||x.hypothesis_id||x.kind||'job')}: ${esc(x.status||'PENDING')}`).join('\\n')}
 function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcripts||[], facts=s.facts||[], hyps=s.hypotheses||[];
- const transcript=ts.map(x=>x.raw_transcript||x.transcript||'').filter(Boolean).join('\n\n');
+ const transcript=ts.map(x=>x.raw_transcript||x.transcript||'').filter(Boolean).join('\\n\\n');
  const analysis={captured_facts:facts.filter(x=>x.status==='CAPTURED'),inferred_hypotheses:hyps.filter(x=>x.status==='PROPOSED'||x.status==='INFERRED'),officer_confirmed:facts.filter(x=>x.status==='OFFICER_CONFIRMED').concat(hyps.filter(x=>x.status==='OFFICER_CONFIRMED'))};
  content.innerHTML=`<section class="card"><h2>1. SAFE-FIELD — Ocorrência</h2><div class="meta">${field('Occurrence ID',o.occurrence_id)}${field('Início',o.started_at)}${field('Estado da ocorrência',o.status||o.state)}${field('Processamento',(s.processing||[]).some(x=>x.status==='PENDING'||x.status==='PROCESSING')?'PENDING':'COMPLETE / REJECTED conforme lista')}</div></section>
  <section class="card"><h2>2. ÁUDIO ORIGINAL</h2><div class="muted">raw.wav · duração: <span id="duration">carregando…</span></div><audio id="audio" controls></audio></section>
