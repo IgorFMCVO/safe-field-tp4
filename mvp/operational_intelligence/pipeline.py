@@ -282,7 +282,42 @@ class AsyncSegmentPipeline:
             embedding = [value / norm for value in embedding]
             if hasattr(self.providers.diarization, 'observation_quality'):
                 quality = self.providers.diarization.observation_quality(audio_path, group)
-                record, similarity = self.speaker_registry.match(embedding, segment_id, quality)
+                try:
+                    record, similarity = self.speaker_registry.match(embedding, segment_id, quality)
+                except ValueError as exc:
+                    # A weak biometric observation must never erase an otherwise
+                    # valid captured transcript.  Keep its source explicitly
+                    # unverified; it is not a registered or re-identified person.
+                    if str(exc) != "SPEAKER_OBSERVATION_LOW_QUALITY":
+                        raise
+                    unverified_id = f"UNVERIFIED_SPEAKER_{len(speaker_ids) + 1:02d}"
+                    atomic_json(
+                        self.session_root / "speakers" / f"{segment_id}_{unverified_id}.json",
+                        {
+                            "segment_id": segment_id,
+                            "local_speaker": local_speaker,
+                            "speaker_id": unverified_id,
+                            "status": "UNVERIFIED_LOW_QUALITY",
+                            "quality": {
+                                "speech_seconds": quality.speech_seconds,
+                                "speech_ratio": quality.speech_ratio,
+                                "confidence": quality.confidence,
+                                "overlap_ratio": quality.overlap_ratio,
+                                "rms": quality.rms,
+                                "clipped_ratio": quality.clipped_ratio,
+                            },
+                        },
+                    )
+                    if unverified_id not in speaker_ids:
+                        speaker_ids.append(unverified_id)
+                    self.timeline.append(
+                        "SPEAKER_OBSERVATION_UNVERIFIED",
+                        segment_id=segment_id,
+                        speaker_id=unverified_id,
+                        local_speaker=local_speaker,
+                        reason="LOW_QUALITY",
+                    )
+                    continue
             else:
                 record, similarity = self.speaker_registry.register(
                     embedding, segment_id, provider_confidence=min(turn.confidence for turn in group)

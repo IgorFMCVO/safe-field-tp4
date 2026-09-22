@@ -32,7 +32,7 @@ from mvp.operational_intelligence.providers import (
     ReasoningResult,
     SpeakerEmbeddingProvider,
 )
-from mvp.operational_intelligence.speaker_registry import SpeakerRegistry
+from mvp.operational_intelligence.speaker_registry import ObservationQuality, SpeakerRegistry
 
 
 def pcm16(value: int, frames: int) -> bytes:
@@ -57,6 +57,11 @@ class FixtureDiarization(DiarizationProvider):
 class FailingDiarization(DiarizationProvider):
     async def diarize(self, audio_path: Path, transcript: ASRResult):
         raise ProviderUnavailable("DIARIZATION_TEST_FAILURE")
+
+
+class LowQualityDiarization(FixtureDiarization):
+    def observation_quality(self, audio_path: Path, group):
+        return ObservationQuality(4.0, 1.0, 0.49, 0.0, 0.10, 0.0)
 
 
 class FixtureEmbedding(SpeakerEmbeddingProvider):
@@ -272,6 +277,30 @@ class OperationalCoreTests(unittest.TestCase):
         self.assertTrue(transcript_path.is_file())
         assert core._pipeline is not None
         core._pipeline.close()
+
+    def test_low_quality_speaker_observation_keeps_transcript_and_analysis(self):
+        providers = PipelineProviders(
+            FixtureASR(),
+            LowQualityDiarization(),
+            FixtureEmbedding(),
+            FixtureReasoning(),
+            FixtureKnowledge(),
+        )
+        core = self.build_core(providers)
+        core.start("OCC_UNVERIFIED_SPEAKER")
+        self.send_one_segment(core)
+        self.assertTrue(core.wait_for_processing(2.0))
+        session = self.sessions / "OCC_UNVERIFIED_SPEAKER"
+        transcript = json.loads((session / "transcripts" / "segment_0001.json").read_text())
+        self.assertEqual(transcript["speaker_ids"], ["UNVERIFIED_SPEAKER_01"])
+        self.assertTrue((session / "speakers" / "segment_0001_UNVERIFIED_SPEAKER_01.json").is_file())
+        self.assertEqual(
+            json.loads((session / "jobs" / "segment_0001.json").read_text())["status"],
+            "COMPLETE",
+        )
+        self.assertFalse((session / "jobs" / "pending_segment_0001.json").exists())
+        self.assertTrue((session / "facts" / "FACT_001.json").is_file())
+        core.stop(2.0)
 
     def test_stop_timeout_keeps_finalization_pending_and_retry_is_safe(self):
         core = self.build_core(fixture_providers(delay=0.30))
