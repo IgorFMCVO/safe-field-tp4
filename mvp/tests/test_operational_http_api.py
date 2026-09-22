@@ -13,7 +13,7 @@ import urllib.request
 
 from mvp.operational_intelligence.core import OperationalIntelligenceCore
 from mvp.operational_intelligence.http_api import (
-    ApiError, OperationalApiService, dashboard_html, make_handler,
+    ApiError, OperationalApiService, dashboard_html, demo_html, make_handler,
 )
 from mvp.operational_intelligence.models import EvidenceStatus, Fact, Hypothesis
 from mvp.operational_intelligence.pipeline import PipelineProviders
@@ -182,6 +182,33 @@ class OperationalApiTests(unittest.TestCase):
             fresh.saved_occurrence_snapshot("../OCC_SAVED_001")
         with self.assertRaises(ApiError):
             fresh.saved_occurrence_snapshot("MISSING")
+
+    def test_demo_page_is_a_read_only_authenticated_api_shell(self):
+        session = OccurrenceSession.create(self.core.sessions_root, "OCC_DEMO_001")
+        session.write_metadata("FINISHED")
+        fresh = OperationalApiService(OperationalIntelligenceCore(self.core.sessions_root, providers()))
+        self.assertEqual(fresh.list_saved_occurrences()[0]["occurrence_id"], "OCC_DEMO_001")
+        page = demo_html().decode("utf-8")
+        self.assertIn("SAFE-FIELD — Ocorrência", page)
+        self.assertIn("/api/v1/occurrences/saved/", page)
+        self.assertIn("audio", page)
+        self.assertNotIn("POST", page)
+
+        server = ThreadingHTTPServer(
+            ("127.0.0.1", 0), make_handler(fresh, auth_token="local-test-token"),
+        )
+        worker = threading.Thread(target=server.serve_forever, daemon=True)
+        worker.start()
+        base = f"http://127.0.0.1:{server.server_port}"
+        try:
+            with urllib.request.urlopen(base + "/demo?occurrence_id=OCC_DEMO_001", timeout=2) as response:
+                self.assertEqual(response.status, 200)
+                self.assertIn(b"Autentica", response.read())
+            with self.assertRaises(urllib.error.HTTPError) as denied:
+                urllib.request.urlopen(base + "/api/v1/occurrences/saved", timeout=2)
+            self.assertEqual(denied.exception.code, 401)
+        finally:
+            server.shutdown(); server.server_close(); worker.join(2)
 
     def test_real_http_handler_runs_watch_contract(self):
         server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(self.api))
