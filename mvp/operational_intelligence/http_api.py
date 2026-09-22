@@ -15,10 +15,11 @@ import json
 from pathlib import Path
 import threading
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from .core import OperationalIntelligenceCore
 from .models import LifecycleState, OfficerAssessment, utc_now
+from .storage import OCCURRENCE_ID_RE
 
 
 API_VERSION = "1.0"
@@ -317,12 +318,40 @@ class OperationalApiService:
     def dashboard_snapshot(self) -> dict:
         state = self.wearable_state()
         root = self._root(allow_finished=True)
+        return self._snapshot_for_root(root, state)
+
+    def _saved_root(self, occurrence_id: str) -> Path:
+        if not isinstance(occurrence_id, str) or not OCCURRENCE_ID_RE.fullmatch(occurrence_id):
+            raise ApiError(400, "INVALID_OCCURRENCE_ID")
+        sessions_root = self.core.sessions_root.resolve()
+        root = (sessions_root / occurrence_id).resolve()
+        if root.parent != sessions_root or not (root / "occurrence.json").is_file():
+            raise ApiError(404, "OCCURRENCE_NOT_FOUND")
+        return root
+
+    def saved_occurrence_snapshot(self, occurrence_id: str) -> dict:
+        root = self._saved_root(occurrence_id)
+        metadata = _read_json(root / "occurrence.json")
+        # Detached read only: never attaches to Core or starts a capture/job.
+        state = {**metadata, "state": metadata.get("status", "UNAVAILABLE"),
+                 "view_mode": "SAVED_READ_ONLY", "capture_active": False}
+        return self._snapshot_for_root(root, state)
+
+    def saved_audio_path(self, occurrence_id: str) -> Path:
+        root = self._saved_root(occurrence_id)
+        path = root / "audio" / "raw.wav"
+        if not path.is_file():
+            raise ApiError(404, "ORIGINAL_AUDIO_NOT_FOUND")
+        return path
+
+    def _snapshot_for_root(self, root: Path | None, state: dict) -> dict:
         if not root:
             return {
                 "occurrence": state,
                 "speakers": [], "segments": [], "transcripts": [], "facts": [],
                 "contradictions": [], "hypotheses": [], "diao_sources": [],
                 "watch_events": list(self._watch_events), "final_history": None,
+                "processing": [], "original_audio": None,
             }
         speakers_path = root / "speakers" / "registry.json"
         speaker_data = _read_json(speakers_path) if speakers_path.is_file() else {"speakers": []}
@@ -347,6 +376,8 @@ class OperationalApiService:
                 json.loads(line) for line in watch_path.read_text(encoding="utf-8").splitlines()
                 if line.strip()
             ]
+        processing = _json_files(root / "jobs")
+        original_audio = "available" if (root / "audio" / "raw.wav").is_file() else "unavailable"
         return {
             "occurrence": state,
             "speakers": speaker_data.get("speakers", speaker_data),
@@ -358,6 +389,8 @@ class OperationalApiService:
             "diao_sources": diao_sources,
             "watch_events": watch_events,
             "final_history": history,
+            "processing": processing,
+            "original_audio": original_audio,
         }
 
 
@@ -373,6 +406,8 @@ def dashboard_html(snapshot: dict) -> bytes:
         ("DIAO SOURCES", snapshot["diao_sources"]),
         ("WATCH EVENTS", snapshot["watch_events"]),
         ("FINAL HISTORY", snapshot["final_history"]),
+        ("PROCESSING", snapshot["processing"]),
+        ("ORIGINAL AUDIO", snapshot["original_audio"]),
     )
     blocks = "".join(
         f"<section><h2>{title}</h2><pre>{html.escape(json.dumps(value, ensure_ascii=False, indent=2))}</pre></section>"
@@ -454,13 +489,31 @@ def make_handler(
         def do_GET(self):
             if not self._require_authorization():
                 return
-            path = urlparse(self.path).path
+            parsed = urlparse(self.path)
+            path = parsed.path
             if path == "/api/v1/operational/wearable/state":
                 self._send(200, service.wearable_state())
             elif path == "/api/v1/operational/dashboard":
                 self._send(200, service.dashboard_snapshot())
+            elif path.startswith("/api/v1/occurrences/saved/"):
+                try:
+                    parts = path[len("/api/v1/occurrences/saved/"):].split("/")
+                    if len(parts) == 1:
+                        self._send(200, service.saved_occurrence_snapshot(parts[0]))
+                    elif len(parts) == 2 and parts[1] == "audio":
+                        self._send(200, service.saved_audio_path(parts[0]).read_bytes(), "audio/wav")
+                    else:
+                        self._send(404, {"ok": False, "error": "NOT_FOUND"})
+                except ApiError as exc:
+                    self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
             elif path in {"/", "/dashboard"}:
-                self._send(200, dashboard_html(service.dashboard_snapshot()), "text/html")
+                try:
+                    occurrence_id = parse_qs(parsed.query).get("occurrence_id", [None])[0]
+                    snapshot = (service.saved_occurrence_snapshot(occurrence_id)
+                                if occurrence_id is not None else service.dashboard_snapshot())
+                    self._send(200, dashboard_html(snapshot), "text/html")
+                except ApiError as exc:
+                    self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
             else:
                 self._send(404, {"ok": False, "error": "NOT_FOUND"})
 

@@ -17,6 +17,7 @@ from mvp.operational_intelligence.http_api import (
 )
 from mvp.operational_intelligence.models import EvidenceStatus, Fact, Hypothesis
 from mvp.operational_intelligence.pipeline import PipelineProviders
+from mvp.operational_intelligence.storage import OccurrenceSession
 from mvp.operational_intelligence.providers import (
     GuidanceItem, GuidanceResult, KnowledgeProvider, KnowledgeSource,
     UnavailableASRProvider, UnavailableDiarizationProvider,
@@ -153,12 +154,34 @@ class OperationalApiTests(unittest.TestCase):
         expected = {
             "occurrence", "speakers", "segments", "transcripts", "facts",
             "contradictions", "hypotheses", "diao_sources", "watch_events",
-            "final_history",
+            "final_history", "processing", "original_audio",
         }
         self.assertEqual(set(snapshot), expected)
         rendered = dashboard_html(snapshot).decode("utf-8")
         for heading in ("OCCURRENCE", "SPEAKERS", "DIAO SOURCES", "FINAL HISTORY"):
             self.assertIn(heading, rendered)
+
+    def test_saved_occurrence_is_read_from_disk_without_active_core(self):
+        session = OccurrenceSession.create(self.core.sessions_root, "OCC_SAVED_001")
+        session.write_metadata("FINALIZATION_PENDING")
+        (session.root / "audio" / "raw.wav").write_bytes(b"RIFFfixture")
+        (session.root / "transcripts" / "segment_0001.json").write_text(
+            json.dumps({"segment_id": "segment_0001", "raw_transcript": "texto salvo"}),
+            encoding="utf-8",
+        )
+        (session.root / "facts" / "analysis_segment_0001.json").write_text(
+            json.dumps({"segment_id": "segment_0001", "contradictions": []}), encoding="utf-8"
+        )
+        fresh = OperationalApiService(OperationalIntelligenceCore(self.core.sessions_root, providers()))
+        snapshot = fresh.saved_occurrence_snapshot("OCC_SAVED_001")
+        self.assertEqual(snapshot["occurrence"]["view_mode"], "SAVED_READ_ONLY")
+        self.assertEqual(snapshot["transcripts"][0]["raw_transcript"], "texto salvo")
+        self.assertEqual(snapshot["original_audio"], "available")
+        self.assertEqual(fresh.saved_audio_path("OCC_SAVED_001").read_bytes(), b"RIFFfixture")
+        with self.assertRaises(ApiError):
+            fresh.saved_occurrence_snapshot("../OCC_SAVED_001")
+        with self.assertRaises(ApiError):
+            fresh.saved_occurrence_snapshot("MISSING")
 
     def test_real_http_handler_runs_watch_contract(self):
         server = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(self.api))
