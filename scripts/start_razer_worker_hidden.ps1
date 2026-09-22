@@ -1,12 +1,17 @@
 param(
     [string]$ModelsRoot = "C:\SAFE-FIELD\fpga\tp4-audio-inmp441\mvp\evidence\models",
     [string]$SpoolRoot = "$env:LOCALAPPDATA\Temp\safe-field-operational-20260921\worker-spool",
-    [string]$LogRoot = "$env:LOCALAPPDATA\Temp\safe-field-operational-20260921"
+    [string]$LogRoot = "$env:LOCALAPPDATA\Temp\safe-field-operational-20260921",
+    [string]$TokenFile = "$env:LOCALAPPDATA\safe-field-runtime\razer-worker.token"
 )
 
 $ErrorActionPreference = 'Stop'
+if (-not (Test-Path -LiteralPath $TokenFile)) {
+    throw "Razer worker token file not found: $TokenFile"
+}
+$env:SAFE_FIELD_RAZER_WORKER_TOKEN = (Get-Content -LiteralPath $TokenFile -Raw).Trim()
 if ([string]::IsNullOrWhiteSpace($env:SAFE_FIELD_RAZER_WORKER_TOKEN)) {
-    throw 'SAFE_FIELD_RAZER_WORKER_TOKEN must be set by the trusted runtime launcher.'
+    throw 'Razer worker token file is empty.'
 }
 
 $pythonw = 'C:\SAFE-FIELD\fpga\tp4-audio-inmp441\mvp\evidence\recovery_venv\Scripts\pythonw.exe'
