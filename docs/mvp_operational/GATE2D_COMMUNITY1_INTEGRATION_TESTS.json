@@ -1,0 +1,70 @@
+{
+  "gate": "GATE_2D",
+  "status": "PASS",
+  "physical_capture_started": false,
+  "canonical_interface": {
+    "module": "mvp.operational_intelligence.diarization_engines",
+    "engines": ["community1", "recovery"],
+    "local_labels_are_persistent_identity": false,
+    "confidence_fabricated": false,
+    "reasoner_semantics_changed": false
+  },
+  "model": {
+    "id": "pyannote/speaker-diarization-community-1",
+    "revision": "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+    "pyannote_audio": "4.0.7",
+    "torch": "2.14.0+cpu",
+    "device": "cpu",
+    "runtime_token_required": false,
+    "offline": true,
+    "automatic_download": false,
+    "gpu_memory_mib": 0.0,
+    "hashes": {
+      "config_yaml": "5CE2BFA9A938DC132CEC1172592D65173CBB8F444EA1E4133F10F9391DE155BE",
+      "embedding": "6F10FF60898A1D185FA22E1D11E0BFA8A92EFEC811F11BCA48CB8CAFEBEFD929",
+      "segmentation": "7AD24338D844FB95985486EB1A464E32D229F6D7A03C9ABE60F978BACF3F816E"
+    }
+  },
+  "benchmark": {
+    "cold_load_seconds": 5.808597400027793,
+    "gate2c_initial_cold_load_seconds": 43.854779799992684,
+    "warm_1_seconds": 4.153913100017235,
+    "warm_2_seconds": 2.5697219999856316,
+    "model_load_count": 1,
+    "capture_speaker_counts": [2, 2],
+    "capture_turn_counts": [4, 2],
+    "source_sample_rates": [21094, 21094],
+    "diarization_sample_rates": [16000, 16000],
+    "source_wav_preserved": true,
+    "benchmark_file": "C:\\SAFE-FIELD\\_checkpoints\\gate2d_community1_integration\\gate2d_runtime_benchmark.json"
+  },
+  "tests": {
+    "contract_a_h": {"passed": 8, "failed": 0},
+    "worker_composition": {"passed": 3, "failed": 0},
+    "directed_regression": {"passed": 52, "failed": 0},
+    "reasoner_compatibility": {"passed": 15, "failed": 0},
+    "registry_reasoner_regression": {"passed": 11, "failed": 0},
+    "a_one_speaker": "PASS",
+    "b_historical_multispeaker": "PASS",
+    "c_silence": "PASS",
+    "d_missing_cache": "PASS_EXPLICIT_FAILURE",
+    "e_local_labels_not_identity": "PASS",
+    "f_model_reuse": "PASS",
+    "g_timestamps": "PASS",
+    "h_recovery_adapter": "PASS"
+  },
+  "rollback": {
+    "community_to_recovery": "PASS",
+    "recovery_to_community": "PASS",
+    "final_engine": "community1",
+    "authenticated_health": 200,
+    "unauthenticated_health": 401,
+    "evidence": "C:\\SAFE-FIELD\\_checkpoints\\gate2d_community1_integration\\deploy\\restart_sequence.json"
+  },
+  "final_state": {
+    "worker": "READY",
+    "core": "STANDBY",
+    "occurrence_id": null,
+    "active_capture": false
+  }
+}

@@ -11,6 +11,11 @@ import argparse
 import os
 from pathlib import Path
 
+from mvp.operational_intelligence.diarization_engines import (
+    COMMUNITY1_REVISION,
+    Community1DiarizerAdapter,
+    DiarizationProviderBridge,
+)
 from mvp.operational_intelligence.recovery_audio import (
     FROZEN_ASR_BEAM,
     FROZEN_ASR_MODEL,
@@ -28,6 +33,15 @@ from mvp.operational_intelligence.razer_worker_transport import (
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
+GATE2C_ROOT = Path(r"C:\SAFE-FIELD\_checkpoints\gate2c_ab_20260930T002124Z_3a68721c")
+DEFAULT_COMMUNITY1_PYTHON = GATE2C_ROOT / "community1_venv" / "Scripts" / "python.exe"
+DEFAULT_COMMUNITY1_CACHE_ROOT = GATE2C_ROOT / "community1_cache"
+DEFAULT_COMMUNITY1_SNAPSHOT = (
+    DEFAULT_COMMUNITY1_CACHE_ROOT
+    / "models--pyannote--speaker-diarization-community-1"
+    / "snapshots"
+    / COMMUNITY1_REVISION
+)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -51,6 +65,34 @@ def parser() -> argparse.ArgumentParser:
         ),
         help="local ignored root containing the frozen Baseline B model bundles",
     )
+    result.add_argument(
+        "--diarization-engine",
+        choices=("recovery", "community1"),
+        default=os.environ.get("DIARIZATION_ENGINE", "recovery").strip().lower(),
+        help="explicit diarization engine; Recovery remains the rollback",
+    )
+    result.add_argument(
+        "--community1-python",
+        type=Path,
+        default=Path(os.environ.get("SAFE_FIELD_COMMUNITY1_PYTHON", DEFAULT_COMMUNITY1_PYTHON)),
+        help="isolated offline Community-1 Python runtime",
+    )
+    result.add_argument(
+        "--community1-cache-root",
+        type=Path,
+        default=Path(
+            os.environ.get("SAFE_FIELD_COMMUNITY1_CACHE_ROOT", DEFAULT_COMMUNITY1_CACHE_ROOT)
+        ),
+        help="local Community-1 Hugging Face cache (offline only)",
+    )
+    result.add_argument(
+        "--community1-model-snapshot",
+        type=Path,
+        default=Path(
+            os.environ.get("SAFE_FIELD_COMMUNITY1_MODEL_SNAPSHOT", DEFAULT_COMMUNITY1_SNAPSHOT)
+        ),
+        help="pinned local Community-1 snapshot",
+    )
     result.add_argument("--provider-timeout", type=float, default=60.0)
     result.add_argument("--spool-root")
     result.add_argument("--spool-ttl-hours", type=float, default=24.0)
@@ -64,32 +106,63 @@ def parser() -> argparse.ArgumentParser:
 
 def compose_frozen_worker_providers(
     models_root: Path,
+    *,
+    diarization_engine: str = "recovery",
+    community1_python: Path | None = None,
+    community1_cache_root: Path | None = None,
+    community1_model_snapshot: Path | None = None,
 ) -> tuple[WorkerProviders, dict[str, str]]:
     """Build only the inference providers approved by digital Baseline B."""
     enable_cuda_dlls()
     root = models_root.resolve()
     asr = FrozenRecoveryASRProvider(root)
-    diarization = RecoveryDiarizer(
+    recovery = RecoveryDiarizer(
         root,
         gap=FROZEN_DIARIZATION_GAP_SECONDS,
         window=FROZEN_DIARIZATION_WINDOW_SECONDS,
     )
+    selected = diarization_engine.strip().lower()
+    if selected == "recovery":
+        diarization = recovery
+        diarization_readiness = (
+            "RecoveryDiarizer:"
+            f"gap{FROZEN_DIARIZATION_GAP_SECONDS}:"
+            f"window{FROZEN_DIARIZATION_WINDOW_SECONDS}"
+        )
+        quality_readiness = "REQUIRED"
+    elif selected == "community1":
+        engine = Community1DiarizerAdapter.from_local_snapshot(
+            python_executable=Path(community1_python or DEFAULT_COMMUNITY1_PYTHON),
+            model_snapshot=Path(community1_model_snapshot or DEFAULT_COMMUNITY1_SNAPSHOT),
+            cache_root=Path(community1_cache_root or DEFAULT_COMMUNITY1_CACHE_ROOT),
+            device="cpu",
+        )
+        diarization = DiarizationProviderBridge(
+            engine,
+            embedding_provider=recovery.embedding_provider,
+        )
+        startup = engine.startup_metrics
+        diarization_readiness = (
+            f"Community1:{COMMUNITY1_REVISION}:offline:"
+            f"load_count{engine.model_load_count}:"
+            f"startup{float(startup.get('model_load_seconds', 0.0)):.3f}s"
+        )
+        quality_readiness = "ECAPA_REIDENTIFICATION_SEPARATE"
+    else:
+        raise ValueError(f"unsupported diarization engine: {diarization_engine}")
     providers = WorkerProviders(
         asr=asr,
         diarization=diarization,
-        embedding=diarization.embedding_provider,
+        embedding=recovery.embedding_provider,
         reasoning=None,
     )
     readiness = {
         "profile": "FROZEN_GOOD_BASELINE",
         "asr": f"{FROZEN_ASR_MODEL}:{FROZEN_ASR_VARIANT}:beam{FROZEN_ASR_BEAM}",
         "asr_runtime": "CUDA_FP16",
-        "diarization": (
-            "RecoveryDiarizer:"
-            f"gap{FROZEN_DIARIZATION_GAP_SECONDS}:"
-            f"window{FROZEN_DIARIZATION_WINDOW_SECONDS}"
-        ),
-        "observation_quality": "REQUIRED",
+        "diarization": diarization_readiness,
+        "diarization_engine": selected,
+        "observation_quality": quality_readiness,
         "reasoning": "DISABLED_ON_REMOTE_WORKER",
     }
     return providers, readiness
@@ -98,7 +171,13 @@ def compose_frozen_worker_providers(
 def main(argv: list[str] | None = None) -> int:
     args = parser().parse_args(argv)
     token = os.environ.get("SAFE_FIELD_RAZER_WORKER_TOKEN")
-    providers, readiness = compose_frozen_worker_providers(args.models_root)
+    providers, readiness = compose_frozen_worker_providers(
+        args.models_root,
+        diarization_engine=args.diarization_engine,
+        community1_python=args.community1_python,
+        community1_cache_root=args.community1_cache_root,
+        community1_model_snapshot=args.community1_model_snapshot,
+    )
     server = make_razer_worker_server(
         args.bind,
         args.port,
@@ -117,6 +196,9 @@ def main(argv: list[str] | None = None) -> int:
         pass
     finally:
         server.server_close()
+        close = getattr(providers.diarization, "close", None)
+        if callable(close):
+            close()
     return 0
 
 
