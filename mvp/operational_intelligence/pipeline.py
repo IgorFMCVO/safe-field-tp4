@@ -13,6 +13,7 @@ import time
 from typing import Any
 
 from .fact_graph import FactGraph
+from .identity_review import persist_identity_cues
 from .models import (
     EvidenceStatus,
     Fact,
@@ -290,7 +291,7 @@ class AsyncSegmentPipeline:
                     # unverified; it is not a registered or re-identified person.
                     if str(exc) != "SPEAKER_OBSERVATION_LOW_QUALITY":
                         raise
-                    unverified_id = f"UNVERIFIED_SPEAKER_{len(speaker_ids) + 1:02d}"
+                    unverified_id = f"UNVERIFIED_{segment_id}_{len(speaker_ids) + 1:02d}"
                     atomic_json(
                         self.session_root / "speakers" / f"{segment_id}_{unverified_id}.json",
                         {
@@ -298,6 +299,7 @@ class AsyncSegmentPipeline:
                             "local_speaker": local_speaker,
                             "speaker_id": unverified_id,
                             "status": "UNVERIFIED_LOW_QUALITY",
+                            "reason": "LOW_QUALITY",
                             "quality": {
                                 "speech_seconds": quality.speech_seconds,
                                 "speech_ratio": quality.speech_ratio,
@@ -336,6 +338,14 @@ class AsyncSegmentPipeline:
 
         transcript.speaker_ids = speaker_ids
         atomic_json(transcript_path, transcript.to_dict())
+        identity_cues = persist_identity_cues(self.session_root, transcript)
+        if identity_cues:
+            self.timeline.append(
+                "IDENTITY_CUES_EXTRACTED",
+                segment_id=segment_id,
+                cue_ids=[item["cue_id"] for item in identity_cues],
+                validation_required=True,
+            )
         reasoning = await self.providers.reasoning.analyze(transcript)
 
         for speaker_id, role in reasoning.provisional_roles.items():
