@@ -292,8 +292,8 @@ class OperationalCoreTests(unittest.TestCase):
         self.assertTrue(core.wait_for_processing(2.0))
         session = self.sessions / "OCC_UNVERIFIED_SPEAKER"
         transcript = json.loads((session / "transcripts" / "segment_0001.json").read_text())
-        self.assertEqual(transcript["speaker_ids"], ["UNVERIFIED_SPEAKER_01"])
-        self.assertTrue((session / "speakers" / "segment_0001_UNVERIFIED_SPEAKER_01.json").is_file())
+        self.assertEqual(transcript["speaker_ids"], ["UNVERIFIED_segment_0001_01"])
+        self.assertTrue((session / "speakers" / "segment_0001_UNVERIFIED_segment_0001_01.json").is_file())
         self.assertEqual(
             json.loads((session / "jobs" / "segment_0001.json").read_text())["status"],
             "COMPLETE",
