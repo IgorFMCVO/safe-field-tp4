@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Iterable
 
+from .identity_review import build_identity_review
 from .storage import atomic_json
 
 
@@ -91,6 +92,13 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
             item.get("fact_id", ""),
         ),
     )
+    identity_review = data.get("identity_review") or {}
+    confirmed_identity = identity_review.get("confirmed_identity_by_speaker", {})
+
+    def speaker_label(speaker_id: str) -> str:
+        identity = confirmed_identity.get(speaker_id)
+        return f"{identity} [OFFICER_CONFIRMED]" if identity else speaker_id
+
     confirmed_hypotheses = [
         item
         for item in data["hypotheses"]
@@ -109,6 +117,8 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
         f"- ID: `{occurrence['occurrence_id']}`",
         f"- Início: {occurrence['started_at']}",
         f"- Término: {occurrence.get('ended_at', 'não informado')}",
+        f"- Validação de identidade: `{identity_review.get('status', 'VALIDATED_OR_NOT_REQUIRED')}`",
+        f"- REDS final: `{'LIBERADO' if identity_review.get('report_finalization_allowed', True) else 'AGUARDA VALIDACAO DE IDENTIDADE'}`",
         "",
         "## Relato cronológico sustentado",
         "",
@@ -122,6 +132,8 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
         f"Ocorrencia: {occurrence['occurrence_id']}",
         f"Inicio: {occurrence['started_at']}",
         f"Termino: {occurrence.get('ended_at', 'nao informado')}",
+        f"Validacao de identidade: {identity_review.get('status', 'VALIDATED_OR_NOT_REQUIRED')}",
+        f"REDS final: {'LIBERADO' if identity_review.get('report_finalization_allowed', True) else 'AGUARDA VALIDACAO DE IDENTIDADE'}",
         "",
         "RELATO CRONOLOGICO SUSTENTADO",
     ]
@@ -133,7 +145,8 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
                 else "tempo não informado"
             )
             speakers = ", ".join(
-                fact.get("source_speakers") or ["interlocutor não identificado"]
+                speaker_label(item)
+                for item in (fact.get("source_speakers") or ["interlocutor não identificado"])
             )
             segments = ", ".join(fact.get("source_segments") or [])
             quote = fact.get("evidence_quote") or fact.get("statement") or ""
@@ -237,6 +250,15 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
         else []
     )
     error_status = _history_errors(pending, guidance)
+    identity_review = build_identity_review(session_root)
+    if identity_review.get("pending_count", 0):
+        error_status.append(
+            {
+                "code": "IDENTITY_VALIDATION_REQUIRED",
+                "detail": "Atribuição de identidade requer confirmação humana antes do REDS final.",
+                "pending_count": identity_review["pending_count"],
+            }
+        )
     history_status = "PARTIAL" if error_status else "COMPLETE"
 
     data = {
@@ -246,6 +268,7 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
         "occurrence": occurrence,
         "timeline": timeline,
         "speakers": speakers_doc.get("speakers", []),
+        "identity_review": identity_review,
         "transcripts": transcripts,
         "facts": facts,
         "excluded_nonoperational_fact_count": len(all_facts) - len(facts),
@@ -300,13 +323,19 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
     ]
     lines.extend(f"- {item['timestamp']} — {item['event']}" for item in timeline)
     lines.extend(["", "## Pessoas/interlocutores", ""])
+    identity_map = identity_review.get("confirmed_identity_by_speaker", {})
     lines.extend(
         (
             f"- `{speaker['speaker_id']}` — papel provisório: "
-            f"{speaker['provisional_role']}; confirmado: {speaker.get('confirmed_role') or 'não'}"
+            f"{speaker['provisional_role']}; papel confirmado: {speaker.get('confirmed_role') or 'não'}; "
+            f"identidade confirmada: {identity_map.get(speaker['speaker_id'], 'não')}"
         )
         for speaker in data["speakers"]
     )
+    if identity_review.get("pending_count", 0):
+        lines.append(
+            f"- ⚠ {identity_review['pending_count']} atribuição(ões) aguardam validação no desktop antes do REDS final."
+        )
     lines.extend(["", "## Declarações relevantes", ""])
     lines.extend(
         f"- `{item['segment_id']}` ({', '.join(item['speaker_ids'])}): {item['raw_transcript']}"
