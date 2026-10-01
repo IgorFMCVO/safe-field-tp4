@@ -1,0 +1,26 @@
+name: Gate2E Demo Stability Hotfix
+
+on:
+  push:
+    branches:
+      - gate2e-demo-stability-hotfix
+  workflow_dispatch:
+
+jobs:
+  python-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax check
+        run: |
+          python -m compileall -q mvp/operational_intelligence mvp/tests
+      - name: Identity and operational regressions
+        run: |
+          python -m unittest -v \
+            mvp.tests.test_identity_review \
+            mvp.tests.test_operational_intelligence \
+            mvp.tests.test_operational_http_api \
+            mvp.tests.test_occurrence_consolidation_api
