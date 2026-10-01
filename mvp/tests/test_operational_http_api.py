@@ -154,7 +154,7 @@ class OperationalApiTests(unittest.TestCase):
         expected = {
             "occurrence", "speakers", "segments", "transcripts", "facts",
             "contradictions", "hypotheses", "diao_sources", "watch_events",
-            "final_history", "processing", "original_audio",
+            "final_history", "processing", "original_audio", "identity_review",
         }
         self.assertEqual(set(snapshot), expected)
         rendered = dashboard_html(snapshot).decode("utf-8")
