@@ -18,8 +18,10 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from .core import OperationalIntelligenceCore
+from .history import build_preliminary_history
+from .identity_review import build_identity_review, confirm_identity
 from .models import LifecycleState, OfficerAssessment, utc_now
-from .storage import OCCURRENCE_ID_RE
+from .storage import OCCURRENCE_ID_RE, Timeline
 
 
 API_VERSION = "1.0"
@@ -215,6 +217,62 @@ class OperationalApiService:
                                    hypothesis_id=(state.get('hypothesis') or {}).get('hypothesis_id'))
         return {"ok": True, "version": API_VERSION, "event": event}
 
+    def speaker_identity_confirmation(self, payload: dict) -> dict:
+        occurrence_id = payload.get("occurrence_id")
+        if occurrence_id is not None:
+            if not isinstance(occurrence_id, str) or not occurrence_id:
+                raise ApiError(400, "INVALID_OCCURRENCE_ID")
+            root = self._saved_root(occurrence_id)
+        else:
+            root = self._root(allow_finished=True)
+            if root is None:
+                raise ApiError(409, "NO_OCCURRENCE_FOR_IDENTITY_CONFIRMATION")
+
+        raw_ids = payload.get("speaker_ids")
+        if raw_ids is None:
+            single = payload.get("speaker_id")
+            raw_ids = [single] if single is not None else []
+        if not isinstance(raw_ids, list) or not raw_ids or not all(
+            isinstance(item, str) and item for item in raw_ids
+        ):
+            raise ApiError(400, "SPEAKER_IDS_REQUIRED")
+        identity = payload.get("identity")
+        if not isinstance(identity, str) or not identity.strip():
+            raise ApiError(400, "IDENTITY_REQUIRED")
+        cue_ids = payload.get("cue_ids", [])
+        if not isinstance(cue_ids, list) or not all(isinstance(item, str) for item in cue_ids):
+            raise ApiError(400, "INVALID_CUE_IDS")
+        role = payload.get("role")
+        if role is not None and not isinstance(role, str):
+            raise ApiError(400, "INVALID_ROLE")
+
+        try:
+            confirmation = confirm_identity(
+                root,
+                raw_ids,
+                identity,
+                cue_ids=cue_ids,
+                role=role,
+            )
+        except ValueError as exc:
+            raise ApiError(409, "IDENTITY_CONFIRMATION_REJECTED", str(exc)) from exc
+
+        Timeline(root / "timeline.jsonl").append(
+            "SPEAKER_IDENTITY_OFFICER_CONFIRMED",
+            confirmation_id=confirmation["confirmation_id"],
+            speaker_ids=confirmation["speaker_ids"],
+            identity=confirmation["identity"],
+            cue_ids=confirmation["cue_ids"],
+        )
+        if (root / "reports" / "HISTORICO_PRELIMINAR.json").is_file():
+            build_preliminary_history(root)
+        return {
+            "ok": True,
+            "version": API_VERSION,
+            "confirmation": confirmation,
+            "identity_review": build_identity_review(root),
+        }
+
     def _latest_hypothesis(self, root: Path) -> dict | None:
         items = _json_files(root / "hypotheses")
         # IDs contain hashes, not chronological sequence numbers.
@@ -372,6 +430,7 @@ class OperationalApiService:
                 "contradictions": [], "hypotheses": [], "diao_sources": [],
                 "watch_events": list(self._watch_events), "final_history": None,
                 "processing": [], "original_audio": None,
+                "identity_review": {"status": "VALIDATED_OR_NOT_REQUIRED", "report_finalization_allowed": True, "pending_count": 0, "pending_items": [], "identity_cues": [], "confirmations": [], "confirmed_identity_by_speaker": {}},
             }
         speakers_path = root / "speakers" / "registry.json"
         speaker_data = _read_json(speakers_path) if speakers_path.is_file() else {"speakers": []}
@@ -411,6 +470,7 @@ class OperationalApiService:
             "final_history": history,
             "processing": processing,
             "original_audio": original_audio,
+            "identity_review": build_identity_review(root),
         }
 
 
@@ -418,6 +478,7 @@ def dashboard_html(snapshot: dict) -> bytes:
     sections = (
         ("OCCURRENCE", snapshot["occurrence"]),
         ("SPEAKERS", snapshot["speakers"]),
+        ("IDENTITY VALIDATION", snapshot.get("identity_review", {})),
         ("SEGMENTS", snapshot["segments"]),
         ("TRANSCRIPTS", snapshot["transcripts"]),
         ("FACTS", snapshot["facts"]),
@@ -599,6 +660,8 @@ def make_handler(
                     "/api/v1/officer/assessments",
                 }:
                     result = service.officer_assessment(payload)
+                elif path == "/api/v1/speakers/confirm-identity":
+                    result = service.speaker_identity_confirmation(payload)
                 elif path in DECISION_ROUTES:
                     result = service.hypothesis_decision(payload, DECISION_ROUTES[path])
                 elif path == "/api/v1/guidance/action":
