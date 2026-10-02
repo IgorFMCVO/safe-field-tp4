@@ -137,3 +137,20 @@ de dados de ocorrência a TTS/ASR/LLM externos.
 
 Fontes e termos: ver os três relatórios anexos. CORAA CC BY-NC-ND4.0 mantido
 privado; não foi treinado modelo nem redistribuído o corpus tratado.
+
+## Checkpoint operacional — recuperação de lançamento (2026-09-22)
+
+- Última captura acústica física comprovada: `post_ground_audio_20260913`,
+  RAW24 (`safe_field_mvp_raw24_capture.fs`, SHA-256
+  `B0B665EBB20DAEAB3C3ABCCDCE96858FA8084DCDB1F9B7587EC5EBC72ECF21F1`),
+  programada somente em SRAM; fala humana e tom de 1 kHz foram observados.
+- O ensaio posterior `physical_watch_occurrence_20260913` comprova que o Core
+  recebeu PCM16 (`UART_PCM16_V1`) em uma ocorrência ativa, mas não preserva o
+  comando de programação nem a identidade/hash da imagem SRAM correspondente.
+  Seu primeiro erro registrado foi espera pelo START físico do relógio; não há
+  evidência de que o playback tenha começado nessa tentativa.
+- O estado atual do Core anuncia `UART_PCM16_V1`; a sonda exclusiva de
+  2026-09-22 leu zero bytes. Não é seguro substituir a SRAM por uma imagem
+  escolhida pelo nome: faltam a imagem/hash, a pinagem e o comando de lançamento
+  que associem o ensaio PCM16 ao hardware. Nenhuma reprogramação ou alteração de
+  certificado, autenticação, RTL, Flash ou fiação foi feita nesta recuperação.

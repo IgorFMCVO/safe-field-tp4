@@ -8,11 +8,13 @@ from dataclasses import dataclass, field
 ROUTES = {
     "state": ("GET", "/api/v1/operational/wearable/state"),
     "start": ("POST", "/api/v1/occurrences/start"),
+    "start_capture": ("POST", "/api/v1/occurrences/captures/start"),
+    "stop_capture": ("POST", "/api/v1/occurrences/captures/stop"),
     "confirm": ("POST", "/api/v1/hypotheses/confirm"),
     "reject": ("POST", "/api/v1/hypotheses/reject"),
     "defer": ("POST", "/api/v1/hypotheses/defer"),
     "action": ("POST", "/api/v1/guidance/action"),
-    "finish": ("POST", "/api/v1/occurrences/finish"),
+    "finish": ("POST", "/api/v1/occurrences/conclude"),
 }
 
 ACTION_STATUSES = {"DONE", "PENDING", "NOT_APPLICABLE"}
@@ -64,6 +66,9 @@ class WearableModel:
     guidance_visible: bool = False
     auth_failed: bool = False
     finalization_pending: bool = False
+    start_acked: bool = False
+    first_valid_audio_frame: bool = False
+    stop_acked: bool = False
     action_status: dict[str, str] = field(default_factory=dict)
 
     def apply(self, payload: dict) -> None:
@@ -91,7 +96,12 @@ class WearableModel:
             or bool(payload.get("finalization_pending"))
             or (state == "PROCESSING_PENDING" and capture_flag_present and not self.capture_active)
         )
+        pcm_source = payload.get("pcm_source") or {}
+        if self.start_acked and int(pcm_source.get("valid_frames", 0)) > 0:
+            self.first_valid_audio_frame = True
         if state == "STANDBY":
+            self.start_acked = False
+            self.first_valid_audio_frame = False
             self.capture_active = False
             self.source_quiescent = True
             self.finalization_pending = False
@@ -122,11 +132,17 @@ class WearableModel:
         self.auth_failed = status == 401
 
     def visible_mode(self) -> str:
+        if self.start_acked and not self.first_valid_audio_frame:
+            return "STARTING_CAPTURE"
         if self.finalization_pending:
             return "PROCESSING_PENDING"
         if self.hypothesis_status == "PROPOSED":
             return "HYPOTHESIS_PROPOSED"
         return self.state
+
+    @property
+    def ready_to_speak(self) -> bool:
+        return self.start_acked and self.first_valid_audio_frame
 
     def can_finalize_failed_capture(self) -> bool:
         return (

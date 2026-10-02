@@ -8,6 +8,7 @@
 #include <WiFiClientSecure.h>
 #include <Wire.h>
 #include <memory>
+#include <vector>
 
 #include "pin_config.h"
 #include <XPowersLib.h>
@@ -20,6 +21,7 @@ namespace {
 
 constexpr uint32_t kSerialBaud = 115200;
 constexpr uint32_t kPollPeriodMs = 700;
+constexpr uint32_t kProgressUpdatePeriodMs = 1000;
 constexpr uint32_t kWifiRetryMs = 10000;
 constexpr uint32_t kHttpTimeoutMs = 1800;
 constexpr uint32_t kFinishHttpTimeoutMs = 3500;
@@ -31,15 +33,19 @@ constexpr uint32_t kTouchDebounceMs = 350;
 constexpr size_t kMaxCommandLength = 8192;
 // ESP-IDF NVS strings are bounded to 4000 bytes; retain margin for the NUL.
 constexpr size_t kMaxCaPemLength = 3900;
-constexpr uint8_t kMaxGuidanceItems = 5;
+// Guidance is operational content, not a dashboard summary. Keep every item
+// supplied by the Core and render it through a touch-scrollable viewport.
+constexpr uint8_t kGuidanceVisibleRows = 5;
 
 constexpr char kStatePath[] = "/api/v1/operational/wearable/state";
 constexpr char kStartPath[] = "/api/v1/occurrences/start";
+constexpr char kStartCapturePath[] = "/api/v1/occurrences/captures/start";
+constexpr char kStopCapturePath[] = "/api/v1/occurrences/captures/stop";
 constexpr char kConfirmPath[] = "/api/v1/hypotheses/confirm";
 constexpr char kRejectPath[] = "/api/v1/hypotheses/reject";
 constexpr char kDeferPath[] = "/api/v1/hypotheses/defer";
 constexpr char kActionPath[] = "/api/v1/guidance/action";
-constexpr char kFinishPath[] = "/api/v1/occurrences/finish";
+constexpr char kFinishPath[] = "/api/v1/occurrences/conclude";
 
 constexpr uint16_t kBlack = 0x0000;
 constexpr uint16_t kWhite = 0xFFFF;
@@ -53,6 +59,10 @@ constexpr uint16_t kDarkRed = 0x7800;
 
 enum class UiMode : uint8_t {
   STANDBY,
+  STARTING_CAPTURE,
+  SAVING_CAPTURE,
+  OCCURRENCE_OPEN,
+  CONCLUDING_OCCURRENCE,
   OCCURRENCE_ACTIVE,
   HYPOTHESIS_PROPOSED,
   GUIDANCE,
@@ -60,6 +70,15 @@ enum class UiMode : uint8_t {
   PROCESSING_PENDING,
   GUIDANCE_NOT_AVAILABLE,
   CAPTURE_FAILED,
+  SAVED_RESULT,
+};
+
+enum class ControlCommand : uint8_t {
+  NONE,
+  START_OCCURRENCE,
+  START_CAPTURE,
+  STOP_CAPTURE,
+  CONCLUDE_OCCURRENCE,
 };
 
 enum class PostResult : uint8_t {
@@ -67,6 +86,18 @@ enum class PostResult : uint8_t {
   ACCEPTED,
   PROCESSING_PENDING,
   CAPTURE_FAILED,
+};
+
+struct ControlRequest {
+  ControlCommand command;
+  char path[80];
+  char body[512];
+  uint32_t timeoutMs;
+};
+
+struct ControlResponse {
+  ControlCommand command;
+  PostResult result;
 };
 
 struct GuidanceItem {
@@ -107,14 +138,21 @@ String serialLine;
 
 String serverState = "STANDBY";
 String occurrenceId;
+String activeCaptureId;
+String coreBootId;
+uint32_t captureCount = 0;
+uint32_t stateRevision = 0;
+uint32_t commandSequence = 0;
+uint32_t commandBootNonce = 0;
+ControlCommand pendingControlCommand = ControlCommand::NONE;
 String hypothesisId;
 String hypothesisLabel;
 String hypothesisStatus;
 String statusMessage;
 String apiVersion;
-GuidanceItem guidance[kMaxGuidanceItems];
-uint8_t guidanceCount = 0;
-uint8_t selectedGuidance = 0;
+std::vector<GuidanceItem> guidance;
+uint16_t selectedGuidance = 0;
+uint16_t guidanceScrollOffset = 0;
 
 bool displayReady = false;
 bool touchReady = false;
@@ -125,18 +163,84 @@ bool transportSecurityFailed = false;
 bool captureActive = false;
 bool sourceQuiescent = true;
 bool finalizationPending = false;
+// These gates deliberately follow Core evidence. A tap is never evidence that
+// the UART reader is delivering verified RAW24 frames.
+bool startAwaitingAudio = false;
+bool stopAwaitingCore = false;
+bool startRequestInFlight = false;
+bool stopRequestInFlight = false;
+bool concludeAwaitingCore = false;
+bool concludeRequestInFlight = false;
+// An HTTPS error is inconclusive. One normal poll reconciles it against the
+// Core; no automatic POST retry is ever emitted from this state.
+bool reconcilePending = false;
+bool reconcileWasStart = false;
+bool savedResultAvailable = false;
+bool savedSuggestionAvailable = false;
+String savedResultLabel;
+uint32_t savedResultFactCount = 0;
+uint32_t startHttpNotBeforeMs = 0;
+uint32_t stopHttpNotBeforeMs = 0;
+uint32_t concludeHttpNotBeforeMs = 0;
+bool touchContactActive = false;
+bool touchIrqWasHigh = true;
+uint32_t lastValidRaw24Frames = 0;
+uint32_t tStartTap = 0;
+uint32_t tStartHttpSent = 0;
+uint32_t tStartAck = 0;
+uint32_t tFirstValidAudioFrame = 0;
+uint32_t tRecordingUi = 0;
+uint32_t tStopTap = 0;
+uint32_t tStopAck = 0;
+uint32_t tLastAudioFrame = 0;
+uint32_t tProcessingUi = 0;
 bool requestPending = false;
+bool controlRequestQueued = false;
 bool uiDirty = true;
+bool batteryDirty = false;
 int batteryPercent = -1;
 uint32_t lastPollMs = 0;
 uint32_t lastWifiAttemptMs = 0;
 uint32_t lastBatteryReadMs = 0;
 uint32_t lastTouchMs = 0;
+uint32_t lastTouchProbeMs = 0;
+uint32_t lastUiAnimationMs = 0;
+uint32_t touchArmNotBeforeMs = 0;
+QueueHandle_t controlRequestQueue = nullptr;
+QueueHandle_t controlResponseQueue = nullptr;
 
 void touchInterrupt() { touch->IIC_Interrupt_Flag = true; }
 
+bool initializeTouchController(bool recovery) {
+  if (!touch->begin()) {
+    if (recovery) USBSerial.println("FT3168 RECOVERY PROBE FAILED");
+    return false;
+  }
+  pinMode(TP_INT, INPUT_PULLUP);
+  detachInterrupt(digitalPinToInterrupt(TP_INT));
+  attachInterrupt(digitalPinToInterrupt(TP_INT), touchInterrupt, FALLING);
+  touchIrqWasHigh = digitalRead(TP_INT) == HIGH;
+  touch->IIC_Interrupt_Flag = false;
+  touchContactActive = false;
+  // Discovery and USB reset can leave a stale interrupt/coordinate pair.
+  // Arm only after the controller has settled.
+  touchArmNotBeforeMs = millis() + 1500;
+  const bool touchActive = touch->IIC_Write_Device_State(
+      touch->Arduino_IIC_Touch::Device::TOUCH_POWER_MODE,
+      touch->Arduino_IIC_Touch::Device_Mode::TOUCH_POWER_ACTIVE);
+  USBSerial.println(touchActive ? "PASS FT3168 ACTIVE MODE" :
+                    "WARN FT3168 ACTIVE MODE");
+  if (recovery) USBSerial.println("PASS FT3168 RECOVERED");
+  return true;
+}
+
 bool elapsed(uint32_t now, uint32_t deadline) {
   return static_cast<int32_t>(now - deadline) >= 0;
+}
+
+void captureTimestamp(const char *name, uint32_t value) {
+  USBSerial.printf("CAPTURE_TS %s=%lu\n", name,
+                   static_cast<unsigned long>(value));
 }
 
 String clipped(const String &value, size_t maxLength) {
@@ -207,6 +311,16 @@ String jsonScalarValue(const String &json, const char *key) {
     ++end;
   }
   return json.substring(start, end);
+}
+
+uint32_t jsonUnsignedValue(const String &json, const char *key,
+                           uint32_t fallback = 0) {
+  const String value = jsonScalarValue(json, key);
+  if (!value.length()) return fallback;
+  char *end = nullptr;
+  const unsigned long parsed = strtoul(value.c_str(), &end, 10);
+  return end != value.c_str() && *end == '\0'
+      ? static_cast<uint32_t>(parsed) : fallback;
 }
 
 bool jsonBoolValue(const String &json, const char *key, bool fallback) {
@@ -370,26 +484,94 @@ bool beginSecureHttp(HTTPClient &http, WiFiClientSecure &tlsClient,
 
 void clearOperationalDetails() {
   occurrenceId = "";
+  activeCaptureId = "";
+  captureCount = 0;
   hypothesisId = "";
   hypothesisLabel = "";
   hypothesisStatus = "";
   statusMessage = "";
-  guidanceCount = 0;
+  guidance.clear();
   selectedGuidance = 0;
+  guidanceScrollOffset = 0;
   finalizationPending = false;
 }
 
+void ensureGuidanceSelectionVisible() {
+  if (guidance.empty()) {
+    selectedGuidance = 0;
+    guidanceScrollOffset = 0;
+    return;
+  }
+  if (selectedGuidance >= guidance.size()) {
+    selectedGuidance = static_cast<uint16_t>(guidance.size() - 1);
+  }
+  if (guidanceScrollOffset > selectedGuidance) {
+    guidanceScrollOffset = selectedGuidance;
+  }
+  if (selectedGuidance >= guidanceScrollOffset + kGuidanceVisibleRows) {
+    guidanceScrollOffset = selectedGuidance - kGuidanceVisibleRows + 1;
+  }
+}
+
+uint32_t visualHashMix(uint32_t hash, uint32_t value) {
+  hash ^= value;
+  return hash * 16777619UL;
+}
+
+uint32_t visualHashText(uint32_t hash, const String &value) {
+  for (size_t index = 0; index < value.length(); ++index) {
+    hash = visualHashMix(hash, static_cast<uint8_t>(value[index]));
+  }
+  return visualHashMix(hash, 0xFF);
+}
+
+// The transport payload contains fast-changing telemetry (for example the
+// RAW24 frame count) that is not drawn.  Hash only values that can alter the
+// visible screen so an identical poll never clears and rebuilds the panel.
+uint32_t visualStateFingerprint() {
+  uint32_t hash = 2166136261UL;
+  hash = visualHashText(hash, serverState);
+  hash = visualHashText(hash, occurrenceId);
+  hash = visualHashText(hash, hypothesisLabel);
+  hash = visualHashText(hash, hypothesisStatus);
+  hash = visualHashText(hash, savedResultLabel);
+  hash = visualHashMix(hash, captureCount);
+  hash = visualHashMix(hash, selectedGuidance);
+  hash = visualHashMix(hash, guidanceScrollOffset);
+  hash = visualHashMix(hash, captureActive);
+  hash = visualHashMix(hash, finalizationPending);
+  hash = visualHashMix(hash, startAwaitingAudio);
+  hash = visualHashMix(hash, stopAwaitingCore);
+  hash = visualHashMix(hash, concludeAwaitingCore);
+  hash = visualHashMix(hash, startRequestInFlight);
+  hash = visualHashMix(hash, stopRequestInFlight);
+  hash = visualHashMix(hash, concludeRequestInFlight);
+  hash = visualHashMix(hash, requestPending);
+  hash = visualHashMix(hash, savedResultAvailable);
+  hash = visualHashMix(hash, savedSuggestionAvailable);
+  hash = visualHashMix(hash, savedResultFactCount);
+  for (const GuidanceItem &entry : guidance) {
+    hash = visualHashText(hash, entry.actionId);
+    hash = visualHashText(hash, entry.text);
+    hash = visualHashText(hash, entry.status);
+  }
+  return hash;
+}
+
 void parseGuidance(const String &payload) {
-  guidanceCount = 0;
+  const String previouslySelectedId =
+      (guidance.empty() || selectedGuidance >= guidance.size())
+          ? "" : guidance[selectedGuidance].actionId;
+  guidance.clear();
   selectedGuidance = 0;
+  guidanceScrollOffset = 0;
   const String guidanceObject = jsonObjectValue(payload, "guidance");
   String items = jsonArrayValue(guidanceObject.length() ? guidanceObject : payload,
                                 "items");
   if (!items.length()) return;
 
   int cursor = 1;
-  while (cursor < static_cast<int>(items.length()) &&
-         guidanceCount < kMaxGuidanceItems) {
+  while (cursor < static_cast<int>(items.length())) {
     const int objectStart = items.indexOf('{', cursor);
     if (objectStart < 0) break;
     int depth = 0;
@@ -413,7 +595,7 @@ void parseGuidance(const String &payload) {
     }
     if (objectEnd < 0) break;
     const String object = items.substring(objectStart, objectEnd + 1);
-    GuidanceItem &entry = guidance[guidanceCount];
+    GuidanceItem entry;
     entry.actionId = jsonStringValue(object, "action_id");
     if (!entry.actionId.length()) entry.actionId = jsonStringValue(object, "id");
     entry.text = jsonStringValue(object, "text");
@@ -435,12 +617,41 @@ void parseGuidance(const String &payload) {
     entry.page = jsonScalarValue(metadata, "page");
     entry.item = jsonScalarValue(metadata, "item");
     entry.chunkId = jsonStringValue(metadata, "chunk_id");
-    if (entry.actionId.length() && entry.text.length()) ++guidanceCount;
+    if (entry.actionId.length() && entry.text.length()) {
+      guidance.push_back(entry);
+      if (entry.actionId == previouslySelectedId) {
+        selectedGuidance = static_cast<uint16_t>(guidance.size() - 1);
+      }
+    }
     cursor = objectEnd + 1;
   }
+  ensureGuidanceSelectionVisible();
 }
 
 void applyStatePayload(const String &payload) {
+  const uint32_t previousVisualState = visualStateFingerprint();
+  const String nextBootId = jsonStringValue(payload, "boot_id");
+  const uint32_t nextRevision = jsonUnsignedValue(payload, "state_revision", 0);
+  if (nextBootId.length()) {
+    if (nextBootId == coreBootId && nextRevision < stateRevision) {
+      USBSerial.printf("POLL_STALE revision=%lu current=%lu\n",
+                       static_cast<unsigned long>(nextRevision),
+                       static_cast<unsigned long>(stateRevision));
+      return;
+    }
+    if (coreBootId.length() && nextBootId != coreBootId) {
+      USBSerial.println("CORE_BOOT_CHANGED RESYNCHRONIZING");
+      startAwaitingAudio = false;
+      stopAwaitingCore = false;
+      concludeAwaitingCore = false;
+      startRequestInFlight = false;
+      stopRequestInFlight = false;
+      concludeRequestInFlight = false;
+      reconcilePending = false;
+    }
+    coreBootId = nextBootId;
+    stateRevision = nextRevision;
+  }
   String nextVersion = jsonStringValue(payload, "version");
   if (!nextVersion.length()) nextVersion = jsonStringValue(payload, "api_version");
   if (nextVersion.length()) apiVersion = nextVersion;
@@ -467,6 +678,23 @@ void applyStatePayload(const String &payload) {
     nextOccurrence = jsonStringValue(occurrence, "occurrence_id");
   }
   if (nextOccurrence.length()) occurrenceId = nextOccurrence;
+  const String nextCapture = jsonStringValue(payload, "active_capture_id");
+  if (nextCapture.length()) activeCaptureId = nextCapture;
+  else if (jsonHasKey(payload, "active_capture_id")) activeCaptureId = "";
+  captureCount = jsonUnsignedValue(payload, "capture_count", captureCount);
+
+  // This is a read-only summary of an already persisted, closed occurrence.
+  // It has no authority over capture; Core state below remains authoritative.
+  const String lastResult = jsonObjectValue(payload, "last_result");
+  if (lastResult.length()) {
+    savedResultAvailable = jsonBoolValue(lastResult, "available", false);
+    savedSuggestionAvailable = jsonBoolValue(lastResult, "suggestion_available", false);
+    savedResultLabel = jsonStringValue(lastResult, "hypothesis_label");
+    savedResultFactCount = jsonUnsignedValue(lastResult, "fact_count", 0);
+  } else if (serverState != "STANDBY") {
+    savedResultAvailable = false;
+    savedSuggestionAvailable = false;
+  }
 
   const bool captureFlagPresent = jsonHasKey(payload, "capture_active");
   if (captureFlagPresent) {
@@ -482,17 +710,107 @@ void applyStatePayload(const String &payload) {
       jsonBoolValue(payload, "finalization_pending", false) ||
       (serverState == "PROCESSING_PENDING" && captureFlagPresent && !captureActive);
   if (serverState == "STANDBY") {
+    // A later authoritative poll can report STANDBY after an external STOP,
+    // even if this watch never observed the first audio frame.  Release the
+    // local start gate or currentMode() would keep rendering capture startup.
+    startAwaitingAudio = false;
+    startRequestInFlight = false;
+    // STOP may legitimately return STANDBY while ASR/diarization continue in
+    // the Core's detached worker.  That is the completed capture boundary,
+    // not an unfinished watch operation.
+    if (stopAwaitingCore) {
+      stopAwaitingCore = false;
+      stopRequestInFlight = false;
+      finalizationPending = false;
+      tLastAudioFrame = millis();
+      captureTimestamp("t_last_audio_frame", tLastAudioFrame);
+      USBSerial.printf("CAPTURE_LATENCY stop_to_standby=%lu\n",
+                       static_cast<unsigned long>(tLastAudioFrame - tStopTap));
+    }
+    concludeAwaitingCore = false;
+    concludeRequestInFlight = false;
     captureActive = false;
     sourceQuiescent = true;
     clearOperationalDetails();
+    if (reconcilePending) {
+      reconcilePending = false;
+      reconcileWasStart = false;
+      USBSerial.println("CORE_RECONCILED_STANDBY");
+    }
   } else if (serverState == "CAPTURE_FAILED") {
+    startAwaitingAudio = false;
     // The Core can detect corruption while its reader still has in-flight
     // delivery. Preserve its explicit capture flag until source_quiescent.
     if (sourceQuiescentPresent && sourceQuiescent) captureActive = false;
     finalizationPending = false;
+  } else if (serverState == "OCCURRENCE_OPEN") {
+    if (stopAwaitingCore) {
+      tLastAudioFrame = millis();
+      captureTimestamp("t_last_audio_frame", tLastAudioFrame);
+      USBSerial.printf("CAPTURE_LATENCY stop_to_open=%lu\n",
+                       static_cast<unsigned long>(tLastAudioFrame - tStopTap));
+    }
+    startAwaitingAudio = false;
+    startRequestInFlight = false;
+    stopAwaitingCore = false;
+    stopRequestInFlight = false;
+    captureActive = false;
+    sourceQuiescent = true;
+    finalizationPending = false;
   } else if (!captureFlagPresent && occurrenceId.length() && !finalizationPending) {
     captureActive = true;
     sourceQuiescent = false;
+  }
+
+  // Local timeout/error is not proof of failure. A following poll that sees
+  // a real Core capture adopts it; STANDBY above releases all local gates.
+  if (reconcilePending && captureActive) {
+    const bool wasStart = reconcileWasStart;
+    reconcilePending = false;
+    reconcileWasStart = false;
+    stopAwaitingCore = false;
+    stopRequestInFlight = false;
+    finalizationPending = false;
+    if (wasStart && tStartAck == 0) {
+      tStartAck = millis();
+      captureTimestamp("t_start_ack", tStartAck);
+    }
+    startAwaitingAudio = wasStart;
+    serverState = "OCCURRENCE_ACTIVE";
+    USBSerial.println("CORE_RECONCILED_CAPTURE_ACTIVE");
+  }
+
+  // PCM source status is the only proof that the START request became live
+  // audio capture. It is deliberately independent of VAD/FSM activity.
+  const String pcmSource = jsonObjectValue(payload, "pcm_source");
+  const uint32_t validRaw24Frames = jsonUnsignedValue(pcmSource, "valid_frames",
+                                                       lastValidRaw24Frames);
+  if (validRaw24Frames > lastValidRaw24Frames) {
+    lastValidRaw24Frames = validRaw24Frames;
+    if (startAwaitingAudio && tFirstValidAudioFrame == 0) {
+      tFirstValidAudioFrame = millis();
+      captureTimestamp("t_first_valid_audio_frame", tFirstValidAudioFrame);
+    }
+  }
+  if (startAwaitingAudio && tStartAck != 0 && tFirstValidAudioFrame != 0) {
+    startAwaitingAudio = false;
+    serverState = "OCCURRENCE_ACTIVE";
+    tRecordingUi = millis();
+    captureTimestamp("t_recording_ui", tRecordingUi);
+    USBSerial.printf("CAPTURE_LATENCY start_ack_to_first_audio=%lu start_to_ready=%lu\n",
+                     static_cast<unsigned long>(tFirstValidAudioFrame - tStartAck),
+                     static_cast<unsigned long>(tRecordingUi - tStartTap));
+  }
+  if (stopAwaitingCore && !captureActive && sourceQuiescent &&
+      (finalizationPending || serverState == "PROCESSING_PENDING")) {
+    stopAwaitingCore = false;
+    tLastAudioFrame = millis();
+    captureTimestamp("t_last_audio_frame", tLastAudioFrame);
+    tProcessingUi = millis();
+    captureTimestamp("t_processing_ui", tProcessingUi);
+    USBSerial.printf("CAPTURE_LATENCY stop_to_ack=%lu stop_to_last_audio=%lu\n",
+                     static_cast<unsigned long>(tStopAck - tStopTap),
+                     static_cast<unsigned long>(tLastAudioFrame - tStopTap));
   }
 
   const String hypothesis = jsonObjectValue(payload, "hypothesis");
@@ -521,17 +839,24 @@ void applyStatePayload(const String &payload) {
   if (hypothesisStatus == "OFFICER_CONFIRMED") {
     parseGuidance(payload);
   } else {
-    guidanceCount = 0;
+    guidance.clear();
     selectedGuidance = 0;
+    guidanceScrollOffset = 0;
   }
-  uiDirty = true;
+  if (visualStateFingerprint() != previousVisualState) uiDirty = true;
 }
 
 UiMode currentMode() {
   if (serverState == "CAPTURE_FAILED") return UiMode::CAPTURE_FAILED;
+  if (startAwaitingAudio) return UiMode::STARTING_CAPTURE;
+  if (stopAwaitingCore) return UiMode::SAVING_CAPTURE;
+  if (concludeAwaitingCore) return UiMode::CONCLUDING_OCCURRENCE;
   // Finalization has priority over stale hypothesis/guidance fields retained
   // for audit display while the Core drains pending work.
   if (finalizationPending) return UiMode::PROCESSING_PENDING;
+  // A stopped recorder keeps the occurrence operationally open even when an
+  // asynchronous result arrives.  Capture controls must remain reachable.
+  if (serverState == "OCCURRENCE_OPEN") return UiMode::OCCURRENCE_OPEN;
   if (serverState == "REASSESSMENT_REQUIRED") {
     return UiMode::REASSESSMENT_REQUIRED;
   }
@@ -543,16 +868,17 @@ UiMode currentMode() {
       serverState == "HYPOTHESIS_PROPOSED") {
     return UiMode::HYPOTHESIS_PROPOSED;
   }
-  if (hypothesisStatus == "OFFICER_CONFIRMED" && guidanceCount > 0) {
+  if (hypothesisStatus == "OFFICER_CONFIRMED" && !guidance.empty()) {
     return UiMode::GUIDANCE;
   }
   if (serverState == "PROCESSING_PENDING" ||
-      (hypothesisStatus == "OFFICER_CONFIRMED" && guidanceCount == 0)) {
+      (hypothesisStatus == "OFFICER_CONFIRMED" && guidance.empty())) {
     return UiMode::PROCESSING_PENDING;
   }
   if (captureActive || serverState == "OCCURRENCE_ACTIVE") {
     return UiMode::OCCURRENCE_ACTIVE;
   }
+  if (serverState == "SAVED_RESULT") return UiMode::SAVED_RESULT;
   return UiMode::STANDBY;
 }
 
@@ -581,6 +907,44 @@ void button(int16_t x, int16_t y, int16_t width, int16_t height,
   gfx->print(label);
 }
 
+constexpr int16_t kProgressX = 46;
+constexpr int16_t kProgressY = 330;
+constexpr int16_t kProgressWidth = LCD_WIDTH - 92;
+
+void renderProgress(uint16_t color) {
+  // Only this small region changes while waiting. Clearing the complete
+  // CO5300 frame caused a visible flash on every animation tick.
+  gfx->fillRoundRect(kProgressX + 1, kProgressY + 1,
+                     kProgressWidth - 2, 14, 7, kBlack);
+  gfx->drawRoundRect(kProgressX, kProgressY, kProgressWidth, 16, 8, kMuted);
+  const uint16_t phase = (millis() / kProgressUpdatePeriodMs) %
+                         (kProgressWidth - 28);
+  gfx->fillRoundRect(kProgressX + 2 + phase, kProgressY + 3, 26, 10, 5, color);
+}
+
+void updateProgressIndicator() {
+  if (!displayReady) return;
+  const UiMode mode = currentMode();
+  if (mode == UiMode::STARTING_CAPTURE) {
+    renderProgress(startRequestInFlight ? kGreen : kAmber);
+  } else if (mode == UiMode::SAVING_CAPTURE ||
+             mode == UiMode::CONCLUDING_OCCURRENCE) {
+    renderProgress(kAmber);
+  } else if (mode == UiMode::PROCESSING_PENDING ||
+             mode == UiMode::GUIDANCE_NOT_AVAILABLE) {
+    renderProgress(stopRequestInFlight ? kGreen : kAmber);
+  }
+}
+
+void renderBatteryField() {
+  if (!displayReady) return;
+  gfx->fillRect(300, 60, LCD_WIDTH - 300, 18, kBlack);
+  gfx->setTextSize(1);
+  gfx->setTextColor(kMuted);
+  gfx->setCursor(314, 67);
+  gfx->print(batteryPercent >= 0 ? String("BAT ") + batteryPercent + "%" : "USB");
+}
+
 void renderHeader(const String &title, uint16_t accent) {
   gfx->fillScreen(kBlack);
   centeredText("SAFE-FIELD", 16, 3, kWhite);
@@ -592,40 +956,111 @@ void renderHeader(const String &title, uint16_t accent) {
   gfx->print(transportSecurityFailed ? "TLS NECESSARIO" :
              (authFailed ? "AUTH NECESSARIA" :
               (coreOnline ? "CORE ONLINE" : "CORE OFFLINE")));
-  gfx->setTextColor(kMuted);
-  gfx->setCursor(314, 67);
-  gfx->print(batteryPercent >= 0 ? String("BAT ") + batteryPercent + "%" : "USB");
+  renderBatteryField();
+  batteryDirty = false;
   centeredText(title, 92, 2, accent);
+}
+
+// Deliberately rendered on every active-occurrence decision screen. Silence,
+// a proposed hypothesis and procedure navigation never stop global capture.
+void renderCaptureIndicator(int16_t y = 110) {
+  gfx->fillRoundRect(74, y - 5, LCD_WIDTH - 148, 20, 9,
+                     captureActive ? 0x1242 : kPanel);
+  centeredText(captureActive ? "CAPTURA ATIVA - ESCUTA CONTINUA"
+                             : "CAPTURA ENCERRADA",
+               y, 1, captureActive ? kGreen : kMuted);
 }
 
 void renderStandby() {
   renderHeader("STANDBY", kBlue);
   centeredText("SEM OCORRENCIA", 162, 2, kMuted);
   centeredText("SEM GRAVACAO", 198, 2, kMuted);
-  button(42, 330, LCD_WIDTH - 84, 82, kGreen, "INICIAR OCORRENCIA", 2);
+  if (savedResultAvailable) {
+    centeredText(savedSuggestionAvailable ? "RESULTADO PRONTO" : "PROCESSAMENTO CONCLUIDO",
+                 252, 2, kGreen);
+    button(42, 284, LCD_WIDTH - 84, 36, kBlue, "SUGESTAO", 1);
+    button(42, 348, LCD_WIDTH - 84, 82, kGreen, "EM ATENDIMENTO", 2);
+  } else {
+    centeredText(coreOnline ? "CORE CONECTADO" : "CORE INDISPONIVEL",
+                 258, 2, coreOnline ? kGreen : kAmber);
+    button(42, 330, LCD_WIDTH - 84, 82, kGreen, "EM ATENDIMENTO", 2);
+  }
+}
+
+void renderSavedResult() {
+  renderHeader("RESULTADO PRONTO", kGreen);
+  gfx->fillRoundRect(22, 145, LCD_WIDTH - 44, 190, 18, kPanel);
+  centeredText(savedSuggestionAvailable ? "SUGESTAO EXISTENTE" : "SEM SUGESTAO", 184, 2, kMuted);
+  centeredText(clipped(savedResultLabel.length() ? savedResultLabel : "ANALISE PERSISTIDA", 26),
+               228, 2, kWhite);
+  centeredText("FATOS: " + String(savedResultFactCount), 270, 1, kMuted);
+  centeredText("LEITURA SOMENTE", 308, 1, kMuted);
+  button(42, 414, LCD_WIDTH - 84, 60, kBlue, "VOLTAR", 2);
+}
+
+void renderStartingCapture() {
+  renderHeader(startRequestInFlight ? "TOQUE ACEITO" : "INICIANDO CAPTURA",
+               startRequestInFlight ? kGreen : kAmber);
+  gfx->fillRoundRect(22, 145, LCD_WIDTH - 44, 190, 18, kPanel);
+  centeredText(startRequestInFlight ? "VALIDANDO TOQUE" : "CAPTURA INICIADA",
+               190, 2, kMuted);
+  centeredText(startRequestInFlight ? "AGUARDE..." : "AGUARDANDO AUDIO REAL",
+               238, 2, startRequestInFlight ? kGreen : kAmber);
+  centeredText(startRequestInFlight ? "CONECTANDO AO CORE" :
+               "NAO FALE AINDA", 292, 1, kWhite);
+  renderProgress(startRequestInFlight ? kGreen : kAmber);
 }
 
 void renderOccurrence() {
   renderHeader("OCORRENCIA ATIVA", kGreen);
   gfx->fillRoundRect(25, 135, LCD_WIDTH - 50, 205, 18, kPanel);
-  centeredText("CAPTURA CONTINUA", 174, 2, kGreen);
-  centeredText("AUDIO", 228, 2, kMuted);
-  centeredText("MONITORANDO", 265, 3, kWhite);
-  centeredText("silencio nao encerra", 311, 1, kMuted);
-  button(38, 418, LCD_WIDTH - 76, 61, kDarkRed, "FINALIZAR OCORRENCIA", 2);
+  const uint32_t savedCaptures = captureCount > 0 ? captureCount - 1 : 0;
+  centeredText(String("CAPTURA ATUAL: ") + captureCount, 158, 1, kGreen);
+  centeredText(String("CAPTURAS SALVAS: ") + savedCaptures, 184, 1, kMuted);
+  centeredText("FALE AGORA", 230, 3, kWhite);
+  centeredText("CAPTURA CONTINUA", 282, 2, kGreen);
+  centeredText("silencio nao encerra", 316, 1, kMuted);
+  button(38, 418, LCD_WIDTH - 76, 61, kDarkRed, "PARAR CAPTURA", 2);
+}
+
+void renderSavingCapture() {
+  renderHeader("SALVANDO CAPTURA", kAmber);
+  gfx->fillRoundRect(22, 145, LCD_WIDTH - 44, 190, 18, kPanel);
+  centeredText("TOQUE RECONHECIDO", 184, 2, kGreen);
+  centeredText("FECHANDO AUDIO...", 230, 2, kAmber);
+  centeredText("ATENDIMENTO CONTINUA", 286, 1, kWhite);
+  renderProgress(kAmber);
+}
+
+void renderOccurrenceOpen() {
+  renderHeader("ATENDIMENTO ABERTO", kBlue);
+  centeredText("MICROFONE PARADO", 150, 2, kMuted);
+  centeredText(String("CAPTURAS SALVAS: ") + captureCount, 192, 2, kWhite);
+  button(42, 250, LCD_WIDTH - 84, 75, kGreen, "NOVA CAPTURA", 2);
+  button(42, 365, LCD_WIDTH - 84, 75, kDarkRed, "CONCLUIR", 2);
+}
+
+void renderConcludingOccurrence() {
+  renderHeader("CONCLUINDO", kAmber);
+  gfx->fillRoundRect(22, 145, LCD_WIDTH - 44, 190, 18, kPanel);
+  centeredText("TOQUE RECONHECIDO", 184, 2, kGreen);
+  centeredText("PERSISTINDO FECHAMENTO", 230, 1, kAmber);
+  centeredText("IA CONTINUARA EM BACKGROUND", 286, 1, kWhite);
+  renderProgress(kAmber);
 }
 
 void renderHypothesis() {
   renderHeader("HIPOTESE PROPOSTA", kAmber);
-  gfx->fillRoundRect(20, 124, LCD_WIDTH - 40, 172, 18, kPanel);
-  centeredText("POSSIVEL", 150, 2, kAmber);
+  renderCaptureIndicator();
+  gfx->fillRoundRect(20, 136, LCD_WIDTH - 40, 172, 18, kPanel);
+  centeredText("POSSIVEL", 162, 2, kAmber);
   centeredText(clipped(hypothesisLabel.length() ? hypothesisLabel : "ANALISE EM CURSO", 25),
-               196, 2, kWhite);
-  centeredText("DECISAO DO POLICIAL", 253, 1, kMuted);
+               208, 2, kWhite);
+  centeredText("DECISAO DO POLICIAL", 265, 1, kMuted);
   button(10, 324, 126, 64, kGreen, "CONFIRMAR", 1);
-  button(142, 324, 126, 64, kDarkRed, "DESCARTAR", 1);
+  button(142, 324, 126, 64, kDarkRed, "RECUSAR", 1);
   button(274, 324, 126, 64, kBlue, "MAIS DADOS", 1);
-  button(38, 422, LCD_WIDTH - 76, 55, kDarkRed, "FINALIZAR OCORRENCIA", 2);
+  button(38, 422, LCD_WIDTH - 76, 55, kDarkRed, "ENCERRAR ATENDIMENTO", 2);
 }
 
 String statusLabel(const String &status) {
@@ -636,49 +1071,69 @@ String statusLabel(const String &status) {
 
 void renderGuidance() {
   renderHeader(clipped(hypothesisLabel, 26), kGreen);
-  centeredText("PRIORIDADES", 112, 2, kWhite);
-  const int16_t rowHeight = 38;
-  for (uint8_t index = 0; index < guidanceCount; ++index) {
-    const int16_t y = 145 + index * rowHeight;
+  renderCaptureIndicator();
+  const int16_t rowHeight = 36;
+  constexpr int16_t kRowsTop = 148;
+  centeredText("PROCEDIMENTOS " + String(selectedGuidance + 1) + "/" +
+                   String(guidance.size()),
+               130, 1, kWhite);
+  button(8, 112, 48, 24, kBlue, "^", 1);
+  button(LCD_WIDTH - 56, 112, 48, 24, kBlue, "v", 1);
+  const uint16_t lastVisible = min<uint16_t>(
+      static_cast<uint16_t>(guidance.size()),
+      guidanceScrollOffset + kGuidanceVisibleRows);
+  for (uint16_t index = guidanceScrollOffset; index < lastVisible; ++index) {
+    const int16_t y = kRowsTop +
+        static_cast<int16_t>(index - guidanceScrollOffset) * rowHeight;
     const bool selected = index == selectedGuidance;
     gfx->fillRoundRect(14, y, LCD_WIDTH - 28, rowHeight - 4, 8,
                        selected ? 0x2124 : kPanel);
     gfx->setTextSize(1);
     gfx->setTextColor(selected ? kWhite : kMuted);
     gfx->setCursor(22, y + 7);
-    gfx->printf("%u. %s", index + 1, clipped(guidance[index].text, 43).c_str());
+    gfx->printf("%u. %s", static_cast<unsigned>(index + 1),
+                clipped(guidance[index].text, 43).c_str());
     gfx->setCursor(290, y + 21);
     gfx->setTextColor(guidance[index].status == "DONE" ? kGreen : kAmber);
     gfx->print(statusLabel(guidance[index].status));
   }
-  button(7, 351, 128, 53, kGreen, "REALIZADO", 1);
-  button(141, 351, 128, 53, kBlue, "PENDENTE", 1);
-  button(275, 351, 128, 53, kMuted, "NAO APLICAVEL", 1);
-  button(38, 429, LCD_WIDTH - 76, 51, kDarkRed, "FINALIZAR OCORRENCIA", 2);
+  button(7, 346, 128, 53, kGreen, "REALIZADO", 1);
+  button(141, 346, 128, 53, kBlue, "PENDENTE", 1);
+  button(275, 346, 128, 53, kMuted, "NAO APLICAVEL", 1);
+  button(38, 429, LCD_WIDTH - 76, 51, kDarkRed, "ENCERRAR ATENDIMENTO", 2);
 }
 
 void renderReassessment() {
   renderHeader("REAVALIACAO NECESSARIA", kRed);
-  gfx->fillRoundRect(22, 132, LCD_WIDTH - 44, 185, 18, kPanel);
-  centeredText("NOVAS INFORMACOES", 170, 2, kAmber);
-  centeredText("PODEM ALTERAR", 211, 2, kWhite);
-  centeredText("A HIPOTESE", 249, 2, kWhite);
-  button(85, 342, LCD_WIDTH - 170, 65, kBlue, "VER", 2);
-  button(38, 429, LCD_WIDTH - 76, 51, kDarkRed, "FINALIZAR OCORRENCIA", 2);
+  renderCaptureIndicator();
+  gfx->fillRoundRect(22, 140, LCD_WIDTH - 44, 185, 18, kPanel);
+  centeredText("RELATE POR VOZ", 178, 2, kAmber);
+  centeredText("NOVAS INFORMACOES", 219, 2, kWhite);
+  centeredText("SERAO REAVALIADAS", 257, 1, kWhite);
+  button(85, 342, LCD_WIDTH - 170, 65, kBlue, "ATUALIZAR", 2);
+  button(38, 429, LCD_WIDTH - 76, 51, kDarkRed, "ENCERRAR ATENDIMENTO", 2);
 }
 
 void renderPending(bool unavailable) {
-  const bool stopping = finalizationPending || !captureActive;
+  const bool stopping = stopAwaitingCore || finalizationPending || !captureActive;
   renderHeader(stopping ? "FINALIZANDO" : "OCORRENCIA ATIVA",
                stopping ? kAmber : kGreen);
   gfx->fillRoundRect(22, 145, LCD_WIDTH - 44, 190, 18, kPanel);
-  centeredText(unavailable ? "ORIENTACAO" : "PROCESSAMENTO", 185, 2, kMuted);
-  centeredText(unavailable ? "INDISPONIVEL" : "PENDENTE", 230, 3,
-               unavailable ? kAmber : kBlue);
-  centeredText(stopping ? "CAPTURA ENCERRADA" : "CAPTURA CONTINUA", 295, 1,
-               stopping ? kAmber : kGreen);
+  const String title = stopRequestInFlight ? "TOQUE ACEITO" :
+      (stopAwaitingCore ? "FINALIZANDO..." :
+       (unavailable ? "ORIENTACAO" : "PROCESSANDO..."));
+  const String status = stopRequestInFlight ? "FINALIZANDO..." :
+      (stopAwaitingCore ? "AGUARDE" :
+       (unavailable ? "INDISPONIVEL" : "PENDENTE"));
+  const String detail = stopRequestInFlight ? "VALIDANDO COM O CORE" :
+      (stopAwaitingCore ? "AGUARDANDO CONFIRMACAO DO CORE" :
+       (stopping ? "CAPTURA ENCERRADA" : "CAPTURA CONTINUA"));
+  centeredText(title, 185, 2, kMuted);
+  centeredText(status, 230, 3, unavailable ? kAmber : kBlue);
+  centeredText(detail, 295, 1, stopping ? kAmber : kGreen);
+  renderProgress(stopRequestInFlight ? kGreen : kAmber);
   button(38, 418, LCD_WIDTH - 76, 61, kDarkRed,
-         stopping ? "TENTAR FINALIZAR" : "FINALIZAR OCORRENCIA", 2);
+         stopping ? "TENTAR ENCERRAR" : "ENCERRAR ATENDIMENTO", 2);
 }
 
 void renderCaptureFailed() {
@@ -700,6 +1155,10 @@ void renderUi() {
   uiDirty = false;
   switch (currentMode()) {
     case UiMode::STANDBY: renderStandby(); break;
+    case UiMode::STARTING_CAPTURE: renderStartingCapture(); break;
+    case UiMode::SAVING_CAPTURE: renderSavingCapture(); break;
+    case UiMode::OCCURRENCE_OPEN: renderOccurrenceOpen(); break;
+    case UiMode::CONCLUDING_OCCURRENCE: renderConcludingOccurrence(); break;
     case UiMode::OCCURRENCE_ACTIVE: renderOccurrence(); break;
     case UiMode::HYPOTHESIS_PROPOSED: renderHypothesis(); break;
     case UiMode::GUIDANCE: renderGuidance(); break;
@@ -707,6 +1166,7 @@ void renderUi() {
     case UiMode::PROCESSING_PENDING: renderPending(false); break;
     case UiMode::GUIDANCE_NOT_AVAILABLE: renderPending(true); break;
     case UiMode::CAPTURE_FAILED: renderCaptureFailed(); break;
+    case UiMode::SAVED_RESULT: renderSavedResult(); break;
   }
   if (requestPending) {
     gfx->fillRect(0, LCD_HEIGHT - 14, LCD_WIDTH, 14, kAmber);
@@ -806,17 +1266,40 @@ PostResult postJson(const char *path, const String &body,
   return PostResult::ERROR;
 }
 
-void startOccurrence() {
-  if (postJson(kStartPath,
-               "{\"client\":\"safe_field_operational_v1\",\"protocol_version\":1}") ==
-      PostResult::ACCEPTED) {
-    captureActive = true;
-    sourceQuiescent = false;
-    finalizationPending = false;
-    serverState = "OCCURRENCE_ACTIVE";
-    uiDirty = true;
-  }
+String nextCommandId() {
+  ++commandSequence;
+  char value[48];
+  snprintf(value, sizeof(value), "watch_%08lx_%08lx",
+           static_cast<unsigned long>(commandBootNonce),
+           static_cast<unsigned long>(commandSequence));
+  return String(value);
 }
+
+void beginCaptureCommand(bool newOccurrence) {
+  const uint32_t now = millis();
+  tStartTap = now;
+  tStartHttpSent = 0;
+  tStartAck = 0;
+  tFirstValidAudioFrame = 0;
+  tRecordingUi = 0;
+  lastValidRaw24Frames = 0;
+  startAwaitingAudio = true;
+  startRequestInFlight = true;
+  startHttpNotBeforeMs = now + 80;
+  stopAwaitingCore = false;
+  pendingControlCommand = newOccurrence ? ControlCommand::START_OCCURRENCE
+                                        : ControlCommand::START_CAPTURE;
+  serverState = "STARTING_CAPTURE";
+  USBSerial.println(newOccurrence ? "TOUCH_START" : "TOUCH_NEW_CAPTURE");
+  uiDirty = true;
+  captureTimestamp("t_start_tap", tStartTap);
+  // Paint a real touch acknowledgement before initiating Wi-Fi/TLS work.
+  renderUi();
+}
+
+void startOccurrence() { beginCaptureCommand(true); }
+
+void startNextCapture() { beginCaptureCommand(false); }
 
 void decideHypothesis(const char *path, const char *decision) {
   if (!hypothesisId.length()) {
@@ -833,40 +1316,175 @@ void decideHypothesis(const char *path, const char *decision) {
       hypothesisId = "";
       hypothesisLabel = "";
       hypothesisStatus = "";
-      guidanceCount = 0;
+      guidance.clear();
+      selectedGuidance = 0;
+      guidanceScrollOffset = 0;
+      statusMessage = "HIPOTESE RECUSADA: RELATE POR VOZ";
       serverState = "OCCURRENCE_ACTIVE";
     }
     uiDirty = true;
   }
 }
 
-void finishOccurrence() {
-  const PostResult result = postJson(
-      kFinishPath,
-      String("{\"occurrence_id\":\"") + jsonEscape(occurrenceId) +
-          "\",\"processing_timeout\":" +
-          String(kFinishProcessingTimeoutSeconds, 1) + "}",
-      kFinishHttpTimeoutMs);
-  if (result == PostResult::ACCEPTED) {
-    captureActive = false;
-    sourceQuiescent = true;
-    serverState = "STANDBY";
-    clearOperationalDetails();
-    uiDirty = true;
-  } else if (result == PostResult::PROCESSING_PENDING) {
-    captureActive = false;
-    finalizationPending = true;
-    serverState = "PROCESSING_PENDING";
-    uiDirty = true;
-  } else if (result == PostResult::CAPTURE_FAILED) {
-    finalizationPending = false;
-    serverState = "CAPTURE_FAILED";
+void stopCapture() {
+  tStopTap = millis();
+  tStopAck = 0;
+  tLastAudioFrame = 0;
+  tProcessingUi = 0;
+  stopAwaitingCore = true;
+  stopRequestInFlight = true;
+  pendingControlCommand = ControlCommand::STOP_CAPTURE;
+  stopHttpNotBeforeMs = tStopTap + 80;
+  serverState = "FINALIZING_CAPTURE";
+  USBSerial.println("TOUCH_STOP");
+  uiDirty = true;
+  captureTimestamp("t_stop_tap", tStopTap);
+  // Paint acknowledgement before the blocking finish request.
+  renderUi();
+}
+
+void concludeOccurrence() {
+  concludeAwaitingCore = true;
+  concludeRequestInFlight = true;
+  concludeHttpNotBeforeMs = millis() + 80;
+  pendingControlCommand = ControlCommand::CONCLUDE_OCCURRENCE;
+  serverState = "CONCLUDING_OCCURRENCE";
+  USBSerial.println("TOUCH_CONCLUDE");
+  uiDirty = true;
+  renderUi();
+}
+
+bool enqueueControlRequest(ControlCommand command, const String &path,
+                           const String &body, uint32_t timeoutMs) {
+  if (controlRequestQueue == nullptr) return false;
+  ControlRequest request{};
+  request.command = command;
+  request.timeoutMs = timeoutMs;
+  path.toCharArray(request.path, sizeof(request.path));
+  body.toCharArray(request.body, sizeof(request.body));
+  return xQueueSend(controlRequestQueue, &request, 0) == pdTRUE;
+}
+
+void controlNetworkTask(void *) {
+  ControlRequest request{};
+  for (;;) {
+    if (xQueueReceive(controlRequestQueue, &request, portMAX_DELAY) != pdTRUE) continue;
+    const PostResult result = postJson(request.path, String(request.body), request.timeoutMs);
+    const ControlResponse response{request.command, result};
+    xQueueSend(controlResponseQueue, &response, portMAX_DELAY);
+  }
+}
+
+void serviceControlResponses() {
+  if (controlResponseQueue == nullptr) return;
+  ControlResponse response{};
+  while (xQueueReceive(controlResponseQueue, &response, 0) == pdTRUE) {
+    controlRequestQueued = false;
+    const bool accepted = response.result == PostResult::ACCEPTED ||
+                          response.result == PostResult::PROCESSING_PENDING;
+    if (response.command == ControlCommand::START_OCCURRENCE ||
+        response.command == ControlCommand::START_CAPTURE) {
+      startRequestInFlight = false;
+      if (accepted) {
+        tStartAck = millis();
+        captureTimestamp("t_start_ack", tStartAck);
+        serverState = "STARTING_CAPTURE";
+        USBSerial.println("START_ACK");
+      } else {
+        reconcilePending = true;
+        reconcileWasStart = true;
+        serverState = "STARTING_CAPTURE";
+        statusMessage = "CONFIRMANDO CORE";
+        lastPollMs = 0;
+        USBSerial.println("START_ERROR_RECONCILE_CORE");
+      }
+    } else if (response.command == ControlCommand::STOP_CAPTURE) {
+      stopRequestInFlight = false;
+      if (accepted) {
+        tStopAck = millis();
+        captureTimestamp("t_stop_ack", tStopAck);
+        USBSerial.println("STOP_ACK");
+      } else if (response.result == PostResult::CAPTURE_FAILED) {
+        stopAwaitingCore = false;
+        serverState = "CAPTURE_FAILED";
+      } else {
+        reconcilePending = true;
+        reconcileWasStart = false;
+        serverState = "FINALIZING_CAPTURE";
+        statusMessage = "CONFIRMANDO CORE";
+        lastPollMs = 0;
+        USBSerial.println("STOP_ERROR_RECONCILE_CORE");
+      }
+    } else if (response.command == ControlCommand::CONCLUDE_OCCURRENCE) {
+      concludeRequestInFlight = false;
+      if (accepted) {
+        USBSerial.println("CONCLUDE_ACK");
+      } else {
+        statusMessage = "CONFIRMANDO FECHAMENTO";
+        lastPollMs = 0;
+        USBSerial.println("CONCLUDE_ERROR_RECONCILE_CORE");
+      }
+    }
+    pendingControlCommand = ControlCommand::NONE;
     uiDirty = true;
   }
 }
 
-void markAction(uint8_t index, const char *status) {
-  if (hypothesisStatus != "OFFICER_CONFIRMED" || index >= guidanceCount) {
+void serviceDeferredRequests() {
+  if (startRequestInFlight && !controlRequestQueued &&
+      elapsed(millis(), startHttpNotBeforeMs)) {
+    tStartHttpSent = millis();
+    captureTimestamp("t_start_http_sent", tStartHttpSent);
+    USBSerial.println("START_SENT");
+    const String commandId = nextCommandId();
+    const bool newOccurrence = pendingControlCommand == ControlCommand::START_OCCURRENCE;
+    const String body = newOccurrence
+        ? String("{\"client\":\"safe_field_operational_v1\",\"protocol_version\":1,\"command_id\":\"") +
+              commandId + "\"}"
+        : String("{\"occurrence_id\":\"") + jsonEscape(occurrenceId) +
+              "\",\"command_id\":\"" + commandId + "\"}";
+    if (!enqueueControlRequest(
+            pendingControlCommand,
+            newOccurrence ? kStartPath : kStartCapturePath,
+            body,
+            kHttpTimeoutMs)) {
+      startRequestInFlight = false;
+      reconcilePending = true;
+      reconcileWasStart = true;
+      statusMessage = "FILA DE REDE INDISPONIVEL";
+    } else controlRequestQueued = true;
+    return;
+  }
+  if (stopRequestInFlight && !controlRequestQueued &&
+      elapsed(millis(), stopHttpNotBeforeMs)) {
+    USBSerial.println("STOP_SENT");
+    const String body = String("{\"occurrence_id\":\"") + jsonEscape(occurrenceId) +
+        "\",\"capture_id\":\"" + jsonEscape(activeCaptureId) +
+        "\",\"command_id\":\"" + nextCommandId() + "\"}";
+    if (!enqueueControlRequest(ControlCommand::STOP_CAPTURE, kStopCapturePath,
+                               body, kFinishHttpTimeoutMs)) {
+      stopRequestInFlight = false;
+      reconcilePending = true;
+      reconcileWasStart = false;
+      statusMessage = "FILA DE REDE INDISPONIVEL";
+    } else controlRequestQueued = true;
+    return;
+  }
+  if (concludeRequestInFlight && !controlRequestQueued &&
+      elapsed(millis(), concludeHttpNotBeforeMs)) {
+    USBSerial.println("CONCLUDE_SENT");
+    const String body = String("{\"occurrence_id\":\"") + jsonEscape(occurrenceId) +
+        "\",\"command_id\":\"" + nextCommandId() + "\"}";
+    if (!enqueueControlRequest(ControlCommand::CONCLUDE_OCCURRENCE, kFinishPath,
+                               body, kFinishHttpTimeoutMs)) {
+      concludeRequestInFlight = false;
+      statusMessage = "FILA DE REDE INDISPONIVEL";
+    } else controlRequestQueued = true;
+  }
+}
+
+void markAction(uint16_t index, const char *status) {
+  if (hypothesisStatus != "OFFICER_CONFIRMED" || index >= guidance.size()) {
     USBSerial.println("ERR ACTION guidance_not_confirmed_or_index_invalid");
     return;
   }
@@ -881,9 +1499,19 @@ void markAction(uint8_t index, const char *status) {
   }
 }
 
+void scrollGuidance(int8_t direction) {
+  if (guidance.empty()) return;
+  const int32_t candidate = static_cast<int32_t>(selectedGuidance) + direction;
+  if (candidate < 0 || candidate >= static_cast<int32_t>(guidance.size())) return;
+  selectedGuidance = static_cast<uint16_t>(candidate);
+  ensureGuidanceSelectionVisible();
+  uiDirty = true;
+}
+
 void pollCore() {
   if (WiFi.status() != WL_CONNECTED || !coreBaseUrl.length() ||
-      !apiToken.length() || requestPending) {
+      !apiToken.length() || requestPending || startRequestInFlight ||
+      stopRequestInFlight || concludeRequestInFlight) {
     if (!apiToken.length()) {
       authFailed = true;
       coreOnline = false;
@@ -902,6 +1530,9 @@ void pollCore() {
     http.end();
     return;
   }
+  const bool wasCoreOnline = coreOnline;
+  const bool wasAuthFailed = authFailed;
+  const bool wasTransportSecurityFailed = transportSecurityFailed;
   const int status = http.GET();
   if (status == HTTP_CODE_OK) {
     const String payload = http.getString();
@@ -912,6 +1543,10 @@ void pollCore() {
     transportSecurityFailed = false;
     coreOnline = true;
     statusMessage = "";
+    if (coreOnline != wasCoreOnline || authFailed != wasAuthFailed ||
+        transportSecurityFailed != wasTransportSecurityFailed) {
+      uiDirty = true;
+    }
     USBSerial.printf("HTTP_GET status=%d state=%s occurrence=%s\n", status,
                      serverState.c_str(), occurrenceId.c_str());
   } else if (status == 401) {
@@ -928,8 +1563,28 @@ void handleTouch(int32_t x, int32_t y) {
   const UiMode mode = currentMode();
   USBSerial.printf("TOUCH x=%ld y=%ld mode=%u\n", static_cast<long>(x),
                    static_cast<long>(y), static_cast<unsigned>(mode));
-  if (mode == UiMode::STANDBY && y >= 315 && y <= 430) {
+  // The physical FT3168 coordinate origin has varied slightly across boots.
+  // This is the only actionable control in STANDBY, so use a deliberately
+  if (mode == UiMode::STANDBY && savedResultAvailable && y >= 274 && y <= 330) {
+    USBSerial.println("TOUCH_SUGGESTION");
+    serverState = "SAVED_RESULT";
+    uiDirty = true;
+    return;
+  }
+  // Tolerant region around the visible primary button. A saved result moves
+  // it down, but never changes the event's Core-owned capture semantics.
+  if (mode == UiMode::STANDBY && y >= (savedResultAvailable ? 338 : 280) && y <= 480) {
     startOccurrence();
+    return;
+  }
+  if (mode == UiMode::SAVED_RESULT && y >= 400) {
+    serverState = "STANDBY";
+    uiDirty = true;
+    return;
+  }
+  if (mode == UiMode::OCCURRENCE_OPEN) {
+    if (y >= 230 && y <= 340) startNextCapture();
+    else if (y >= 345) concludeOccurrence();
     return;
   }
   if (mode == UiMode::HYPOTHESIS_PROPOSED && y >= 305 && y <= 410) {
@@ -939,12 +1594,20 @@ void handleTouch(int32_t x, int32_t y) {
     return;
   }
   if (mode == UiMode::GUIDANCE) {
-    if (y >= 140 && y < 140 + guidanceCount * 38) {
-      selectedGuidance = min<uint8_t>(guidanceCount - 1, (y - 140) / 38);
+    if (y >= 105 && y <= 142) {
+      scrollGuidance(x < LCD_WIDTH / 2 ? -1 : 1);
+      return;
+    }
+    if (y >= 148 && y < 148 + kGuidanceVisibleRows * 36) {
+      const uint16_t index = guidanceScrollOffset +
+          static_cast<uint16_t>((y - 148) / 36);
+      if (index >= guidance.size()) return;
+      selectedGuidance = index;
+      ensureGuidanceSelectionVisible();
       uiDirty = true;
       return;
     }
-    if (y >= 340 && y <= 418) {
+    if (y >= 335 && y <= 418) {
       if (x < 137) markAction(selectedGuidance, "DONE");
       else if (x < 273) markAction(selectedGuidance, "PENDING");
       else markAction(selectedGuidance, "NOT_APPLICABLE");
@@ -957,21 +1620,64 @@ void handleTouch(int32_t x, int32_t y) {
     return;
   }
   if (mode == UiMode::CAPTURE_FAILED) {
-    if (captureActive && !sourceQuiescent && y >= 414) finishOccurrence();
+    if (captureActive && !sourceQuiescent && y >= 414) stopCapture();
     return;
   }
-  if (mode != UiMode::STANDBY && y >= 414) finishOccurrence();
+  if (mode != UiMode::STANDBY && mode != UiMode::STARTING_CAPTURE &&
+      mode != UiMode::SAVING_CAPTURE && mode != UiMode::CONCLUDING_OCCURRENCE &&
+      y >= 414) {
+    if (captureActive) stopCapture();
+    else concludeOccurrence();
+  }
 }
 
 void serviceTouch() {
-  if (!touchReady || !touch->IIC_Interrupt_Flag ||
-      millis() - lastTouchMs < kTouchDebounceMs) return;
-  touch->IIC_Interrupt_Flag = false;
+  if (!touchReady) return;
+  if (!elapsed(millis(), touchArmNotBeforeMs)) {
+    touch->IIC_Interrupt_Flag = false;
+    return;
+  }
+  // FT3168 sends a short active-low interrupt pulse.  Preserve the library
+  // callback, but sample TP_INT too: this avoids losing a real touch if the
+  // ESP32 callback is momentarily masked by Wi-Fi/display work.
+  const bool pinIsHigh = digitalRead(TP_INT) == HIGH;
+  const bool directFallingEdge = touchIrqWasHigh && !pinIsHigh;
+  touchIrqWasHigh = pinIsHigh;
+  const bool interruptSignalled = touch->IIC_Interrupt_Flag || directFallingEdge;
+  if (interruptSignalled) touch->IIC_Interrupt_Flag = false;
+  const int32_t fingers = touch->IIC_Read_Device_Value(
+      touch->Arduino_IIC_Touch::Value_Information::TOUCH_FINGER_NUMBER);
+  // A bare interrupt with zero fingers can carry old coordinates from the
+  // previous screen and must never start a new occurrence.
+  if (fingers <= 0) {
+    touchContactActive = false;
+    return;
+  }
+  // Only a fresh FT3168 interrupt/falling edge may create an action. The
+  // controller can retain the previous coordinates briefly after redraw; a
+  // time-only debounce would turn that stale position into a second START.
+  if (!interruptSignalled) {
+    if (fingers <= 0) touchContactActive = false;
+    return;
+  }
+  // `IIC_Interrupt_Flag` is the controller's new-contact indication.  Some
+  // FT3168 revisions retain FINGER_NUMBER=1 after release, so do not require
+  // a sampled low-to-high edge before accepting the next *new IRQ*.
+  // Repeated stale coordinates are already excluded by the
+  // !interruptSignalled return above.
+  if (millis() - lastTouchMs < kTouchDebounceMs) return;
+  touchContactActive = fingers > 0;
   lastTouchMs = millis();
-  const int32_t x = touch->IIC_Read_Device_Value(
+  const int32_t rawX = touch->IIC_Read_Device_Value(
       touch->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_X);
-  const int32_t y = touch->IIC_Read_Device_Value(
+  const int32_t rawY = touch->IIC_Read_Device_Value(
       touch->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
+  const int32_t x = rawX;
+  const int32_t y = rawY;
+  USBSerial.printf("TOUCH_DOWN raw_x=%ld raw_y=%ld ui_x=%ld ui_y=%ld mode=%u\n",
+                   static_cast<long>(rawX), static_cast<long>(rawY),
+                   static_cast<long>(x), static_cast<long>(y),
+                   static_cast<unsigned>(currentMode()));
   if (x >= 0 && x < LCD_WIDTH && y >= 0 && y < LCD_HEIGHT) handleTouch(x, y);
 }
 
@@ -1002,6 +1708,8 @@ void handleSerialLine(const String &raw) {
   command.trim();
   if (command == "START") {
     startOccurrence();
+  } else if (command == "NEW_CAPTURE") {
+    startNextCapture();
   } else if (command == "CONFIRM") {
     decideHypothesis(kConfirmPath, "CONFIRM");
   } else if (command == "REJECT") {
@@ -1013,24 +1721,26 @@ void handleSerialLine(const String &raw) {
         (!captureActive || sourceQuiescent)) {
       USBSerial.println("ERR STOP source_already_quiescent capture_failure_is_terminal");
     } else {
-      finishOccurrence();
+      stopCapture();
     }
+  } else if (command == "CONCLUDE") {
+    concludeOccurrence();
   } else if (command == "POLL") {
     pollCore();
   } else if (command.startsWith("ACTION ")) {
     const int separator = command.indexOf(' ', 7);
     if (separator < 0) {
-      USBSerial.println("ERR ACTION format: ACTION <1-5> DONE|PENDING|NOT_APPLICABLE");
+      USBSerial.println("ERR ACTION format: ACTION <numero> DONE|PENDING|NOT_APPLICABLE");
       return;
     }
     const int index = command.substring(7, separator).toInt() - 1;
     const String status = command.substring(separator + 1);
-    if (index < 0 || index >= guidanceCount ||
+    if (index < 0 || index >= static_cast<int>(guidance.size()) ||
         (status != "DONE" && status != "PENDING" && status != "NOT_APPLICABLE")) {
       USBSerial.println("ERR ACTION invalid_index_or_status");
       return;
     }
-    markAction(index, status.c_str());
+    markAction(static_cast<uint16_t>(index), status.c_str());
 #if SAFE_FIELD_ENABLE_TEST_HOOKS
   } else if (command.startsWith("APPLY_JSON ")) {
     const String payload = command.substring(11);
@@ -1130,16 +1840,19 @@ void handleSerialLine(const String &raw) {
                       isValidCaPem(coreCaPem)) ? "READY" : "BLOCKED",
                      WiFi.localIP().toString().c_str());
   } else if (command == "SHOW_STATE") {
-    USBSerial.printf("STATE state=%s capture=%s source_quiescent=%s occurrence=%s hypothesis=%s status=%s guidance=%u\n",
+    USBSerial.printf("STATE state=%s capture=%s source_quiescent=%s occurrence=%s hypothesis=%s status=%s guidance=%u start_wait=%s stop_wait=%s raw24_frames=%lu\n",
                      serverState.c_str(), captureActive ? "true" : "false",
                      sourceQuiescent ? "true" : "false",
                      occurrenceId.c_str(), hypothesisId.c_str(),
-                     hypothesisStatus.c_str(), guidanceCount);
+                     hypothesisStatus.c_str(), static_cast<unsigned>(guidance.size()),
+                     startAwaitingAudio ? "true" : "false",
+                     stopAwaitingCore ? "true" : "false",
+                     static_cast<unsigned long>(lastValidRaw24Frames));
   } else {
 #if SAFE_FIELD_ENABLE_TEST_HOOKS
-    USBSerial.println("ERR commands: START CONFIRM REJECT MORE_DATA ACTION STOP POLL APPLY_JSON SET_WIFI SET_CORE SET_CA_PEM CLEAR_CA SET_TOKEN CLEAR_TOKEN SHOW_CONFIG SHOW_STATE");
+    USBSerial.println("ERR commands: START NEW_CAPTURE STOP CONCLUDE CONFIRM REJECT MORE_DATA ACTION POLL APPLY_JSON SET_WIFI SET_CORE SET_CA_PEM CLEAR_CA SET_TOKEN CLEAR_TOKEN SHOW_CONFIG SHOW_STATE");
 #else
-    USBSerial.println("ERR commands: START CONFIRM REJECT MORE_DATA ACTION STOP POLL SET_WIFI SET_CORE SET_CA_PEM CLEAR_CA SET_TOKEN CLEAR_TOKEN SHOW_CONFIG SHOW_STATE");
+    USBSerial.println("ERR commands: START NEW_CAPTURE STOP CONCLUDE CONFIRM REJECT MORE_DATA ACTION POLL SET_WIFI SET_CORE SET_CA_PEM CLEAR_CA SET_TOKEN CLEAR_TOKEN SHOW_CONFIG SHOW_STATE");
 #endif
   }
 }
@@ -1161,7 +1874,7 @@ void updateBattery() {
   const int next = power.isBatteryConnect() ? power.getBatteryPercent() : -1;
   if (next != batteryPercent) {
     batteryPercent = next;
-    uiDirty = true;
+    batteryDirty = true;
   }
 }
 
@@ -1171,6 +1884,15 @@ void setup() {
   USBSerial.begin(kSerialBaud);
   delay(250);
   USBSerial.println("SAFE_FIELD_OPERATIONAL_V1_BOOT protocol=1");
+  commandBootNonce = esp_random();
+  controlRequestQueue = xQueueCreate(1, sizeof(ControlRequest));
+  controlResponseQueue = xQueueCreate(1, sizeof(ControlResponse));
+  if (controlRequestQueue != nullptr && controlResponseQueue != nullptr) {
+    xTaskCreatePinnedToCore(controlNetworkTask, "safe-field-net", 8192, nullptr,
+                            1, nullptr, 0);
+  } else {
+    USBSerial.println("FAIL CONTROL NETWORK QUEUE");
+  }
 
   pinMode(MOTOR_PIN, OUTPUT);
   digitalWrite(MOTOR_PIN, LOW);
@@ -1186,7 +1908,18 @@ void setup() {
   }
   USBSerial.println(pmuReady ? "PASS AXP2101 INIT" : "WARN AXP2101 NOT DETECTED");
 
-  touchReady = touch->begin();
+  // The official Waveshare examples retry FT3168 discovery because the touch
+  // controller can become ready slightly after the ESP32-S3 boot.  A bounded
+  // retry preserves an operational boot even if the controller is absent,
+  // while avoiding the permanent no-touch state caused by a single early I2C
+  // probe.
+  for (uint8_t attempt = 1; attempt <= 10 && !touchReady; ++attempt) {
+    touchReady = initializeTouchController(false);
+    if (!touchReady) {
+      USBSerial.printf("FT3168 retry %u/10\n", static_cast<unsigned>(attempt));
+      delay(200);
+    }
+  }
   USBSerial.println(touchReady ? "PASS FT3168 INIT" : "WARN FT3168 NOT DETECTED SERIAL_FALLBACK_ACTIVE");
 
   preferences.begin("safe-field", false);
@@ -1207,7 +1940,18 @@ void setup() {
 void loop() {
   const uint32_t now = millis();
   serviceSerial();
+  // A touch controller that booted late must recover without requiring the
+  // wearer to reset the device or reconnect USB.
+  if (!touchReady && elapsed(now, lastTouchProbeMs + 2000)) {
+    lastTouchProbeMs = now;
+    touchReady = initializeTouchController(true);
+  }
   serviceTouch();
+  serviceControlResponses();
+
+  // Flush touch acknowledgement before any potentially slow HTTPS operation.
+  if (uiDirty) renderUi();
+  serviceDeferredRequests();
 
   if (WiFi.status() != WL_CONNECTED && wifiSsid.length() &&
       elapsed(now, lastWifiAttemptMs + kWifiRetryMs)) {
@@ -1217,10 +1961,20 @@ void loop() {
     lastPollMs = now;
     pollCore();
   }
+  if ((startAwaitingAudio || stopAwaitingCore || concludeAwaitingCore ||
+       finalizationPending) &&
+      elapsed(now, lastUiAnimationMs + kProgressUpdatePeriodMs)) {
+    lastUiAnimationMs = now;
+    updateProgressIndicator();
+  }
   if (elapsed(now, lastBatteryReadMs + 10000)) {
     lastBatteryReadMs = now;
     updateBattery();
   }
   if (uiDirty) renderUi();
+  else if (batteryDirty) {
+    renderBatteryField();
+    batteryDirty = false;
+  }
   delay(10);
 }

@@ -27,6 +27,7 @@ def validate_artifact_id(value: str, field_name: str) -> None:
 
 class LifecycleState(str, Enum):
     STANDBY = "STANDBY"
+    OPEN = "OPEN"
     ACTIVE = "ACTIVE"
     STOPPING = "STOPPING"
 

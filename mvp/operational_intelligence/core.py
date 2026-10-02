@@ -7,6 +7,7 @@ import math
 from pathlib import Path
 import threading
 from typing import Any
+import uuid
 
 from .audio import ContinuousAudioRecorder, PCMFormat, SegmenterConfig
 from .history import build_preliminary_history
@@ -37,7 +38,19 @@ _PCM_TRANSPORT_ERROR_FIELDS = (
     "transport_overrun_packets",
     "read_errors",
     "sink_errors",
+    "sink_queue_overflows",
+    "kernel_frame_errors",
+    "kernel_overruns",
+    "kernel_parity_errors",
+    "kernel_buffer_overruns",
 )
+
+_RECOVERED_CRC_EVIDENCE_FIELDS = {
+    "crc_errors",
+    "resync_discarded_bytes",
+    "sequence_losses",
+    "sample_losses",
+}
 
 
 def _pcm_transport_failure_fields(source_stats: dict[str, Any] | None) -> list[str]:
@@ -45,8 +58,11 @@ def _pcm_transport_failure_fields(source_stats: dict[str, Any] | None) -> list[s
     if not source_stats:
         return []
 
+    recovered_crc = (
+        source_stats.get("transport_integrity_status") == "DEGRADED_RECOVERED"
+    )
     failures: list[str] = []
-    if source_stats.get("error_free") is False:
+    if source_stats.get("error_free") is False and not recovered_crc:
         failures.append("error_free")
 
     state = str(source_stats.get("state", "")).upper()
@@ -63,7 +79,7 @@ def _pcm_transport_failure_fields(source_stats: dict[str, Any] | None) -> list[s
             failed = value != 0
         else:
             failed = value is not None and value != "" and value != "0"
-        if failed:
+        if failed and not (recovered_crc and field in _RECOVERED_CRC_EVIDENCE_FIELDS):
             failures.append(field)
 
     if source_stats.get("last_error") and "last_error" not in failures:
@@ -132,6 +148,8 @@ class OperationalIntelligenceCore:
         segmentation: SegmenterConfig | None = None,
         pcm_source: PCMSource | None = None,
         physical_capture_only: bool = False,
+        close_terminal_processing_failures: bool = False,
+        background_finalize_on_stop: bool = False,
     ):
         self.sessions_root = sessions_root
         self.providers = providers or PipelineProviders(
@@ -145,6 +163,14 @@ class OperationalIntelligenceCore:
         self.segmentation = segmentation or SegmenterConfig()
         self.pcm_source = pcm_source
         self.physical_capture_only = physical_capture_only
+        # Interactive deployments may safely close a drained, terminally
+        # failed inference job as PARTIAL. Audio and failure artefacts remain
+        # immutable; only a live occurrence is released for the next call.
+        self.close_terminal_processing_failures = close_terminal_processing_failures
+        # A closed capture must not hold the live-capture slot while provider
+        # work runs.  Interactive deployments detach that work only after the
+        # recorder and the physical source have both closed.
+        self.background_finalize_on_stop = background_finalize_on_stop
         if physical_capture_only:
             from raspberry_mvp.pcm_stream.safe_field_pcm_receiver import SerialPCMSource
             from raspberry_mvp.raw24_diagnostic.operational_raw24_source import SerialRaw24PCMSource
@@ -154,16 +180,30 @@ class OperationalIntelligenceCore:
                     or not re.fullmatch(r'(?:COM\d+|/dev/tty[A-Za-z0-9]+|/dev/serial\d+)', pcm_source.port)):
                 raise ValueError('PHYSICAL_CAPTURE_ONLY requires the actual OS serial source, no injected factory')
         self.state = LifecycleState.STANDBY
+        self.boot_id = uuid.uuid4().hex
+        self.state_revision = 0
         self._lock = threading.RLock()
         self._stop_lock = threading.Lock()
         self._session: OccurrenceSession | None = None
         self._pipeline: AsyncSegmentPipeline | None = None
         self._recorder: ContinuousAudioRecorder | None = None
+        self._active_capture_id: str | None = None
+        self._capture_index = 0
         self._registry: SpeakerRegistry | None = None
         self._stop_capture_stats: dict[str, int] | None = None
         self._stop_source_stats: dict[str, Any] | None = None
         self._last_source_stats: dict[str, Any] | None = None
+        self._last_capture_result: dict[str, Any] | None = None
         self.last_session_root: Path | None = None
+        self._background_finalizers: list[threading.Thread] = []
+
+    def _advance_revision(self) -> int:
+        self.state_revision += 1
+        return self.state_revision
+
+    @property
+    def active_capture_id(self) -> str | None:
+        return self._active_capture_id
 
     @property
     def occurrence_id(self) -> str | None:
@@ -175,6 +215,45 @@ class OperationalIntelligenceCore:
         with self._lock:
             return self._session.root if self._session else None
 
+    @staticmethod
+    def _persist_pcm_transport(
+        session: OccurrenceSession,
+        capture_id: str,
+        snapshot: dict[str, Any],
+    ) -> None:
+        """Persist per-capture transport evidence plus first-capture legacy path."""
+        atomic_json(
+            session.root / "captures" / capture_id / "pcm_transport.json",
+            snapshot,
+        )
+        if capture_id == "capture_0001":
+            atomic_json(session.root / "audio" / "pcm_transport.json", snapshot)
+
+    def _blocked_capture_response(self) -> dict[str, Any]:
+        assert self._session is not None
+        capture = self._stop_capture_stats or {}
+        source = self._stop_source_stats or self._last_source_stats or {}
+        failure_fields = _pcm_transport_failure_fields(source)
+        return {
+            "ok": False,
+            "command": "STOP_CAPTURE",
+            "state": LifecycleState.STOPPING.value,
+            "lifecycle_state": LifecycleState.STOPPING.value,
+            "occurrence_id": self._session.occurrence_id,
+            "capture_id": None,
+            "capture": capture,
+            "capture_active": False,
+            "pcm_source": source,
+            "pcm_failure_fields": failure_fields,
+            "ui_state": "CAPTURE_FAILED",
+            "reason": "PCM_TRANSPORT_FAILED",
+            "finalization_pending": False,
+            "finalization_blocked": True,
+            "retryable": False,
+            "state_revision": self.state_revision,
+            "boot_id": self.boot_id,
+        }
+
     def start(self, occurrence_id: str | None = None) -> dict[str, Any]:
         # START and STOP are mutually exclusive lifecycle transitions.  The
         # serial open may take a short time and must complete atomically from
@@ -182,30 +261,181 @@ class OperationalIntelligenceCore:
         with self._stop_lock:
             return self._start_locked(occurrence_id)
 
+    def start_capture(self) -> dict[str, Any]:
+        """Start another capture inside the currently open occurrence."""
+        with self._stop_lock:
+            with self._lock:
+                if self.state is not LifecycleState.OPEN or self._session is None:
+                    raise RuntimeError("No open occurrence ready for a new capture")
+            return self._start_capture_locked()
+
+    def _finalize_detached_session(
+        self, session: OccurrenceSession, pipeline: AsyncSegmentPipeline
+    ) -> None:
+        """Finish one already-closed occurrence without retaining Core ACTIVE."""
+        try:
+            pipeline.drain()
+            queue_stats = pipeline.stats
+            guidance_failure_only = _only_nonblocking_guidance_failures(
+                session.root, queue_stats["failed"]
+            )
+            terminal_failure = queue_stats["failed"] and not guidance_failure_only
+            unavailable_guidance = (
+                guidance_failure_only or terminal_failure or
+                _has_unavailable_guidance(session.root)
+            )
+            final_pending = queue_stats["failed"] if unavailable_guidance else 0
+            final_reason = (
+                "PROCESSING_FAILED_TERMINAL" if terminal_failure else
+                ("GUIDANCE_NOT_AVAILABLE" if unavailable_guidance else None)
+            )
+            history_status = "PARTIAL" if unavailable_guidance else "COMPLETE"
+            if unavailable_guidance:
+                session.timeline.append(
+                    "HISTORY_PARTIAL", reason=final_reason,
+                    retained_processing_failures=final_pending,
+                )
+            session.finish(final_pending)
+            session.write_metadata(
+                "FINISHED", finalization_reason=final_reason,
+                history_status=history_status,
+            )
+            build_preliminary_history(session.root)
+            session.timeline.append(
+                "BACKGROUND_FINALIZATION_COMPLETE", history_status=history_status,
+                pending_jobs=final_pending,
+            )
+        except Exception as exc:
+            # Audio and failed-provider evidence stay durable; this must never
+            # revive a closed occurrence or make the wearable wait forever.
+            session.write_metadata(
+                "PROCESSING_FAILED", finalization_reason="BACKGROUND_FINALIZATION_ERROR",
+                error=type(exc).__name__,
+            )
+            session.timeline.append("BACKGROUND_FINALIZATION_FAILED", error=type(exc).__name__)
+        finally:
+            pipeline.close()
+
+    def _detach_closed_capture_for_background_finalization(
+        self, session: OccurrenceSession, pipeline: AsyncSegmentPipeline,
+        capture_stats: dict[str, Any], source_stats: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """Release STANDBY after durable capture closure and queue processing."""
+        queue_stats = pipeline.stats
+        pending_jobs = queue_stats["pending"] + queue_stats["failed"]
+        session.write_metadata(
+            "PROCESSING_BACKGROUND", pending_jobs=pending_jobs, pcm_source=source_stats,
+        )
+        session.timeline.append(
+            "CAPTURE_RELEASED_FOR_BACKGROUND_PROCESSING", pending_jobs=pending_jobs,
+        )
+        worker = threading.Thread(
+            target=self._finalize_detached_session, args=(session, pipeline),
+            daemon=True, name=f"safe-field-finalize-{session.occurrence_id}",
+        )
+        with self._lock:
+            self.last_session_root = session.root
+            self._session = None
+            self._pipeline = None
+            self._recorder = None
+            self._active_capture_id = None
+            self._registry = None
+            self._stop_capture_stats = None
+            self._stop_source_stats = None
+            self._last_capture_result = None
+            self.state = LifecycleState.STANDBY
+            self._advance_revision()
+            self._background_finalizers = [
+                thread for thread in self._background_finalizers if thread.is_alive()
+            ]
+            self._background_finalizers.append(worker)
+        worker.start()
+        return {
+            "ok": True, "command": "CONCLUDE", "state": LifecycleState.STANDBY.value,
+            "occurrence_id": session.occurrence_id, "capture": capture_stats,
+            "pcm_source": source_stats, "processing_drained": False,
+            "processing_background": True, "pending_jobs": pending_jobs,
+            "queue": queue_stats, "finalization_pending": False,
+            "retryable": False, "reason": "PROCESSING_BACKGROUND",
+            "history_markdown": None, "history_json": None,
+        }
+
     def _start_locked(self, occurrence_id: str | None = None) -> dict[str, Any]:
-        start_error: Exception | None = None
         with self._lock:
             if self.state is not LifecycleState.STANDBY:
                 raise RuntimeError("An occurrence is already active")
             session = OccurrenceSession.create(self.sessions_root, occurrence_id)
             registry = SpeakerRegistry(session.root / "speakers" / "registry.json")
             pipeline = AsyncSegmentPipeline(session.root, self.providers, registry, session.timeline)
+            self._session = session
+            self._registry = registry
+            self._pipeline = pipeline
+            self._capture_index = 0
+            self._stop_capture_stats = None
+            self._stop_source_stats = None
+            self._last_capture_result = None
+            self.state = LifecycleState.OPEN
+            self._advance_revision()
+            session.write_metadata(
+                "OPEN", capture_state="STOPPED", capture_count=0,
+                state_revision=self.state_revision, boot_id=self.boot_id,
+            )
+        try:
+            result = self._start_capture_locked()
+        except Exception:
+            pipeline.close()
+            session.write_metadata("START_FAILED", capture_state="ERROR")
+            with self._lock:
+                self.last_session_root = session.root
+                self._session = None
+                self._pipeline = None
+                self._registry = None
+                self.state = LifecycleState.STANDBY
+                self._advance_revision()
+            raise
+        return {**result, "command": "START", "session_root": str(session.root)}
+
+    def _start_capture_locked(self) -> dict[str, Any]:
+        start_error: Exception | None = None
+        with self._lock:
+            if self.state is not LifecycleState.OPEN:
+                raise RuntimeError("Occurrence is not ready for capture")
+            assert self._session and self._pipeline
+            session = self._session
+            pipeline = self._pipeline
+            self._capture_index += 1
+            capture_id = f"capture_{self._capture_index:04d}"
+            session.begin_capture(
+                capture_id,
+                index=self._capture_index,
+                pcm={
+                    "sample_rate": self.pcm.sample_rate,
+                    "channels": self.pcm.channels,
+                    "sample_width": self.pcm.sample_width,
+                },
+            )
             recorder = ContinuousAudioRecorder(
                 session.root,
                 self.pcm,
                 self.segmentation,
                 on_segment=pipeline.submit_segment,
+                capture_id=capture_id,
             )
-            self._session = session
-            self._registry = registry
-            self._pipeline = pipeline
             self._recorder = recorder
+            self._active_capture_id = capture_id
             self._stop_capture_stats = None
             self._stop_source_stats = None
             self.state = LifecycleState.ACTIVE
+            self._advance_revision()
             try:
                 source_status = (
-                    self.pcm_source.start(self._ingest_source_pcm if self.physical_capture_only else self.ingest_pcm) if self.pcm_source else None
+                    self.pcm_source.start(
+                        self._ingest_source_pcm
+                        if self.physical_capture_only
+                        else self.ingest_pcm
+                    )
+                    if self.pcm_source
+                    else None
                 )
             except Exception as exc:
                 start_error = exc
@@ -219,7 +449,6 @@ class OperationalIntelligenceCore:
             except Exception:
                 pass
             capture_stats = recorder.close()
-            pipeline.close()
             failure: dict[str, Any] = {}
             try:
                 if self.pcm_source:
@@ -233,35 +462,49 @@ class OperationalIntelligenceCore:
                     "detail": str(start_error),
                 }
             )
-            atomic_json(session.root / "audio" / "pcm_transport.json", failure)
+            self._persist_pcm_transport(session, capture_id, failure)
             session.timeline.append("PCM_SOURCE_START_FAILED", **failure)
-            session.write_metadata(
-                "START_FAILED",
+            session.finish_capture(
+                capture_id,
+                status="INTERRUPTED",
                 capture=capture_stats,
                 pcm_source=failure,
+                raw_path=recorder.raw_path,
+                processed_path=recorder.processed_path,
             )
             with self._lock:
-                self.last_session_root = session.root
                 self._last_source_stats = failure
-                self._session = None
-                self._pipeline = None
                 self._recorder = None
-                self._registry = None
+                self._active_capture_id = None
                 self._stop_capture_stats = None
                 self._stop_source_stats = None
-                self.state = LifecycleState.STANDBY
+                self.state = LifecycleState.OPEN
+                self._advance_revision()
+                session.write_metadata(
+                    "OPEN", capture_state="INTERRUPTED",
+                    capture_count=self._capture_index,
+                    state_revision=self.state_revision, boot_id=self.boot_id,
+                )
             raise RuntimeError(f"PCM source start failed: {start_error}") from start_error
 
         if source_status is not None:
-            session.timeline.append("PCM_SOURCE_STARTED", **source_status)
-            atomic_json(session.root / "audio" / "pcm_transport.json", source_status)
+            self._persist_pcm_transport(session, capture_id, source_status)
+        session.mark_capture_recording(capture_id, pcm_source=source_status)
+        session.write_metadata(
+            "OPEN", capture_state="RECORDING", active_capture_id=capture_id,
+            capture_count=self._capture_index, state_revision=self.state_revision,
+            boot_id=self.boot_id,
+        )
         return {
             "ok": True,
-            "command": "START",
+            "command": "START_CAPTURE",
             "state": self.state.value,
             "occurrence_id": session.occurrence_id,
-            "session_root": str(session.root),
+            "capture_id": capture_id,
+            "capture_index": self._capture_index,
             "pcm_source": source_status,
+            "state_revision": self.state_revision,
+            "boot_id": self.boot_id,
         }
 
     def ingest_pcm(self, pcm_bytes: bytes) -> None:
@@ -285,8 +528,8 @@ class OperationalIntelligenceCore:
 
     def confirm_hypothesis(self, hypothesis_id: str, decision: str) -> dict[str, Any]:
         with self._lock:
-            if self.state is not LifecycleState.ACTIVE or self._pipeline is None:
-                raise RuntimeError("No active occurrence")
+            if self.state not in {LifecycleState.ACTIVE, LifecycleState.OPEN} or self._pipeline is None:
+                raise RuntimeError("No open occurrence")
             self._pipeline.submit_confirmation(hypothesis_id, decision)
         return {"ok": True, "queued": True, "hypothesis_id": hypothesis_id}
 
@@ -294,8 +537,8 @@ class OperationalIntelligenceCore:
         self, speaker_id: str, role: str, confirmed_identity: str | None = None
     ) -> dict[str, Any]:
         with self._lock:
-            if self.state is not LifecycleState.ACTIVE or self._registry is None or self._session is None:
-                raise RuntimeError("No active occurrence")
+            if self.state not in {LifecycleState.ACTIVE, LifecycleState.OPEN} or self._registry is None or self._session is None:
+                raise RuntimeError("No open occurrence")
             self._registry.confirm_role(speaker_id, role, confirmed_identity)
             self._session.timeline.append(
                 "SPEAKER_ROLE_OFFICER_CONFIRMED", speaker_id=speaker_id, role=role
@@ -334,8 +577,8 @@ class OperationalIntelligenceCore:
         self, processing_timeout: float | None, *, force: bool
     ) -> dict[str, Any]:
         with self._lock:
-            if self.state is not LifecycleState.ACTIVE or self._pipeline is None or self._session is None:
-                raise RuntimeError("No active occurrence")
+            if self.state not in {LifecycleState.ACTIVE, LifecycleState.OPEN} or self._pipeline is None or self._session is None:
+                raise RuntimeError("No open occurrence")
             pipeline = self._pipeline
             session = self._session
 
@@ -424,8 +667,8 @@ class OperationalIntelligenceCore:
 
         with self._stop_lock:
             with self._lock:
-                if self.state is not LifecycleState.ACTIVE or self._pipeline is None or self._session is None:
-                    raise RuntimeError("No active occurrence")
+                if self.state not in {LifecycleState.ACTIVE, LifecycleState.OPEN} or self._pipeline is None or self._session is None:
+                    raise RuntimeError("No open occurrence")
                 pipeline = self._pipeline
                 session = self._session
 
@@ -504,209 +747,357 @@ class OperationalIntelligenceCore:
                 "consolidation": consolidation,
             }
 
-    def stop(self, processing_timeout: float | None = None) -> dict[str, Any]:
-        # Only one caller may advance the two-phase finalization at a time.
-        # A second STOP after a timeout is a retry, not a second recorder close.
+    def stop_capture(self) -> dict[str, Any]:
+        """Close and persist only the current capture, keeping occurrence open."""
         with self._stop_lock:
-            with self._lock:
-                if self.state not in {LifecycleState.ACTIVE, LifecycleState.STOPPING}:
-                    raise RuntimeError("No active occurrence")
-                assert self._session and self._pipeline and self._recorder
-                session = self._session
-                pipeline = self._pipeline
-                if self.state is LifecycleState.ACTIVE:
-                    # The source must be quiescent before the recorder closes.
-                    # Keeping ACTIVE during stop() allows its final in-flight
-                    # packet to reach ingest_pcm safely.
-                    source = self.pcm_source
-                else:
-                    source = None
+            return self._stop_capture_locked()
 
-            if source is not None:
-                try:
-                    source_stats = source.stop()
-                except Exception as exc:
-                    failure = {
-                        "state": "FAILED",
-                        "error": type(exc).__name__,
-                        "detail": str(exc),
-                    }
-                    try:
-                        failure = {**source.status(), **failure}
-                    except Exception:
-                        pass
-                    with self._lock:
-                        self._last_source_stats = failure
-                        atomic_json(session.root / "audio" / "pcm_transport.json", failure)
-                        session.timeline.append("PCM_SOURCE_STOP_FAILED", **failure)
-                        session.write_metadata("ACTIVE", pcm_source=failure)
-                    # Never close the recorder while the source may still be
-                    # delivering bytes.  A later STOP may retry safely.
-                    raise RuntimeError(f"PCM source stop failed: {exc}") from exc
-                else:
-                    try:
-                        source_stats = {**source_stats, **source.status()}
-                    except Exception:
-                        pass
-                    with self._lock:
-                        self._stop_source_stats = source_stats
-                        self._last_source_stats = dict(source_stats)
-                        atomic_json(session.root / "audio" / "pcm_transport.json", source_stats)
-                        session.timeline.append("PCM_SOURCE_STOPPED", **source_stats)
+    def _stop_capture_locked(self) -> dict[str, Any]:
+        with self._lock:
+            if self.state is not LifecycleState.ACTIVE:
+                raise RuntimeError("No active capture")
+            assert self._session and self._pipeline and self._recorder
+            assert self._active_capture_id
+            session = self._session
+            pipeline = self._pipeline
+            recorder = self._recorder
+            capture_id = self._active_capture_id
+            source = self.pcm_source
 
-            capture_closed_now = False
-            with self._lock:
-                if self.state is LifecycleState.ACTIVE:
-                    self.state = LifecycleState.STOPPING
-                    self._stop_capture_stats = self._recorder.close()
-                    capture_closed_now = True
-                    session.timeline.append("OCCURRENCE_STOP_REQUESTED")
-                    session.write_metadata("STOPPING", pcm_source=self._stop_source_stats)
-                assert self._stop_capture_stats is not None
-                capture_stats = dict(self._stop_capture_stats)
-                source_stats = (
-                    dict(self._stop_source_stats) if self._stop_source_stats is not None else None
-                )
-
-            pcm_failure_fields = _pcm_transport_failure_fields(source_stats)
-            if pcm_failure_fields:
-                queue_stats = pipeline.stats
-                pending = queue_stats["pending"] + queue_stats["failed"]
-                reason = "PCM_TRANSPORT_FAILED"
-                if capture_closed_now:
-                    session.write_metadata(
-                        "FINALIZATION_BLOCKED",
-                        pending_jobs=pending,
-                        finalization_reason=reason,
-                        pcm_source=source_stats,
-                        pcm_failure_fields=pcm_failure_fields,
-                    )
-                    session.timeline.append(
-                        "FINALIZATION_BLOCKED",
-                        pending_jobs=pending,
-                        reason=reason,
-                        pcm_failure_fields=pcm_failure_fields,
-                    )
-                return {
-                    "ok": False,
-                    "command": "STOP",
-                    "state": LifecycleState.STOPPING.value,
-                    "lifecycle_state": LifecycleState.STOPPING.value,
-                    "ui_state": "CAPTURE_FAILED",
-                    "occurrence_id": session.occurrence_id,
-                    "capture": capture_stats,
-                    "pcm_source": source_stats,
-                    "pcm_failure_fields": pcm_failure_fields,
-                    "processing_drained": queue_stats["pending"] == 0,
-                    "pending_jobs": pending,
-                    "queue": queue_stats,
-                    "finalization_pending": False,
-                    "finalization_blocked": True,
-                    "retryable": False,
-                    "reason": reason,
-                    "history_markdown": None,
-                    "history_json": None,
+        source_stats: dict[str, Any] | None = None
+        if source is not None:
+            try:
+                source_stats = source.stop()
+            except Exception as exc:
+                failure = {
+                    "state": "FAILED",
+                    "error": type(exc).__name__,
+                    "detail": str(exc),
                 }
+                try:
+                    failure = {**source.status(), **failure}
+                except Exception:
+                    pass
+                self._last_source_stats = failure
+                self._persist_pcm_transport(session, capture_id, failure)
+                session.timeline.append(
+                    "PCM_SOURCE_STOP_FAILED", capture_id=capture_id, **failure
+                )
+                raise RuntimeError(f"PCM source stop failed: {exc}") from exc
+            try:
+                source_stats = {**source_stats, **source.status()}
+            except Exception:
+                pass
 
-            drained = pipeline.drain(processing_timeout)
-            queue_stats = pipeline.stats
-            pending = queue_stats["pending"] + queue_stats["failed"]
-            guidance_failure_only = _only_nonblocking_guidance_failures(
-                session.root, queue_stats["failed"]
+        capture_stats = recorder.close()
+        failure_fields = _pcm_transport_failure_fields(source_stats)
+        recovered_transport = bool(
+            source_stats
+            and source_stats.get("transport_integrity_status")
+            == "DEGRADED_RECOVERED"
+        )
+        capture_status = (
+            "CAPTURE_FAILED"
+            if failure_fields
+            else ("DEGRADED_RECOVERED" if recovered_transport else "SAVED")
+        )
+        try:
+            record = session.finish_capture(
+                capture_id,
+                status=capture_status,
+                capture=capture_stats,
+                pcm_source=source_stats,
+                raw_path=recorder.raw_path,
+                processed_path=recorder.processed_path,
             )
-
-            # A timeout or a failed inference provider means consolidation is not
-            # complete.  Keep the occurrence and pipeline references alive,
-            # publish no final history, and let STOP be retried safely after a
-            # timed-out worker completes.  Unavailable post-confirmation guidance
-            # is different: captured evidence is already durable and can close as
-            # an explicitly PARTIAL history.
-            if not drained or (queue_stats["failed"] and not guidance_failure_only):
-                reason = (
-                    "PROCESSING_TIMEOUT"
-                    if not drained
-                    else "PROCESSING_FAILED_REQUIRES_REPLAY"
+        except Exception as exc:
+            failure = {
+                **(source_stats or {}),
+                "state": "STOPPED_WITH_ERRORS",
+                "last_error": "CAPTURE_PERSISTENCE_FAILED",
+                "error": type(exc).__name__,
+            }
+            with self._lock:
+                self._last_source_stats = failure
+                self._recorder = recorder
+                self.state = LifecycleState.STOPPING
+                self._advance_revision()
+                session.timeline.append(
+                    "CAPTURE_PERSISTENCE_FAILED",
+                    capture_id=capture_id,
+                    error=type(exc).__name__,
                 )
                 session.write_metadata(
-                    "FINALIZATION_PENDING",
-                    pending_jobs=pending,
-                    finalization_reason=reason,
+                    "CAPTURE_PERSISTENCE_FAILED",
+                    capture_state="ERROR",
+                    active_capture_id=capture_id,
+                    state_revision=self.state_revision,
+                    boot_id=self.boot_id,
                 )
-                session.timeline.append(
-                    "FINALIZATION_PENDING",
-                    pending_jobs=pending,
-                    reason=reason,
-                )
-                return {
-                    "ok": False,
-                    "command": "STOP",
-                    "state": LifecycleState.STOPPING.value,
-                    "occurrence_id": session.occurrence_id,
-                    "capture": capture_stats,
-                    "pcm_source": source_stats,
-                    "processing_drained": drained,
-                    "pending_jobs": pending,
-                    "queue": queue_stats,
-                    "finalization_pending": True,
-                    "retryable": not drained,
-                    "reason": reason,
-                    "history_markdown": None,
-                    "history_json": None,
-                }
+            raise RuntimeError("Capture persistence failed") from exc
+        if source_stats is not None:
+            self._persist_pcm_transport(session, capture_id, source_stats)
 
-            unavailable_guidance = guidance_failure_only or _has_unavailable_guidance(
-                session.root
+        if recovered_transport and not failure_fields:
+            session.timeline.append(
+                "CAPTURE_TRANSPORT_RECOVERED",
+                capture_id=capture_id,
+                crc_errors=source_stats.get("crc_errors"),
+                resync_discarded_bytes=source_stats.get("resync_discarded_bytes"),
+                sequence_losses=source_stats.get("sequence_losses"),
+                sample_losses=source_stats.get("sample_losses"),
             )
-            history_status = "PARTIAL" if unavailable_guidance else "COMPLETE"
-            final_reason = "GUIDANCE_NOT_AVAILABLE" if unavailable_guidance else None
-            final_pending = queue_stats["failed"] if guidance_failure_only else 0
-            if unavailable_guidance:
-                session.timeline.append(
-                    "HISTORY_PARTIAL",
-                    reason=final_reason,
-                    retained_processing_failures=final_pending,
-                )
-            session.finish(final_pending)
-            # Clear an earlier timeout marker so FINISHED metadata cannot look
-            # as though finalization were still blocked.
-            session.write_metadata(
-                "FINISHED",
-                finalization_reason=final_reason,
-                history_status=history_status,
-            )
-            history_md, history_json = build_preliminary_history(session.root)
-            bo_md = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.md"
-            bo_txt = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.txt"
-            pipeline.close()
 
+        if failure_fields:
             with self._lock:
-                self.last_session_root = session.root
-                self._session = None
-                self._pipeline = None
+                self._last_source_stats = dict(source_stats or {})
                 self._recorder = None
-                self._registry = None
-                self._stop_capture_stats = None
-                self._stop_source_stats = None
-                self.state = LifecycleState.STANDBY
-            return {
-                "ok": True,
-                "command": "STOP",
-                "state": LifecycleState.STANDBY.value,
-                "occurrence_id": session.occurrence_id,
-                "capture": capture_stats,
-                "pcm_source": source_stats,
-                "processing_drained": True,
-                "pending_jobs": final_pending,
-                "queue": queue_stats,
-                "finalization_pending": False,
-                "retryable": False,
-                "reason": final_reason,
-                "history_status": history_status,
-                "history_markdown": str(history_md),
-                "history_json": str(history_json),
-                "bo_markdown": str(bo_md),
-                "bo_text": str(bo_txt),
+                self._active_capture_id = None
+                self._stop_capture_stats = dict(capture_stats)
+                self._stop_source_stats = dict(source_stats or {})
+                self._last_capture_result = {
+                    "capture_id": capture_id,
+                    "capture": dict(capture_stats),
+                    "pcm_source": dict(source_stats or {}),
+                    "capture_record": record,
+                }
+                self.state = LifecycleState.STOPPING
+                self._advance_revision()
+                session.timeline.append(
+                    "FINALIZATION_BLOCKED",
+                    capture_id=capture_id,
+                    reason="PCM_TRANSPORT_FAILED",
+                    fields=failure_fields,
+                )
+                session.write_metadata(
+                    "FINALIZATION_BLOCKED",
+                    capture_state="CAPTURE_FAILED",
+                    active_capture_id=None,
+                    capture_count=self._capture_index,
+                    finalization_reason="PCM_TRANSPORT_FAILED",
+                    pcm_source=source_stats,
+                    state_revision=self.state_revision,
+                    boot_id=self.boot_id,
+                )
+                return self._blocked_capture_response()
+
+        with self._lock:
+            self._last_source_stats = dict(source_stats) if source_stats else None
+            self._recorder = None
+            self._active_capture_id = None
+            self._stop_capture_stats = None
+            self._stop_source_stats = None
+            self.state = LifecycleState.OPEN
+            self._advance_revision()
+            self._last_capture_result = {
+                "capture_id": capture_id,
+                "capture": dict(capture_stats),
+                "pcm_source": dict(source_stats) if source_stats else None,
+                "capture_record": record,
             }
+            session.write_metadata(
+                "OPEN",
+                capture_state=capture_status,
+                active_capture_id=None,
+                capture_count=self._capture_index,
+                latest_capture=record,
+                state_revision=self.state_revision,
+                boot_id=self.boot_id,
+            )
+
+        queue_stats = pipeline.stats
+        return {
+            "ok": not failure_fields,
+            "command": "STOP_CAPTURE",
+            "state": LifecycleState.OPEN.value,
+            "occurrence_id": session.occurrence_id,
+            "capture_id": capture_id,
+            "capture": capture_stats,
+            "capture_record": record,
+            "capture_active": False,
+            "pcm_source": source_stats,
+            "pcm_failure_fields": failure_fields,
+            "transport_integrity_status": (
+                source_stats.get("transport_integrity_status")
+                if source_stats
+                else None
+            ),
+            "ui_state": "CAPTURE_FAILED" if failure_fields else "OCCURRENCE_OPEN",
+            "queue": queue_stats,
+            "processing_background": queue_stats["pending"] > 0,
+            "state_revision": self.state_revision,
+            "boot_id": self.boot_id,
+        }
+
+    def conclude_occurrence(self) -> dict[str, Any]:
+        """Persist closure intent and release STANDBY without waiting for IA."""
+        with self._stop_lock:
+            if self.state is LifecycleState.STOPPING:
+                return self._blocked_capture_response()
+            if self.state is LifecycleState.ACTIVE:
+                capture_result = self._stop_capture_locked()
+                if not capture_result["ok"]:
+                    return capture_result
+            return self._conclude_open_locked(force_background=True)
+
+    def _conclude_open_locked(
+        self,
+        processing_timeout: float | None = None,
+        *,
+        force_background: bool,
+    ) -> dict[str, Any]:
+        with self._lock:
+            if self.state is not LifecycleState.OPEN or not self._session or not self._pipeline:
+                raise RuntimeError("No open occurrence")
+            session = self._session
+            pipeline = self._pipeline
+            captures = session.capture_records()
+            if not captures:
+                raise RuntimeError("Occurrence has no persisted capture")
+            request = {
+                "occurrence_id": session.occurrence_id,
+                "capture_ids": [item["capture_id"] for item in captures],
+                "capture_count": len(captures),
+                "state_revision": self.state_revision,
+                "status": "QUEUED",
+            }
+            atomic_json(session.root / "jobs" / "finalization_request.json", request)
+            session.timeline.append("OCCURRENCE_CONCLUSION_PERSISTED", **request)
+            session.write_metadata(
+                "PROCESSING_BACKGROUND",
+                capture_state="STOPPED",
+                active_capture_id=None,
+                capture_count=len(captures),
+                finalization_request=request,
+            )
+
+        if force_background or self.background_finalize_on_stop:
+            return self._detach_closed_capture_for_background_finalization(
+                session,
+                pipeline,
+                {"captures": len(captures)},
+                self._last_source_stats,
+            )
+
+        drained = pipeline.drain(processing_timeout)
+        queue_stats = pipeline.stats
+        pending = queue_stats["pending"] + queue_stats["failed"]
+        guidance_failure_only = _only_nonblocking_guidance_failures(
+            session.root, queue_stats["failed"]
+        )
+        terminal_processing_failure = (
+            drained and queue_stats["failed"] and not guidance_failure_only
+        )
+        if not drained or (
+            terminal_processing_failure
+            and not self.close_terminal_processing_failures
+        ):
+            reason = (
+                "PROCESSING_TIMEOUT"
+                if not drained
+                else "PROCESSING_FAILED_REQUIRES_REPLAY"
+            )
+            session.write_metadata(
+                "FINALIZATION_PENDING",
+                capture_state="STOPPED",
+                active_capture_id=None,
+                capture_count=len(captures),
+                pending_jobs=pending,
+                finalization_reason=reason,
+            )
+            session.timeline.append(
+                "FINALIZATION_PENDING", pending_jobs=pending, reason=reason
+            )
+            return {
+                "ok": False,
+                "command": "CONCLUDE",
+                "state": LifecycleState.OPEN.value,
+                "occurrence_id": session.occurrence_id,
+                "capture_active": False,
+                "processing_drained": drained,
+                "pending_jobs": pending,
+                "finalization_pending": True,
+                "reason": reason,
+                "retryable": not drained,
+                "queue": queue_stats,
+                "history_markdown": None,
+                "history_json": None,
+            }
+
+        unavailable_guidance = (
+            guidance_failure_only
+            or terminal_processing_failure
+            or _has_unavailable_guidance(session.root)
+        )
+        history_status = "PARTIAL" if unavailable_guidance else "COMPLETE"
+        final_reason = (
+            "PROCESSING_FAILED_TERMINAL"
+            if terminal_processing_failure
+            else ("GUIDANCE_NOT_AVAILABLE" if unavailable_guidance else None)
+        )
+        final_pending = queue_stats["failed"] if unavailable_guidance else 0
+        if unavailable_guidance:
+            session.timeline.append(
+                "HISTORY_PARTIAL",
+                reason=final_reason,
+                retained_processing_failures=final_pending,
+            )
+        session.finish(final_pending)
+        session.write_metadata(
+            "FINISHED",
+            history_status=history_status,
+            finalization_reason=final_reason,
+        )
+        history_md, history_json = build_preliminary_history(session.root)
+        bo_md = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.md"
+        bo_txt = session.root / "reports" / "BO_RELATO_POLICIAL_PRONTO.txt"
+        pipeline.close()
+        with self._lock:
+            self.last_session_root = session.root
+            self._session = None
+            self._pipeline = None
+            self._registry = None
+            self.state = LifecycleState.STANDBY
+            self._advance_revision()
+        return {
+            "ok": True,
+            "command": "CONCLUDE",
+            "state": LifecycleState.STANDBY.value,
+            "occurrence_id": session.occurrence_id,
+            "capture_active": False,
+            "processing_drained": True,
+            "pending_jobs": final_pending,
+            "finalization_pending": False,
+            "retryable": False,
+            "reason": final_reason,
+            "history_status": history_status,
+            "queue": queue_stats,
+            "history_markdown": str(history_md),
+            "history_json": str(history_json),
+            "bo_markdown": str(bo_md),
+            "bo_text": str(bo_txt),
+            "state_revision": self.state_revision,
+            "boot_id": self.boot_id,
+        }
+
+    def stop(self, processing_timeout: float | None = None) -> dict[str, Any]:
+        """Legacy atomic STOP kept for non-wearable callers and old tests."""
+        with self._stop_lock:
+            if self.state is LifecycleState.STOPPING:
+                return self._blocked_capture_response()
+            capture_result = self._last_capture_result
+            if self.state is LifecycleState.ACTIVE:
+                capture_result = self._stop_capture_locked()
+                if not capture_result["ok"]:
+                    return capture_result
+            result = self._conclude_open_locked(
+                processing_timeout,
+                force_background=False,
+            )
+            if capture_result is not None:
+                result.setdefault("capture", capture_result.get("capture"))
+                result.setdefault("pcm_source", capture_result.get("pcm_source"))
+            return result
 
     def status(self) -> dict[str, Any]:
         with self._lock:
@@ -736,6 +1127,12 @@ class OperationalIntelligenceCore:
                 "lifecycle_state": self.state.value,
                 "ui_state": "CAPTURE_FAILED" if capture_failed else None,
                 "occurrence_id": self.occurrence_id,
+                "active_occurrence_id": self.occurrence_id,
+                "active_capture_id": self._active_capture_id,
+                "capture_count": self._capture_index,
+                "capture_active": self.state is LifecycleState.ACTIVE,
+                "state_revision": self.state_revision,
+                "boot_id": self.boot_id,
                 "queue": self._pipeline.stats if self._pipeline else None,
                 "pcm_source": source,
                 "pcm_failure_fields": pcm_failure_fields,

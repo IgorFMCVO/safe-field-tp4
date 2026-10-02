@@ -4,6 +4,7 @@ from dataclasses import asdict
 import math
 import os
 from pathlib import Path
+import tempfile
 import threading
 import time
 import wave
@@ -152,17 +153,44 @@ class RecoveryDiarizer(SpeechBrainLocalDiarizationProvider):
         for local,group in groups.items():
             longest=max(group,key=lambda t:t.end-t.start)
             score=0.0
-            if longest.end-longest.start>=4:
+            duration = longest.end - longest.start
+            if duration>=4:
                 mid=(longest.start+longest.end)/2
-                first=await self.embedding_provider.embed(path,longest.start,mid)
-                second=await self.embedding_provider.embed(path,mid,longest.end)
+                guard=min(1.0,duration*0.05,max(0,duration/2-2.0))
+                first=await self.embedding_provider.embed(path,longest.start+guard,mid)
+                second=await self.embedding_provider.embed(path,mid,longest.end-guard)
                 score=max(0.0,min(1.0,cosine_similarity(first,second)))
             self.quality_scores[(str(path),local)]=score
         return turns
 
     def _speech_segments(self,path):
         import torch
-        raw=super()._speech_segments(path)
+        import soundfile as sf
+
+        # The physical FPGA/UART stream is intentionally preserved at its
+        # exact 42.1875 kHz rate.  SpeechBrain's frozen VAD, however, is a
+        # 16 kHz model and does not resample arbitrary-rate WAV files itself.
+        # Feed only that provider a temporary 16 kHz derivative; timestamps
+        # remain in seconds and therefore still address the untouched source
+        # used by the embedding provider (which performs its own resampling).
+        source = Path(path)
+        info = sf.info(str(source))
+        vad_path = source
+        temporary: Path | None = None
+        if info.samplerate != 16000 or info.channels != 1:
+            handle = tempfile.NamedTemporaryFile(
+                prefix='.safe_field_vad_', suffix='.wav',
+                dir=source.parent, delete=False,
+            )
+            temporary = Path(handle.name)
+            handle.close()
+            sf.write(str(temporary), load_float(source), 16000, subtype='PCM_16')
+            vad_path = temporary
+        try:
+            raw=super()._speech_segments(vad_path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
         joined=self._load_vad().merge_close_segments(torch.tensor(raw),close_th=self.gap) if raw else []
         result=[(float(a),float(b)) for a,b in joined]
         self.regions[str(path)]=result

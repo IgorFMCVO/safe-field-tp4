@@ -281,6 +281,31 @@ class WindowsWavePlayer:
         # Python's winsound does not expose/require an SND_SYNC flag.
         winsound.PlaySound(str(wav_path.resolve(strict=True)), winsound.SND_FILENAME)
 
+    def play_monitored(
+        self, wav_path: Path, should_abort: Callable[[], str | None], poll_s: float
+    ) -> None:
+        """Play asynchronously and stop promptly when the capture dies."""
+        if os.name != "nt":
+            raise PhysicalCError("physical stimulus playback requires Windows")
+        import winsound
+
+        with wave.open(str(wav_path.resolve(strict=True)), "rb") as stream:
+            duration_s = stream.getnframes() / stream.getframerate()
+        winsound.PlaySound(
+            str(wav_path.resolve(strict=True)),
+            winsound.SND_FILENAME | winsound.SND_ASYNC,
+        )
+        try:
+            deadline = time.monotonic() + duration_s
+            while time.monotonic() < deadline:
+                reason = should_abort()
+                if reason:
+                    winsound.PlaySound(None, 0)
+                    raise PhysicalCError("playback aborted: " + reason)
+                time.sleep(poll_s)
+        finally:
+            winsound.PlaySound(None, 0)
+
 
 def _assert_physical_start(started: Mapping[str, Any]) -> None:
     source = started.get("pcm_source")

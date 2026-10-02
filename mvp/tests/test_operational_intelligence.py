@@ -229,7 +229,10 @@ class OperationalCoreTests(unittest.TestCase):
         pending = list((session / "jobs").glob("pending_*.json"))
         self.assertEqual(len(pending), 1)
         self.assertEqual(json.loads(pending[0].read_text())["status"], "PROCESSING_PENDING")
-        self.assertEqual(result["state"], "STOPPING")
+        # A failed background provider must not undo the durable capture.
+        # The occurrence remains OPEN for retry/conclusion; STOPPING is now
+        # reserved for a capture-persistence/transport failure.
+        self.assertEqual(result["state"], "OPEN")
         self.assertTrue(result["finalization_pending"])
         self.assertIsNone(result["history_markdown"])
         self.assertIsNone(result["history_json"])
@@ -313,8 +316,8 @@ class OperationalCoreTests(unittest.TestCase):
         self.assertFalse(first["processing_drained"])
         self.assertTrue(first["finalization_pending"])
         self.assertTrue(first["retryable"])
-        self.assertEqual(first["state"], "STOPPING")
-        self.assertEqual(core.status()["state"], "STOPPING")
+        self.assertEqual(first["state"], "OPEN")
+        self.assertEqual(core.status()["state"], "OPEN")
         self.assertEqual(core.active_session_root, session)
         self.assertIsNone(core.last_session_root)
         self.assertIsNone(first["history_markdown"])
@@ -347,7 +350,9 @@ class OperationalCoreTests(unittest.TestCase):
             for line in (session / "timeline.jsonl").read_text(encoding="utf-8").splitlines()
         ]
         events = [item["event"] for item in timeline]
-        self.assertEqual(events.count("OCCURRENCE_STOP_REQUESTED"), 1)
+        # Retrying conclusion may persist another idempotent conclusion
+        # request, but the physical capture itself must be closed only once.
+        self.assertEqual(events.count("CAPTURE_CLOSED"), 1)
         self.assertEqual(events.count("OCCURRENCE_STOPPED"), 1)
 
     def test_invalid_occurrence_id_is_rejected(self):

@@ -30,6 +30,18 @@ class HistoryCloseoutTests(unittest.TestCase):
             session = OccurrenceSession.create(Path(temporary) / "sessions", "FILTERED_HISTORY")
             root = session.root
             SpeakerRegistry(root / "speakers" / "registry.json")
+            atomic_json(
+                root / "speakers" / "registry.json",
+                {
+                    "speakers": [
+                        {
+                            "speaker_id": "SPEAKER_01",
+                            "provisional_role": "POSSIBLE_WITNESS",
+                            "confirmed_role": None,
+                        }
+                    ]
+                },
+            )
             session.finish(1)
             atomic_json(
                 root / "transcripts" / "segment_0001.json",
@@ -112,6 +124,18 @@ class HistoryCloseoutTests(unittest.TestCase):
                 {"supported": [], "rejected": []},
             )
             atomic_json(
+                root / "facts" / "analysis_0001.json",
+                {
+                    "contradictions": [
+                        {
+                            "contradiction_id": "CONTRADICTION_001",
+                            "segment_ids": ["segment_0001"],
+                        }
+                    ],
+                    "information_gaps": ["local não confirmado"],
+                },
+            )
+            atomic_json(
                 root / "guidance" / "HYP_001.json",
                 {
                     "hypothesis_id": "HYP_001",
@@ -160,6 +184,12 @@ class HistoryCloseoutTests(unittest.TestCase):
                 self.assertNotIn(f"statement-{status}", rendered)
                 self.assertNotIn(f"quote-{status}", bo_md)
                 self.assertNotIn(f"quote-{status}", bo_txt)
+            self.assertIn("SPEAKER_01 (papel provisório: POSSIBLE_WITNESS)", bo_md)
+            self.assertIn("Não há atribuição de falsidade", bo_md)
+            self.assertIn("permanece sujeito à revisão policial", bo_md)
+            self.assertEqual(
+                history["police_report_model"]["facts"], history["facts"]
+            )
 
     def test_guidance_failure_closes_with_partial_history_and_bo(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -245,7 +275,7 @@ class HistoryCloseoutTests(unittest.TestCase):
 
             result = core.stop(2.0)
             self.assertFalse(result["ok"])
-            self.assertEqual(result["state"], "STOPPING")
+            self.assertEqual(result["state"], "OPEN")
             self.assertEqual(result["reason"], "PROCESSING_FAILED_REQUIRES_REPLAY")
             self.assertTrue(result["finalization_pending"])
             self.assertFalse((root / "guidance" / "HYP_001.json").exists())
@@ -255,6 +285,29 @@ class HistoryCloseoutTests(unittest.TestCase):
             )
             self.assertEqual(failure["error_type"], "RuntimeError")
             self.assertEqual(failure["error"], "DIAO_ADAPTER_CONTRACT_BROKEN")
+
+    def test_interactive_terminal_failure_closes_partial_and_releases_core(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            providers = fixture_providers()
+            providers.knowledge = BrokenGuidanceContract()
+            core = OperationalIntelligenceCore(
+                Path(temporary) / "sessions", providers=providers,
+                pcm=PCMFormat(sample_rate=1000, channels=1, sample_width=2),
+                segmentation=SegmenterConfig(pre_roll_ms=100, post_roll_ms=100,
+                                             silence_close_ms=200,
+                                             speech_rms_threshold=1000),
+                close_terminal_processing_failures=True,
+            )
+            core.start("TERMINAL_FAILURE_PARTIAL")
+            core.ingest_pcm(pcm16(0, 100)); core.ingest_pcm(pcm16(2500, 200)); core.ingest_pcm(pcm16(0, 300))
+            self.assertTrue(core.wait_for_processing(2.0))
+            core.confirm_hypothesis("HYP_001", "CONFIRM")
+            self.assertTrue(core.wait_for_processing(2.0))
+            result = core.stop(2.0)
+            self.assertTrue(result["ok"])
+            self.assertEqual(result["state"], "STANDBY")
+            self.assertEqual(result["history_status"], "PARTIAL")
+            self.assertEqual(result["reason"], "PROCESSING_FAILED_TERMINAL")
 
 
 if __name__ == "__main__":

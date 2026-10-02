@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import io
 from pathlib import Path
+import queue
 import struct
 import sys
 import tempfile
 import threading
 import time
+import types
 import unittest
+from unittest import mock
 import wave
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -23,11 +26,14 @@ from safe_field_pcm_protocol import (
 )
 from safe_field_pcm_receiver import (
     SerialPCMSource,
+    _serial_process_main,
+    _tty_icount_delta,
     acceptance_exit_code,
     acceptance_pass,
     capture_stream,
     failed_acceptance_gates,
 )
+import safe_field_pcm_receiver as pcm_receiver_module
 
 
 def make_frame(seq: int, counter: int) -> PCMFrame:
@@ -35,8 +41,94 @@ def make_frame(seq: int, counter: int) -> PCMFrame:
 
 
 class ProtocolTests(unittest.TestCase):
+    def test_tty_icount_delta_is_per_session_and_wrap_safe(self) -> None:
+        start = {"rx": 0xFFFFFFFE, "frame": 13, "overrun": 3, "parity": 0}
+        end = {"rx": 5, "frame": 14, "overrun": 3, "parity": 0}
+        self.assertEqual(
+            _tty_icount_delta(start, end),
+            {"rx": 7, "frame": 1, "overrun": 0, "parity": 0},
+        )
+        self.assertIsNone(_tty_icount_delta(None, end))
+
+    def test_isolated_process_worker_preserves_pcm_and_kernel_deltas(self) -> None:
+        frames = [make_frame(20, 640), make_frame(21, 672)]
+        payload = b"".join(encode_frame(frame) for frame in frames)
+        stop_event = threading.Event()
+
+        class FakeSerial:
+            def __init__(self, *_args, **_kwargs):
+                self.payload = payload
+
+            def read(self, _size):
+                if self.payload:
+                    result, self.payload = self.payload, b""
+                    return result
+                stop_event.set()
+                return b""
+
+            def close(self):
+                pass
+
+        output_queue = queue.Queue()
+        control_queue = queue.Queue()
+        serial_module = types.SimpleNamespace(Serial=FakeSerial)
+        start_counts = {"rx": 1000, "frame": 7, "overrun": 2, "parity": 0}
+        end_counts = {"rx": 1156, "frame": 7, "overrun": 2, "parity": 0}
+        with mock.patch.dict(sys.modules, {"serial": serial_module}), mock.patch.object(
+            pcm_receiver_module,
+            "_read_tty_icount",
+            side_effect=(start_counts, end_counts),
+        ):
+            _serial_process_main(
+                "TEST_PORT",
+                1_500_000,
+                0.01,
+                4096,
+                output_queue,
+                control_queue,
+                stop_event,
+            )
+
+        self.assertEqual(control_queue.get_nowait(), ("STARTED", start_counts))
+        kind, pcm, live_stats = output_queue.get_nowait()
+        self.assertEqual(kind, "PCM")
+        self.assertEqual(
+            pcm,
+            b"".join(struct.pack("<32h", *frame.samples) for frame in frames),
+        )
+        self.assertEqual(live_stats["valid_frames"], 2)
+        kind, final_stats = output_queue.get_nowait()
+        self.assertEqual(kind, "FINAL")
+        self.assertEqual(final_stats["tty_icount_delta"]["rx"], 156)
+        self.assertEqual(final_stats["tty_icount_delta"]["frame"], 0)
+        self.assertEqual(final_stats["sequence_losses"], 0)
+
     def test_known_crc_vector(self) -> None:
         self.assertEqual(crc16_ccitt_false(b"123456789"), 0x29B1)
+
+    def test_optimized_crc_matches_bitwise_fpga_contract(self) -> None:
+        def bitwise_reference(data: bytes) -> int:
+            crc = 0xFFFF
+            for value in data:
+                crc ^= value << 8
+                for _ in range(8):
+                    crc = (
+                        ((crc << 1) ^ 0x1021) & 0xFFFF
+                        if crc & 0x8000
+                        else (crc << 1) & 0xFFFF
+                    )
+            return crc
+
+        vectors = (
+            b"",
+            bytes(range(74)),
+            bytes((index * 73 + 19) & 0xFF for index in range(74)),
+            b"\x00" * 74,
+            b"\xFF" * 74,
+        )
+        for payload in vectors:
+            with self.subTest(payload_prefix=payload[:4]):
+                self.assertEqual(crc16_ccitt_false(payload), bitwise_reference(payload))
 
     def test_round_trip_signed_pcm(self) -> None:
         raw = encode_frame(make_frame(7, 224))
@@ -262,6 +354,106 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(stopped["state"], "STOPPED_WITH_ERRORS")
         self.assertTrue(stopped["quiescent"])
         self.assertEqual(source.stop(), stopped)
+
+    def test_slow_sink_cannot_block_uart_reader(self) -> None:
+        frame_count = 256
+        frames = [make_frame(index, index * 32) for index in range(frame_count)]
+        payload = b"".join(encode_frame(frame) for frame in frames)
+
+        class BurstSerial:
+            def __init__(self, *_args, **_kwargs):
+                self.payload = payload
+
+            def read(self, _size):
+                if self.payload:
+                    result, self.payload = self.payload, b""
+                    return result
+                time.sleep(0.001)
+                return b""
+
+            def close(self):
+                pass
+
+        release_sink = threading.Event()
+        sink_entered = threading.Event()
+        received = bytearray()
+
+        def slow_sink(data: bytes) -> None:
+            sink_entered.set()
+            release_sink.wait(1.0)
+            received.extend(data)
+
+        source = SerialPCMSource("TEST_PORT", serial_factory=BurstSerial)
+        source.start(slow_sink)
+        self.assertTrue(sink_entered.wait(1.0))
+        deadline = time.monotonic() + 1.0
+        while (
+            source.status()["valid_frames"] < frame_count
+            and time.monotonic() < deadline
+        ):
+            time.sleep(0.005)
+
+        live = source.status()
+        self.assertEqual(live["valid_frames"], frame_count)
+        self.assertEqual(len(received), 0)
+        self.assertGreater(live["buffered_pcm_frames"], 0)
+        self.assertEqual(live["sink_queue_overflows"], 0)
+
+        release_sink.set()
+        stopped = source.stop()
+        self.assertEqual(stopped["valid_frames"], frame_count)
+        self.assertEqual(
+            bytes(received),
+            b"".join(struct.pack("<32h", *frame.samples) for frame in frames),
+        )
+        self.assertEqual(stopped["sink_queue_overflows"], 0)
+        self.assertFalse(stopped["reader_alive"])
+        self.assertFalse(stopped["sink_worker_alive"])
+        self.assertTrue(stopped["error_free"])
+
+    def test_sink_queue_overflow_is_fail_closed_and_observable(self) -> None:
+        payload = b"".join(
+            encode_frame(make_frame(index, index * 32)) for index in range(4)
+        )
+
+        class BurstSerial:
+            def __init__(self, *_args, **_kwargs):
+                self.payload = payload
+
+            def read(self, _size):
+                if self.payload:
+                    result, self.payload = self.payload, b""
+                    return result
+                time.sleep(0.001)
+                return b""
+
+            def close(self):
+                pass
+
+        release_sink = threading.Event()
+
+        def blocked_sink(_data: bytes) -> None:
+            release_sink.wait(1.0)
+
+        with mock.patch.object(
+            pcm_receiver_module, "_SINK_QUEUE_CAPACITY_FRAMES", 1
+        ):
+            source = SerialPCMSource("TEST_PORT", serial_factory=BurstSerial)
+            source.start(blocked_sink)
+            deadline = time.monotonic() + 1.0
+            while (
+                source.status()["sink_queue_overflows"] == 0
+                and time.monotonic() < deadline
+            ):
+                time.sleep(0.005)
+            failed = source.status()
+            self.assertEqual(failed["state"], "FAILED")
+            self.assertEqual(failed["sink_queue_overflows"], 1)
+            self.assertEqual(failed["sink_errors"], 1)
+            self.assertFalse(failed["error_free"])
+            release_sink.set()
+            stopped = source.stop()
+            self.assertEqual(stopped["state"], "STOPPED_WITH_ERRORS")
 
     def test_serial_pcm_source_sink_failure_becomes_observably_quiescent(self) -> None:
         release = threading.Event()

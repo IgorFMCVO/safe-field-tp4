@@ -204,6 +204,10 @@ class OperationalServerCompositionTests(unittest.TestCase):
             core_factory.call_args.kwargs["segmentation"],
             launcher.FROZEN_RECOVERY_SEGMENTATION,
         )
+        self.assertEqual(
+            launcher.FROZEN_RECOVERY_SEGMENTATION.max_segment_ms,
+            45_000,
+        )
 
     def test_legacy_transport_remains_an_explicit_compatibility_choice(self):
         environment = {
@@ -322,6 +326,7 @@ class OperationalServerCompositionTests(unittest.TestCase):
                 return_value=(object(), {"mode": "LOCAL"}),
             ),
             patch.object(launcher, "OperationalIntelligenceCore", return_value=core),
+            patch.object(launcher, "OperationalApiService", return_value=object()),
             patch.object(launcher, "serve") as serve_http,
             patch.object(launcher, "_serve_tls") as serve_tls,
             patch("builtins.print") as print_mock,
@@ -355,6 +360,7 @@ class OperationalServerCompositionTests(unittest.TestCase):
                 return_value=(object(), {"mode": "LOCAL"}),
             ),
             patch.object(launcher, "OperationalIntelligenceCore", return_value=object()),
+            patch.object(launcher, "OperationalApiService", return_value=object()),
             patch.object(
                 launcher,
                 "_build_server_tls_context",
@@ -408,7 +414,9 @@ class OperationalServerCompositionTests(unittest.TestCase):
         make_handler.assert_called_once()
         self.assertEqual(make_handler.call_args.kwargs["auth_token"], "fixture-api-token")
         server_factory.assert_called_once_with(("0.0.0.0", 8770), handler)
-        tls_context.wrap_socket.assert_called_once_with(raw_socket, server_side=True)
+        tls_context.wrap_socket.assert_called_once_with(
+            raw_socket, server_side=True, do_handshake_on_connect=False
+        )
         self.assertIs(server.socket, wrapped_socket)
         server.serve_forever.assert_called_once_with()
         server.server_close.assert_called_once_with()

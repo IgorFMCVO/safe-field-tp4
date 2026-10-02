@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import unittest
 
-from .operational_raw24_source import SharedRaw24TP5Parser
+from .operational_raw24_source import SerialRaw24PCMSource, SharedRaw24TP5Parser
 from .safe_field_raw24_protocol import Raw24Frame, encode_frame
 
 
@@ -55,6 +55,57 @@ class SharedRaw24TP5ParserTests(unittest.TestCase):
         result = parser.feed(raw_frame(7) + bytes(corrupt) + raw_frame(9))
         self.assertEqual([frame.seq for frame in result], [7, 9])
         self.assertEqual(parser.crc_errors, 1)
+        self.assertEqual(parser.recovered_crc_errors, 1)
+        self.assertFalse(parser.crc_recovery_pending)
+        self.assertEqual(parser.valid_frames_after_last_crc_error, 1)
+        event = parser.integrity_events[-1]
+        self.assertEqual(event["previous_valid_sequence"], 7)
+        self.assertEqual(event["candidate_sequence"], 8)
+        self.assertEqual(event["first_valid_after_sequence"], 9)
+        self.assertNotEqual(event["received_crc"], event["calculated_crc"])
+        self.assertTrue(event["recovered"])
+
+    def test_crc_without_following_valid_frame_remains_unrecovered(self):
+        parser = SharedRaw24TP5Parser()
+        corrupt = bytearray(raw_frame(8)); corrupt[-1] ^= 0x80
+        result = parser.feed(raw_frame(7) + bytes(corrupt))
+        self.assertEqual([frame.seq for frame in result], [7])
+        self.assertEqual(parser.crc_errors, 1)
+        self.assertEqual(parser.recovered_crc_errors, 0)
+        self.assertTrue(parser.crc_recovery_pending)
+        self.assertFalse(parser.integrity_events[-1]["recovered"])
+
+    def test_source_classifies_one_lost_packet_as_degraded_recovered(self):
+        source = SerialRaw24PCMSource("TEST_PORT")
+        corrupt = bytearray(raw_frame(8)); corrupt[-1] ^= 0x80
+        frames = source._parser.feed(raw_frame(7) + bytes(corrupt) + raw_frame(9))
+        for frame in frames:
+            source._continuity.observe(frame)
+            source._samples_received += len(frame.pcm16_samples)
+
+        status = source.status()
+
+        self.assertEqual(status["transport_integrity_status"], "DEGRADED_RECOVERED")
+        self.assertEqual(status["crc_errors"], 1)
+        self.assertEqual(status["recovered_crc_errors"], 1)
+        self.assertEqual(status["sequence_losses"], 1)
+        self.assertEqual(status["sample_losses"], 16)
+        self.assertFalse(status["error_free"])
+
+    def test_source_classifies_persistent_corruption_as_failed(self):
+        source = SerialRaw24PCMSource("TEST_PORT")
+        corrupt_8 = bytearray(raw_frame(8)); corrupt_8[-1] ^= 0x80
+        corrupt_9 = bytearray(raw_frame(9)); corrupt_9[-1] ^= 0x40
+        frames = source._parser.feed(raw_frame(7) + bytes(corrupt_8) + bytes(corrupt_9))
+        for frame in frames:
+            source._continuity.observe(frame)
+            source._samples_received += len(frame.pcm16_samples)
+
+        status = source.status()
+
+        self.assertEqual(status["transport_integrity_status"], "FAILED")
+        self.assertTrue(status["crc_recovery_pending"])
+        self.assertGreaterEqual(status["crc_errors"], 1)
 
     def test_tp5_reply_is_counted_but_never_emitted_as_audio(self):
         parser = SharedRaw24TP5Parser()

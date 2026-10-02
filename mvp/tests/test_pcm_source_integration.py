@@ -79,6 +79,11 @@ class InjectedPCMSource:
             "transport_overrun_packets": 0,
             "read_errors": 0,
             "sink_errors": 0,
+            "sink_queue_overflows": 0,
+            "kernel_frame_errors": 0,
+            "kernel_overruns": 0,
+            "kernel_parity_errors": 0,
+            "kernel_buffer_overruns": 0,
         }
         counters.update(self.transport_errors)
         snapshot = {
@@ -140,6 +145,8 @@ class PCMSourceCoreIntegrationTests(unittest.TestCase):
         self.assertEqual(source.stopped, 1)
         self.assertEqual(stopped["pcm_source"]["state"], "STOPPED")
         self.assertEqual(stopped["pcm_source"]["samples_received"], 12)
+        for worker in core._background_finalizers:
+            worker.join(2.0)
 
         root = self.sessions / "OCC_PCM_SOURCE"
         with wave.open(str(root / "audio" / "raw.wav"), "rb") as wav:
@@ -203,6 +210,9 @@ class PCMSourceCoreIntegrationTests(unittest.TestCase):
             "sample_loss": {"sample_losses": 32},
             "read": {"read_errors": 1},
             "sink": {"sink_errors": 1},
+            "sink_queue": {"sink_queue_overflows": 1},
+            "kernel_frame": {"kernel_frame_errors": 1},
+            "kernel_overrun": {"kernel_overruns": 1},
         }
         for label, counters in cases.items():
             with self.subTest(label=label):
@@ -261,11 +271,83 @@ class PCMSourceCoreIntegrationTests(unittest.TestCase):
                     for line in (root / "timeline.jsonl").read_text(encoding="utf-8").splitlines()
                 ]
                 events = [item["event"] for item in timeline]
-                self.assertEqual(events.count("OCCURRENCE_STOP_REQUESTED"), 1)
+                self.assertEqual(events.count("CAPTURE_CLOSED"), 1)
                 self.assertEqual(events.count("FINALIZATION_BLOCKED"), 1)
 
                 assert core._pipeline is not None
                 core._pipeline.close()
+
+    def test_recovered_isolated_crc_persists_degraded_capture_and_keeps_occurrence_open(self):
+        class RecoveredCRCSource(InjectedPCMSource):
+            def stop(self):
+                self.stopped += 1
+                self.sink(struct.pack("<4h", 20, 21, 22, 23))
+                self.samples_received += 4
+                self.sink = None
+                self.quiescent = True
+                self.state = "STOPPED"
+                return self.status()
+
+            def status(self):
+                snapshot = super().status()
+                snapshot.update(
+                    {
+                        "state": self.state,
+                        "crc_errors": 1,
+                        "resync_discarded_bytes": 85,
+                        "sequence_losses": 1,
+                        "sample_losses": 16,
+                        "source_counter_losses": 32,
+                        "recovered_crc_errors": 1,
+                        "crc_recovery_pending": False,
+                        "valid_frames_after_last_crc_error": 100,
+                        "max_consecutive_raw_errors": 1,
+                        "transport_integrity_status": "DEGRADED_RECOVERED",
+                        "last_error": None,
+                        "error_free": False,
+                    }
+                )
+                return snapshot
+
+        source = RecoveredCRCSource()
+        core = self.build_core(source)
+        api = OperationalApiService(core)
+        api.start({"occurrence_id": "OCC_PCM_RECOVERED_CRC"})
+
+        stopped = api.stop_capture({})
+
+        self.assertTrue(stopped["ok"])
+        self.assertEqual(stopped["state"], "OPEN")
+        self.assertEqual(stopped["pcm_failure_fields"], [])
+        self.assertEqual(stopped["transport_integrity_status"], "DEGRADED_RECOVERED")
+        record = stopped["capture_record"]
+        self.assertEqual(record["status"], "DEGRADED_RECOVERED")
+        self.assertEqual(record["pcm_source"]["crc_errors"], 1)
+        self.assertEqual(record["pcm_source"]["resync_discarded_bytes"], 85)
+        root = self.sessions / "OCC_PCM_RECOVERED_CRC"
+        timeline = [
+            json.loads(line)
+            for line in (root / "timeline.jsonl").read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertIn("CAPTURE_TRANSPORT_RECOVERED", [item["event"] for item in timeline])
+        with wave.open(str(root / "captures" / "capture_0001" / "raw.wav"), "rb") as wav:
+            self.assertEqual(wav.getnframes(), 12)
+        assert core._pipeline is not None
+        core._pipeline.close()
+
+    def test_unrecovered_crc_remains_terminal(self):
+        source = InjectedPCMSource(transport_errors={"crc_errors": 1})
+        core = self.build_core(source)
+        api = OperationalApiService(core)
+        api.start({"occurrence_id": "OCC_PCM_UNRECOVERED_CRC"})
+
+        stopped = api.stop_capture({})
+
+        self.assertFalse(stopped["ok"])
+        self.assertEqual(stopped["state"], "CAPTURE_FAILED")
+        self.assertIn("crc_errors", stopped["pcm_failure_fields"])
+        assert core._pipeline is not None
+        core._pipeline.close()
 
     def test_error_state_blocks_finalization_even_when_counters_report_clean(self):
         source = InjectedPCMSource(stopped_state="STOPPED_WITH_ERRORS")

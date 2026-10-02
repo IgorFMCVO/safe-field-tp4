@@ -24,6 +24,7 @@ from .safe_field_raw24_protocol import (
     SYNC as RAW_SYNC,
     VERSION as RAW_VERSION,
     PACKET_TYPE_RAW24_WITH_PCM16 as RAW_PACKET_TYPE,
+    crc16_ccitt_false,
     decode_frame,
 )
 
@@ -59,6 +60,16 @@ class SharedRaw24TP5Parser:
         self.tp5_response_frames = 0
         self.tp5_response_crc_errors = 0
         self.tp5_response_format_errors = 0
+        # A bounded journal makes a future transport incident independently
+        # auditable without retaining the whole continuous UART stream.
+        self.integrity_events: list[dict[str, object]] = []
+        self.recovered_crc_errors = 0
+        self.crc_recovery_pending = False
+        self.valid_frames_after_last_crc_error = 0
+        self.max_consecutive_raw_errors = 0
+        self._consecutive_raw_errors = 0
+        self._pending_crc_events: list[dict[str, object]] = []
+        self._last_valid_frame: Raw24Frame | None = None
 
     @property
     def discarded_bytes(self) -> int:
@@ -107,8 +118,38 @@ class SharedRaw24TP5Parser:
                 except ValueError as exc:
                     if "CRC" in str(exc):
                         self.crc_errors += 1
+                        event: dict[str, object] = {
+                            "kind": "RAW24_CRC",
+                            "candidate_sequence": int.from_bytes(candidate[4:6], "little"),
+                            "candidate_source_counter": int.from_bytes(candidate[6:10], "little"),
+                            "received_crc": f"{int.from_bytes(candidate[-2:], 'little'):04X}",
+                            "calculated_crc": f"{crc16_ccitt_false(candidate[2:-2]):04X}",
+                            "candidate_hex": candidate.hex().upper(),
+                            "previous_valid_sequence": (
+                                self._last_valid_frame.seq if self._last_valid_frame else None
+                            ),
+                            "previous_valid_source_counter": (
+                                self._last_valid_frame.first_source_sample_counter
+                                if self._last_valid_frame
+                                else None
+                            ),
+                            "resync_discarded_bytes_before": self.resync_discarded_bytes,
+                            "recovered": False,
+                            "first_valid_after_sequence": None,
+                            "first_valid_after_source_counter": None,
+                        }
+                        self.integrity_events.append(event)
+                        self.integrity_events = self.integrity_events[-8:]
+                        self._pending_crc_events.append(event)
+                        self.crc_recovery_pending = True
+                        self.valid_frames_after_last_crc_error = 0
                     else:
                         self.format_errors += 1
+                    self._consecutive_raw_errors += 1
+                    self.max_consecutive_raw_errors = max(
+                        self.max_consecutive_raw_errors,
+                        self._consecutive_raw_errors,
+                    )
                     if not self.valid_frames:
                         self.startup_candidate_errors += 1
                     del self.buffer[0]
@@ -116,6 +157,27 @@ class SharedRaw24TP5Parser:
                     continue
                 del self.buffer[:FRAME_SIZE]
                 self.valid_frames += 1
+                if self.crc_recovery_pending:
+                    for event in self._pending_crc_events:
+                        event.update(
+                            {
+                                "recovered": True,
+                                "first_valid_after_sequence": decoded.seq,
+                                "first_valid_after_source_counter": (
+                                    decoded.first_source_sample_counter
+                                ),
+                                "resync_discarded_bytes_after": (
+                                    self.resync_discarded_bytes
+                                ),
+                            }
+                        )
+                    self.recovered_crc_errors += len(self._pending_crc_events)
+                    self._pending_crc_events.clear()
+                    self.crc_recovery_pending = False
+                if self.crc_errors:
+                    self.valid_frames_after_last_crc_error += 1
+                self._consecutive_raw_errors = 0
+                self._last_valid_frame = decoded
                 frames.append(decoded)
                 continue
 
@@ -307,6 +369,44 @@ class SerialRaw24PCMSource:
             reader_alive = bool(self._reader and self._reader.is_alive())
             sink_alive = bool(self._sink_worker and self._sink_worker.is_alive())
             source_losses = self._continuity.source_counter_losses
+            fatal_transport_error = any(
+                (
+                    self._parser.format_errors,
+                    self._continuity.sequence_discontinuities,
+                    self._continuity.source_counter_discontinuities,
+                    self._frame_errors,
+                    self._overruns,
+                    self._read_errors,
+                    self._sink_errors,
+                )
+            )
+            recovered_isolated_crc = (
+                self._parser.crc_errors == 1
+                and self._parser.recovered_crc_errors == 1
+                and not self._parser.crc_recovery_pending
+                and self._parser.valid_frames_after_last_crc_error > 0
+                and self._parser.max_consecutive_raw_errors == 1
+                and 0 < self._parser.resync_discarded_bytes <= FRAME_SIZE
+                and self._continuity.sequence_losses == 1
+                and source_losses == self._parser.crc_errors * 16 * SOURCE_STRIDE
+                and not fatal_transport_error
+                and self._last_error is None
+            )
+            has_integrity_damage = any(
+                (
+                    self._parser.crc_errors,
+                    self._parser.format_errors,
+                    self._parser.resync_discarded_bytes,
+                    self._continuity.sequence_losses,
+                    source_losses,
+                    fatal_transport_error,
+                )
+            )
+            transport_integrity_status = (
+                "DEGRADED_RECOVERED"
+                if recovered_isolated_crc
+                else ("FAILED" if has_integrity_damage else "CLEAN")
+            )
             return {
                 "kind": "UART_RAW24_TP5_PCM16_V1", "state": self._state,
                 "port": self.port, "baud_rate": self.baud_rate, "exclusive": True,
@@ -316,6 +416,12 @@ class SerialRaw24PCMSource:
                 "raw_packet_type": f"{RAW_PACKET_TYPE:02X}",
                 "valid_frames": self._parser.valid_frames, "samples_received": self._samples_received,
                 "crc_errors": self._parser.crc_errors, "format_errors": self._parser.format_errors,
+                "recovered_crc_errors": self._parser.recovered_crc_errors,
+                "crc_recovery_pending": self._parser.crc_recovery_pending,
+                "valid_frames_after_last_crc_error": self._parser.valid_frames_after_last_crc_error,
+                "max_consecutive_raw_errors": self._parser.max_consecutive_raw_errors,
+                "integrity_events": list(self._parser.integrity_events),
+                "transport_integrity_status": transport_integrity_status,
                 "startup_candidate_errors": self._parser.startup_candidate_errors,
                 "discarded_bytes": self._parser.discarded_bytes,
                 "startup_alignment_discarded_bytes": self._parser.startup_alignment_discarded_bytes,

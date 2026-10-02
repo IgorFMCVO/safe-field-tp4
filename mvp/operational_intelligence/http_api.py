@@ -15,11 +15,12 @@ import json
 from pathlib import Path
 import threading
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+import uuid
+from urllib.parse import parse_qs, quote, unquote, urlparse
 
 from .core import OperationalIntelligenceCore
 from .models import LifecycleState, OfficerAssessment, utc_now
-from .storage import OCCURRENCE_ID_RE
+from .storage import CommandJournal, OCCURRENCE_ID_RE
 
 
 API_VERSION = "1.0"
@@ -63,6 +64,78 @@ class OperationalApiService:
     def __post_init__(self) -> None:
         self._lock = threading.RLock()
         self._watch_events: list[dict[str, Any]] = []
+        self._commands = CommandJournal(self.core.sessions_root)
+
+    def _run_command(self, action: str, payload: dict, operation) -> dict:
+        command_id = payload.get("command_id")
+        if command_id is None:
+            # Compatibility for existing non-wearable callers.  The deployed
+            # wearable always supplies its own stable ID for reconciliation.
+            command_id = f"legacy_{uuid.uuid4().hex}"
+        if not isinstance(command_id, str) or not OCCURRENCE_ID_RE.fullmatch(command_id):
+            raise ApiError(400, "INVALID_COMMAND_ID")
+        arguments = {key: value for key, value in payload.items() if key != "command_id"}
+        try:
+            existing = self._commands.begin(command_id, action, arguments)
+        except ValueError as exc:
+            raise ApiError(409, "COMMAND_ID_CONFLICT", str(exc)) from exc
+        if existing.get("status") == "APPLIED":
+            return {
+                **existing["result"],
+                "command_id": command_id,
+                "command_replayed": True,
+            }
+        if existing.get("status") == "REJECTED":
+            result = existing.get("result") or {}
+            raise ApiError(
+                int(result.get("http_status", 409)),
+                str(result.get("error", "COMMAND_REJECTED")),
+                result.get("detail"),
+            )
+        if existing.get("created_at") and existing.get("payload") != arguments:
+            raise ApiError(409, "COMMAND_ID_CONFLICT")
+        # A pre-existing intent means the prior response was lost or the
+        # process stopped between transition and acknowledgement.  Never
+        # execute it a second time; the client must reconcile with snapshot.
+        if existing.get("attempt_started"):
+            raise ApiError(409, "COMMAND_RESULT_UNKNOWN")
+        existing["attempt_started"] = utc_now()
+        from .storage import atomic_json
+        atomic_json(self._commands.path_for(command_id), existing)
+        try:
+            result = operation(arguments)
+        except ApiError as exc:
+            self._commands.complete(
+                command_id,
+                {
+                    "ok": False,
+                    "error": exc.code,
+                    "detail": exc.detail,
+                    "http_status": exc.status,
+                },
+                status="REJECTED",
+            )
+            raise
+        result = {**result, "command_id": command_id, "command_replayed": False}
+        self._commands.complete(command_id, result)
+        return result
+
+    def command_result(self, command_id: str) -> dict:
+        try:
+            record = self._commands.read(command_id)
+        except ValueError as exc:
+            raise ApiError(400, "INVALID_COMMAND_ID", str(exc)) from exc
+        if record is None:
+            raise ApiError(404, "COMMAND_NOT_FOUND")
+        result = record.get("result") if record.get("status") in {"APPLIED", "REJECTED"} else None
+        return {
+            "ok": True,
+            "version": API_VERSION,
+            "command_id": command_id,
+            "action": record.get("action"),
+            "status": record.get("status"),
+            "result": result,
+        }
 
     def _root(self, allow_finished: bool = False) -> Path | None:
         root = self.core.active_session_root
@@ -82,28 +155,75 @@ class OperationalApiService:
         return event
 
     def start(self, payload: dict) -> dict:
-        occurrence_id = payload.get("occurrence_id")
-        try:
-            result = self.core.start(occurrence_id)
-        except (RuntimeError, ValueError, FileExistsError) as exc:
-            raise ApiError(409, "START_REJECTED", str(exc)) from exc
-        self._record_watch("START", occurrence_id=result["occurrence_id"])
-        return {**result, "version": API_VERSION, "capture_active": True}
+        def operation(arguments: dict) -> dict:
+            occurrence_id = arguments.get("occurrence_id")
+            try:
+                result = self.core.start(occurrence_id)
+            except (RuntimeError, ValueError, FileExistsError) as exc:
+                raise ApiError(409, "START_REJECTED", str(exc)) from exc
+            self._record_watch(
+                "START", occurrence_id=result["occurrence_id"],
+                capture_id=result.get("capture_id"),
+            )
+            return {**result, "version": API_VERSION, "capture_active": True}
+        return self._run_command("START_OCCURRENCE", payload, operation)
+
+    def start_capture(self, payload: dict) -> dict:
+        def operation(arguments: dict) -> dict:
+            occurrence_id = arguments.get("occurrence_id")
+            if occurrence_id and occurrence_id != self.core.occurrence_id:
+                raise ApiError(409, "OCCURRENCE_MISMATCH")
+            try:
+                result = self.core.start_capture()
+            except (RuntimeError, ValueError) as exc:
+                raise ApiError(409, "CAPTURE_START_REJECTED", str(exc)) from exc
+            self._record_watch(
+                "NEW_CAPTURE", occurrence_id=result["occurrence_id"],
+                capture_id=result["capture_id"],
+            )
+            return {**result, "version": API_VERSION, "capture_active": True}
+        return self._run_command("START_CAPTURE", payload, operation)
+
+    def stop_capture(self, payload: dict) -> dict:
+        def operation(arguments: dict) -> dict:
+            occurrence_id = arguments.get("occurrence_id")
+            capture_id = arguments.get("capture_id")
+            if occurrence_id and occurrence_id != self.core.occurrence_id:
+                raise ApiError(409, "OCCURRENCE_MISMATCH")
+            if capture_id and capture_id != self.core.active_capture_id:
+                raise ApiError(409, "CAPTURE_MISMATCH")
+            self._record_watch(
+                "STOP_CAPTURE_REQUESTED",
+                occurrence_id=self.core.occurrence_id,
+                capture_id=self.core.active_capture_id,
+            )
+            try:
+                result = self.core.stop_capture()
+            except RuntimeError as exc:
+                raise ApiError(409, "CAPTURE_STOP_REJECTED", str(exc)) from exc
+            response = {**result, "version": API_VERSION, "capture_active": False}
+            if result.get("ui_state") == "CAPTURE_FAILED":
+                response["lifecycle_state"] = result["state"]
+                response["state"] = "CAPTURE_FAILED"
+            return response
+        return self._run_command("STOP_CAPTURE", payload, operation)
 
     def finish(self, payload: dict) -> dict:
-        timeout = payload.get("processing_timeout", 30.0)
-        if not isinstance(timeout, (int, float)) or timeout < 0 or timeout > 300:
-            raise ApiError(400, "INVALID_PROCESSING_TIMEOUT")
-        self._record_watch("STOP_REQUESTED")
-        try:
-            result = self.core.stop(float(timeout))
-        except RuntimeError as exc:
-            raise ApiError(409, "STOP_REJECTED", str(exc)) from exc
-        response = {**result, "version": API_VERSION, "capture_active": False}
-        if result.get("ui_state"):
-            response["lifecycle_state"] = result["state"]
-            response["state"] = result["ui_state"]
-        return response
+        def operation(arguments: dict) -> dict:
+            occurrence_id = arguments.get("occurrence_id")
+            if occurrence_id and occurrence_id != self.core.occurrence_id:
+                raise ApiError(409, "OCCURRENCE_MISMATCH")
+            self._record_watch("CONCLUDE_REQUESTED", occurrence_id=self.core.occurrence_id)
+            try:
+                result = self.core.conclude_occurrence()
+            except RuntimeError as exc:
+                raise ApiError(409, "CONCLUDE_REJECTED", str(exc)) from exc
+            response = {**result, "version": API_VERSION, "capture_active": False}
+            if result.get("ui_state") == "CAPTURE_FAILED":
+                response["lifecycle_state"] = result["state"]
+                response["state"] = "CAPTURE_FAILED"
+            return response
+        return self._run_command("CONCLUDE_OCCURRENCE", payload, operation)
 
     def hypothesis_decision(self, payload: dict, decision: str) -> dict:
         hypothesis_id = payload.get("hypothesis_id")
@@ -237,7 +357,9 @@ class OperationalApiService:
                 if event.get('action') == 'ACTION_STATUS' and event.get('hypothesis_id') == hypothesis.get('hypothesis_id'):
                     action_states[event.get('action_id')] = event.get('status')
         items = []
-        for index, item in enumerate(guidance.get("items", [])[:5], 1):
+        # The watch paginates/scrolls the presentation.  The control plane must
+        # not silently discard sourced DIAO procedures before they reach it.
+        for index, item in enumerate(guidance.get("items", []), 1):
             sources = item.get("sources") or []
             if not sources:
                 continue
@@ -262,28 +384,62 @@ class OperationalApiService:
         status = explicit_status
         return {"status": status, "items": items}
 
+    def _last_result_summary(self, root: Path | None) -> dict | None:
+        """Read only durable result availability for STANDBY wearable UI."""
+        if root is None:
+            return None
+        metadata = _read_json(root / "occurrence.json")
+        jobs = _json_files(root / "jobs")
+        hypothesis = self._latest_hypothesis(root)
+        history_available = (root / "reports" / "HISTORICO_PRELIMINAR.json").is_file()
+        complete = any(str(item.get("status", "")).upper() == "COMPLETE" for item in jobs)
+        label = str((hypothesis or {}).get("label", ""))
+        return {
+            "occurrence_id": root.name,
+            "status": str(metadata.get("status", "UNAVAILABLE")),
+            "processing": "COMPLETE" if complete else "PENDING",
+            "available": complete,
+            "suggestion_available": bool(label or history_available),
+            "hypothesis_label": label or None,
+            "fact_count": len([item for item in _json_files(root / "facts") if "fact_id" in item]),
+            "history_available": history_available,
+        }
+
     def wearable_state(self) -> dict:
         status = self.core.status()
         root = self._root(allow_finished=True)
         active = status["state"] == LifecycleState.ACTIVE.value
+        occurrence_open = status["state"] == LifecycleState.OPEN.value
         stopping = status["state"] == LifecycleState.STOPPING.value
         capture_failed = bool(status.get("capture_failed"))
         source_quiescent = bool(status.get("source_quiescent"))
         capture_active = active and not (capture_failed and source_quiescent)
-        hypothesis = self._latest_hypothesis(root) if root and active else None
-        guidance = self._visible_guidance(root, hypothesis) if root and active else {
+        hypothesis = self._latest_hypothesis(root) if root and (active or occurrence_open) else None
+        guidance = self._visible_guidance(root, hypothesis) if root and (active or occurrence_open) else {
             "status": "NOT_REQUESTED", "items": []
         }
+        # This only reports persisted work from a closed occurrence. It never
+        # attaches a session, invokes inference, or affects capture state.
+        last_result = (
+            self._last_result_summary(root)
+            if root and not active and not occurrence_open and not stopping
+            else None
+        )
         if status.get("ui_state"):
             state = status["ui_state"]
         elif stopping:
             state = "PROCESSING_PENDING"
+        elif occurrence_open:
+            state = "OCCURRENCE_OPEN"
         elif not active:
             state = "STANDBY"
-        elif status.get("queue") and status["queue"].get("failed"):
-            state = "PROCESSING_PENDING"
         elif hypothesis and hypothesis.get("status") == "PROPOSED":
             state = "HYPOTHESIS_PROPOSED"
+        elif hypothesis and hypothesis.get("status") == "OFFICER_REJECTED":
+            # Capture remains active.  This state tells the wearable that the
+            # next officer statement must be recorded, transcribed and posted
+            # through /api/v1/officer/assessments before reconsolidation.
+            state = "REASSESSMENT_REQUIRED"
         elif hypothesis and hypothesis.get("status") == "OFFICER_CONFIRMED":
             if guidance["items"]:
                 state = "GUIDANCE_READY"
@@ -295,14 +451,35 @@ class OperationalApiService:
             else:
                 state = "PROCESSING_PENDING"
         else:
+            # Segment inference is intentionally asynchronous and must never
+            # replace the live capture state.  Queue failures remain visible
+            # in the payload/audit, while the operator-facing state continues
+            # to reflect the healthy PCM source that is still recording.
             state = "OCCURRENCE_ACTIVE"
+        latest_command = self._commands.latest_applied()
+        command_summary = None
+        if latest_command is not None:
+            result = latest_command.get("result") or {}
+            command_summary = {
+                "command_id": latest_command.get("command_id"),
+                "action": latest_command.get("action"),
+                "status": latest_command.get("status"),
+                "occurrence_id": result.get("occurrence_id"),
+                "capture_id": result.get("capture_id"),
+            }
         return {
             "ok": True,
             "version": API_VERSION,
             "state": state,
             "lifecycle_state": status.get("lifecycle_state", status["state"]),
             "occurrence_id": status.get("occurrence_id"),
+            "active_occurrence_id": status.get("active_occurrence_id"),
+            "active_capture_id": status.get("active_capture_id"),
+            "capture_count": status.get("capture_count", 0),
             "capture_active": capture_active,
+            "state_revision": status.get("state_revision"),
+            "boot_id": status.get("boot_id"),
+            "last_command": command_summary,
             "queue": status.get("queue"),
             "pcm_source": status.get("pcm_source"),
             "pcm_failure_fields": status.get("pcm_failure_fields", []),
@@ -313,6 +490,7 @@ class OperationalApiService:
             "reason": status.get("reason"),
             "hypothesis": hypothesis,
             "guidance": guidance,
+            "last_result": last_result,
         }
 
     def dashboard_snapshot(self) -> dict:
@@ -344,6 +522,14 @@ class OperationalApiService:
             raise ApiError(404, "ORIGINAL_AUDIO_NOT_FOUND")
         return path
 
+    def saved_listening_preview_path(self, occurrence_id: str) -> Path:
+        """Return an optional, presentation-only derivative of the original WAV."""
+        root = self._saved_root(occurrence_id)
+        path = root / "audio" / "listening_preview.wav"
+        if not path.is_file():
+            raise ApiError(404, "LISTENING_PREVIEW_NOT_FOUND")
+        return path
+
     def list_saved_occurrences(self, limit: int = 5) -> list[dict[str, str]]:
         """List only durable metadata for the read-only demonstration picker."""
         results: list[dict[str, str]] = []
@@ -369,12 +555,22 @@ class OperationalApiService:
             return {
                 "occurrence": state,
                 "speakers": [], "segments": [], "transcripts": [], "facts": [],
-                "contradictions": [], "hypotheses": [], "diao_sources": [],
+                "contradictions": [], "information_gaps": [], "hypotheses": [], "diao_sources": [],
                 "watch_events": list(self._watch_events), "final_history": None,
-                "processing": [], "original_audio": None,
+                "processing": [], "original_audio": None, "listening_preview": None,
             }
         speakers_path = root / "speakers" / "registry.json"
         speaker_data = _read_json(speakers_path) if speakers_path.is_file() else {"speakers": []}
+        # Embedding prototypes are durable internal matching state, not a
+        # dashboard payload.  Serializing hundreds of floats per speaker can
+        # hold the GIL long enough to compete with the high-rate UART reader
+        # on a 1 GB Raspberry Pi.  Keep operational metadata visible while the
+        # source vectors remain in registry.json for audit/re-identification.
+        dashboard_speakers = []
+        for raw_speaker in speaker_data.get("speakers", speaker_data):
+            speaker = dict(raw_speaker)
+            speaker.pop("prototypes", None)
+            dashboard_speakers.append(speaker)
         segments = _json_files(root / "segments")
         transcripts = _json_files(root / "transcripts")
         facts = [item for item in _json_files(root / "facts") if "fact_id" in item]
@@ -398,19 +594,26 @@ class OperationalApiService:
             ]
         processing = _json_files(root / "jobs")
         original_audio = "available" if (root / "audio" / "raw.wav").is_file() else "unavailable"
+        listening_preview = (
+            "available"
+            if (root / "audio" / "listening_preview.wav").is_file()
+            else "unavailable"
+        )
         return {
             "occurrence": state,
-            "speakers": speaker_data.get("speakers", speaker_data),
+            "speakers": dashboard_speakers,
             "segments": segments,
             "transcripts": transcripts,
             "facts": facts,
             "contradictions": [c for item in analyses for c in item.get("contradictions", [])],
+            "information_gaps": [g for item in analyses for g in item.get("information_gaps", [])],
             "hypotheses": hypotheses,
             "diao_sources": diao_sources,
             "watch_events": watch_events,
             "final_history": history,
             "processing": processing,
             "original_audio": original_audio,
+            "listening_preview": listening_preview,
         }
 
 
@@ -443,8 +646,15 @@ padding:12px;margin:12px 0}}h2{{font-size:14px;color:#8fb7d5}}pre{{white-space:p
     return page.encode("utf-8")
 
 
-def demo_html() -> bytes:
-    """Static shell: all occurrence data/audio remain behind Bearer auth APIs."""
+def demo_html(view: dict[str, Any] | None = None) -> bytes:
+    """Read-only, server-rendered academic dashboard.
+
+    Some browser privacy extensions block paths containing ``/api/`` even when
+    they are same-origin local requests.  The demo must remain usable in that
+    environment, so its durable, read-only snapshot is embedded in this page;
+    it never calls an operational endpoint from the browser.
+    """
+    embedded = json.dumps(view or {}, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     page = """<!doctype html><html lang="pt-BR"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAFE-FIELD · Ocorrência</title>
@@ -456,27 +666,31 @@ main{max-width:980px;margin:auto;padding:28px}h1{color:#65e2bd;margin:0 0 6px}h2
 audio{width:100%;margin-top:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0d141d;padding:14px;border-radius:8px;font:15px ui-monospace,monospace}.muted{color:#aab8c4}.error{color:#ffaf9d}.list a{color:#8fcbff}
 </style><main><h1>SAFE-FIELD — Ocorrência</h1><p id="notice" class="muted">Leitura somente — evidências carregadas do disco.</p><div id="content"></div>
 <script>
-const params=new URLSearchParams(location.search), id=params.get('occurrence_id');
+const view=__SAFE_FIELD_DEMO_VIEW__, id=view.occurrence_id||null;
 const content=document.querySelector('#content'), notice=document.querySelector('#notice');
 const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
-async function api(path){const r=await fetch(path);if(!r.ok)throw new Error('HTTP '+r.status);return r}
+const localTime=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?(v||'Indisponível'):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'medium'})};
 function field(label,value){return `<div><div class="label">${esc(label)}</div><div class="value">${esc(value||'Indisponível')}</div></div>`}
 function jobs(items){if(!items.length)return 'Indisponível';return items.map(x=>`${esc(x.segment_id||x.hypothesis_id||x.kind||'job')}: ${esc(x.status||'PENDING')}`).join('\\n')}
-function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcripts||[], facts=s.facts||[], hyps=s.hypotheses||[];
- const transcript=ts.map(x=>x.raw_transcript||x.transcript||'').filter(Boolean).join('\\n\\n');
- const analysis={captured_facts:facts.filter(x=>x.status==='CAPTURED'),inferred_hypotheses:hyps.filter(x=>x.status==='PROPOSED'||x.status==='INFERRED'),officer_confirmed:facts.filter(x=>x.status==='OFFICER_CONFIRMED').concat(hyps.filter(x=>x.status==='OFFICER_CONFIRMED'))};
- content.innerHTML=`<section class="card"><h2>1. SAFE-FIELD — Ocorrência</h2><div class="meta">${field('Occurrence ID',o.occurrence_id)}${field('Início',o.started_at)}${field('Estado da ocorrência',o.status||o.state)}${field('Processamento',(s.processing||[]).some(x=>x.status==='PENDING'||x.status==='PROCESSING')?'PENDING':'COMPLETE / REJECTED conforme lista')}</div></section>
- <section class="card"><h2>2. ÁUDIO ORIGINAL</h2><div class="muted">raw.wav · duração: <span id="duration">carregando…</span></div><audio id="audio" controls></audio></section>
+function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcripts||[], facts=s.facts||[], hyps=s.hypotheses||[], history=s.final_history||{};
+ const transcript=ts.map(x=>`[${(x.speaker_ids||['SEM_IDENTIFICAÇÃO']).join(', ')} · ${x.segment_id}]\\n${x.raw_transcript||x.transcript||'Transcrição indisponível'}`).join('\\n\\n');
+ const actors=[...new Set(facts.flatMap(x=>x.actors||[]))];
+ const possibleHypotheses=hyps.filter(x=>x.label).map(x=>({description:x.label,supporting_facts:x.supporting_facts||[],uncertainties:['Hipótese INFERRED: requer avaliação e confirmação humana.']}));
+ const structured={speakers:s.speakers||[],actors,facts,gaps:s.information_gaps||history.information_gaps||[],divergences:s.contradictions||history.contradictions||[],possible_legal_hypotheses:possibleHypotheses,preliminary_history:history.preliminary_narrative||'Dados insuficientes para narrativa preliminar.',provenance:{captured:(s.segments||[]).map(x=>({segment_id:x.segment_id,start:x.start,end:x.end})),inferred:[...ts.map(x=>({kind:'TRANSCRIPT',segment_id:x.segment_id})),...facts.filter(x=>x.status!=='OFFICER_CONFIRMED').map(x=>({kind:'FACT',fact_id:x.fact_id,status:x.status})),...hyps.filter(x=>x.status!=='OFFICER_CONFIRMED').map(x=>({kind:'HYPOTHESIS',hypothesis_id:x.hypothesis_id,status:x.status}))],officer_confirmed:[...facts.filter(x=>x.status==='OFFICER_CONFIRMED'),...hyps.filter(x=>x.status==='OFFICER_CONFIRMED')]}};
+ content.innerHTML=`<section class="card"><h2>1. SAFE-FIELD — Ocorrência</h2><div class="meta">${field('Occurrence ID',o.occurrence_id)}${field('Início',localTime(o.started_at))}${field('Estado da ocorrência',o.status||o.state)}${field('Processamento',(s.processing||[]).some(x=>x.status==='PENDING'||x.status==='PROCESSING')?'PENDING':'COMPLETE / REJECTED conforme lista')}</div></section>
+ <section class="card"><h2>2. ÁUDIO ORIGINAL</h2><div class="muted">raw.wav · duração: <span id="duration">carregando…</span></div><audio id="audio" controls></audio><div id="previewBlock" style="display:none"><p class="muted"><strong>Prévia audível derivada</strong> · passa-altas e ganho limitado; o RAW acima permanece intacto.</p><audio id="previewAudio" controls></audio></div></section>
  <section class="card"><h2>3. DADOS DA CAPTURA</h2><div class="meta">${field('Sample rate',pcm.sample_rate||pcm.wav_sample_rate||'Indisponível')}${field('Frames válidos',pcm.valid_frames)}${field('Amostras',pcm.samples||pcm.sample_count)}${field('CRC errors',pcm.crc_errors)}${field('Sequence losses',pcm.sequence_losses)}${field('Frame errors',pcm.frame_errors||pcm.i2s_frame_error_packets)}${field('Segmento utilizado',(s.segments||[]).map(x=>x.segment_id).join(', '))}</div></section>
- <section class="card"><h2>4. TRANSCRIÇÃO <span class="pill">INFERRED</span></h2><pre>${esc(transcript||'Transcrição indisponível')}</pre></section>
- <section class="card"><h2>5. ANÁLISE</h2><pre>${esc(JSON.stringify(analysis,null,2))}</pre></section>
- <section class="card"><h2>6. PROCESSAMENTO</h2><pre>${esc(jobs(s.processing||[]))}</pre></section>`;
+ <section class="card"><h2>4. TRANSCRIÇÃO POR FALANTE <span class="pill">INFERRED</span></h2><pre>${esc(transcript||'Transcrição indisponível')}</pre></section>
+ <section class="card"><h2>5. ANÁLISE E PROVENIÊNCIA</h2><pre>${esc(JSON.stringify(structured,null,2))}</pre></section>
+ <section class="card"><h2>6. HISTÓRICO PRELIMINAR</h2><pre>${esc(structured.preliminary_history)}</pre></section>
+ <section class="card"><h2>7. PROCESSAMENTO</h2><pre>${esc(jobs(s.processing||[]))}</pre></section>`;
  loadAudio(); }
-async function loadAudio(){try{const r=await api('/api/v1/occurrences/saved/'+encodeURIComponent(id)+'/audio');const b=await r.blob(),a=document.querySelector('#audio');a.src=URL.createObjectURL(b);a.onloadedmetadata=()=>document.querySelector('#duration').textContent=a.duration.toFixed(2)+' s'}catch(e){document.querySelector('#duration').textContent='Indisponível';}}
-async function list(){const r=await api('/api/v1/occurrences/saved');const items=await r.json();content.innerHTML='<section class="card"><h2>Ocorrências recentes</h2><div class="list">'+items.map(x=>`<p><a href="/demo?occurrence_id=${encodeURIComponent(x.occurrence_id)}">Abrir</a> — ${esc(x.occurrence_id)} · ${esc(x.status)}</p>`).join('')+'</div></section>'}
-async function boot(){try{if(id){const r=await api('/api/v1/occurrences/saved/'+encodeURIComponent(id));render(await r.json())}else await list()}catch(e){notice.className='error';notice.textContent='Não foi possível carregar a ocorrência: '+e.message}}
+function loadAudio(){const a=document.querySelector('#audio');if(!view.audio_url){document.querySelector('#duration').textContent='Indisponível';return}a.src=view.audio_url;a.onloadedmetadata=()=>document.querySelector('#duration').textContent=a.duration.toFixed(2)+' s';a.onerror=()=>document.querySelector('#duration').textContent='Indisponível';if(view.listening_preview_url){document.querySelector('#previewBlock').style.display='block';document.querySelector('#previewAudio').src=view.listening_preview_url;}}
+function list(){const items=view.items||[];content.innerHTML='<section class="card"><h2>Ocorrências recentes</h2><p class="muted">Mais recente primeiro · horário local do navegador · atualização automática</p><div class="list">'+(items.length?items.map((x,i)=>`<p><strong>#${i+1}</strong> · ${esc(localTime(x.started_at))}<br><a href="/demo?occurrence_id=${encodeURIComponent(x.occurrence_id)}">Abrir ocorrência</a> — ${esc(x.occurrence_id)} · ${esc(x.status)}</p>`).join(''):'<p class="muted">Nenhuma ocorrência persistida.</p>')+'</div></section>'}
+function boot(){try{if(id){if(view.error)throw new Error(view.error);render(view.snapshot)}else list()}catch(e){notice.className='error';notice.textContent='Não foi possível carregar a ocorrência: '+e.message}}
+if(!id)setTimeout(()=>location.reload(),3000);
 boot();</script></main></html>"""
-    return page.encode("utf-8")
+    return page.replace("__SAFE_FIELD_DEMO_VIEW__", embedded).encode("utf-8")
 
 
 def make_handler(
@@ -548,7 +762,43 @@ def make_handler(
             # Local academic demonstration surface: durable artifacts only.
             # It deliberately exposes no state-changing endpoint.
             if path == "/demo":
-                self._send(200, demo_html(), "text/html")
+                occurrence_id = parse_qs(parsed.query).get("occurrence_id", [None])[0]
+                view: dict[str, Any] = {"occurrence_id": occurrence_id}
+                if occurrence_id:
+                    try:
+                        view["snapshot"] = service.saved_occurrence_snapshot(occurrence_id)
+                        view["audio_url"] = "/demo/audio/" + quote(occurrence_id, safe="")
+                        if view["snapshot"].get("listening_preview") == "available":
+                            view["listening_preview_url"] = (
+                                "/demo/listening-preview/" + quote(occurrence_id, safe="")
+                            )
+                    except ApiError as exc:
+                        view["error"] = exc.code
+                else:
+                    view["items"] = service.list_saved_occurrences()
+                self._send(200, demo_html(view), "text/html")
+                return
+            if path.startswith("/demo/listening-preview/"):
+                try:
+                    occurrence_id = unquote(path[len("/demo/listening-preview/"):])
+                    if not occurrence_id or "/" in occurrence_id or "\\" in occurrence_id:
+                        raise ApiError(404, "NOT_FOUND")
+                    self._send(
+                        200,
+                        service.saved_listening_preview_path(occurrence_id).read_bytes(),
+                        "audio/wav",
+                    )
+                except ApiError as exc:
+                    self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
+                return
+            if path.startswith("/demo/audio/"):
+                try:
+                    occurrence_id = unquote(path[len("/demo/audio/"):])
+                    if not occurrence_id or "/" in occurrence_id or "\\" in occurrence_id:
+                        raise ApiError(404, "NOT_FOUND")
+                    self._send(200, service.saved_audio_path(occurrence_id).read_bytes(), "audio/wav")
+                except ApiError as exc:
+                    self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
                 return
             if path == "/api/v1/occurrences/saved":
                 self._send(200, service.list_saved_occurrences())
@@ -567,7 +817,13 @@ def make_handler(
                 return
             if not self._require_authorization():
                 return
-            if path == "/api/v1/operational/wearable/state":
+            if path.startswith("/api/v1/commands/"):
+                command_id = unquote(path[len("/api/v1/commands/"):])
+                try:
+                    self._send(200, service.command_result(command_id))
+                except ApiError as exc:
+                    self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
+            elif path == "/api/v1/operational/wearable/state":
                 self._send(200, service.wearable_state())
             elif path == "/api/v1/operational/dashboard":
                 self._send(200, service.dashboard_snapshot())
@@ -590,7 +846,13 @@ def make_handler(
                 payload = self._body()
                 if path == "/api/v1/occurrences/start":
                     result = service.start(payload)
+                elif path == "/api/v1/occurrences/captures/start":
+                    result = service.start_capture(payload)
+                elif path == "/api/v1/occurrences/captures/stop":
+                    result = service.stop_capture(payload)
                 elif path == "/api/v1/occurrences/finish":
+                    result = service.finish(payload)
+                elif path == "/api/v1/occurrences/conclude":
                     result = service.finish(payload)
                 elif path == "/api/v1/occurrences/consolidate":
                     result = service.consolidate_occurrence(payload)

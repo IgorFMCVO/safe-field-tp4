@@ -7,17 +7,20 @@ interaction only. Camera flows are deliberately absent.
 ## Safety and state semantics
 
 - `STANDBY` means no occurrence and no global recording.
-- `INICIAR OCORRÊNCIA` starts an occurrence through the Core.
+- `EM ATENDIMENTO` starts an occurrence through the Core.
 - `OCCURRENCE_ACTIVE` means capture remains continuous until the explicit
   `FINALIZAR OCORRÊNCIA` action.
 - FPGA `AUDIO_QUIET` and `AUDIO_ACTIVE` are accepted as telemetry compatibility
   states, but never start, stop or gate recording.
-- A `PROPOSED` hypothesis exposes only `CONFIRMAR`, `DESCARTAR` and `MAIS DADOS`.
+- A `PROPOSED` hypothesis exposes only `CONFIRMAR`, `RECUSAR` and `MAIS DADOS`.
 - Guidance is rendered only when the corresponding hypothesis is
-  `OFFICER_CONFIRMED`. It shows three to five sourced priority actions.
+  `OFFICER_CONFIRMED`. Every sourced priority action returned by the Core is
+  retained; use the `^`/`v` touch controls to scroll and select it.
 - Each guidance item can be marked `REALIZADO`, `PENDENTE` or `NÃO APLICÁVEL`.
-- `REASSESSMENT_REQUIRED` is a visible alert; the firmware does not silently
-  replace a confirmed hypothesis.
+- `REASSESSMENT_REQUIRED` is a visible alert with `CAPTURA ATIVA`; the
+  officer's spoken assessment remains in the continuous capture before the
+  Core proposes a new hypothesis. The firmware does not silently replace a
+  confirmed hypothesis.
 - During `STOPPING`, the Core state is normalized to `PROCESSING_PENDING` with
   `capture_active=false`; the screen says `FINALIZANDO / CAPTURA ENCERRADA`.
   A `PROCESSING_PENDING` response with `capture_active=true` instead means the
@@ -44,7 +47,7 @@ POST /api/v1/guidance/action
 POST /api/v1/occurrences/finish
 ```
 
-`FINALIZAR OCORRÊNCIA` asks the Core to drain for 1.0 second and allows up to
+`ENCERRAR ATENDIMENTO` asks the Core to drain for 1.0 second and allows up to
 3.5 seconds for the HTTP exchange. A 2xx response with `ok:false` plus
 `STOPPING`, `finalization_pending` or `retryable` is a valid pending result,
 not discarded as a transport error; the operator may retry finalization.
@@ -126,7 +129,7 @@ START
 CONFIRM
 REJECT
 MORE_DATA
-ACTION <1-5> DONE|PENDING|NOT_APPLICABLE
+ACTION <numero> DONE|PENDING|NOT_APPLICABLE
 STOP
 POLL
 SHOW_CONFIG

@@ -46,7 +46,12 @@ from raspberry_mvp.raw24_diagnostic.operational_raw24_source import (  # noqa: E
 
 TLS_CERT_ENV = "SAFE_FIELD_OPERATIONAL_TLS_CERT"
 TLS_KEY_ENV = "SAFE_FIELD_OPERATIONAL_TLS_KEY"
-FROZEN_RECOVERY_SEGMENTATION = SegmenterConfig(speech_rms_threshold=150)
+# Raw capture is continuous; this only limits an individual asynchronous
+# inference job so prolonged speech cannot exceed the worker payload budget.
+FROZEN_RECOVERY_SEGMENTATION = SegmenterConfig(
+    speech_rms_threshold=150,
+    max_segment_ms=45_000,
+)
 
 
 def _is_loopback_bind(host: str) -> bool:
@@ -207,7 +212,11 @@ def _serve_tls(
         make_handler(service, auth_token=auth_token),
     )
     try:
-        server.socket = tls_context.wrap_socket(server.socket, server_side=True)
+        # A slow or stalled TLS client must not block the accept loop.  The
+        # request worker performs the handshake on its accepted socket.
+        server.socket = tls_context.wrap_socket(
+            server.socket, server_side=True, do_handshake_on_connect=False,
+        )
         server.serve_forever()
     finally:
         server.server_close()
@@ -315,6 +324,9 @@ def main(
     if args.pcm_port:
         if args.audio_transport == "tp5_raw24":
             pcm_source = SerialRaw24PCMSource(args.pcm_port)
+            # The FPGA stream is exactly 21,093.75 Hz.  WAV headers are
+            # integer-only, so 21,094 is the nearest representation; the
+            # existing worker resamples that PCM to its processing rate.
             pcm_format = PCMFormat(sample_rate=TP5_RAW24_WAV_SAMPLE_RATE, channels=1, sample_width=2)
         else:
             pcm_source = SerialPCMSource(args.pcm_port)
@@ -326,6 +338,8 @@ def main(
         segmentation=FROZEN_RECOVERY_SEGMENTATION if args.ai_mode == "razer" else None,
         pcm_source=pcm_source,
         physical_capture_only=pcm_source is not None,
+        close_terminal_processing_failures=args.ai_mode == "razer",
+        background_finalize_on_stop=args.ai_mode == "razer",
     )
     scheme = "https" if tls_context is not None else "http"
     print(f"SAFE_FIELD_OPERATIONAL_READY {scheme}://{args.host}:{args.port}", flush=True)

@@ -17,6 +17,145 @@ PARTIAL_GUIDANCE_STATUSES = frozenset(
 )
 
 
+def _text(value: object, fallback: str = "não informado") -> str:
+    """Render a record field without inventing an operational fact."""
+    if value is None:
+        return fallback
+    rendered = str(value).strip()
+    return rendered or fallback
+
+
+def _speaker_labels(speakers: list[dict]) -> dict[str, str]:
+    """Return auditable, role-qualified labels rather than civil identities."""
+    labels: dict[str, str] = {}
+    for speaker in speakers:
+        speaker_id = _text(speaker.get("speaker_id"), "interlocutor não identificado")
+        confirmed = speaker.get("confirmed_role")
+        provisional = speaker.get("provisional_role")
+        if confirmed:
+            qualification = f"papel confirmado: {confirmed}"
+        elif provisional and provisional != "UNKNOWN":
+            qualification = f"papel provisório: {provisional}"
+        else:
+            qualification = "papel não confirmado"
+        labels[speaker_id] = f"{speaker_id} ({qualification})"
+    return labels
+
+
+def _render_timestamp(value: object) -> str:
+    if value is None:
+        return "momento não informado"
+    try:
+        return f"{float(value):.2f} s"
+    except (TypeError, ValueError):
+        return _text(value, "momento não informado")
+
+
+def _fact_quote(fact: dict) -> str:
+    return _text(fact.get("evidence_quote") or fact.get("statement"), "sem transcrição disponível")
+
+
+def _fact_kind(fact: dict) -> str:
+    """Classify provenance, not factual truth or criminal responsibility."""
+    if fact.get("negation"):
+        return "negação"
+    if fact.get("direct_observation"):
+        return "observação declarada"
+    modality = _text(fact.get("modality"), "").casefold()
+    if modality in {"allegation", "reported", "report", "relato", "hearsay"}:
+        return "alegação/relato"
+    return "declaração"
+
+
+def _fact_actor_label(fact: dict, labels: dict[str, str]) -> str:
+    source_speakers = fact.get("source_speakers") or []
+    if source_speakers:
+        return ", ".join(labels.get(str(item), str(item)) for item in source_speakers)
+    return "interlocutor não identificado"
+
+
+def _fact_sentence(fact: dict, labels: dict[str, str]) -> str:
+    """A concise, neutral chronological sentence tied to an exact quote."""
+    actor = _fact_actor_label(fact, labels)
+    kind = _fact_kind(fact)
+    quote = _fact_quote(fact)
+    segments = ", ".join(fact.get("source_segments") or []) or "não informado"
+    return (
+        f"No marco de {_render_timestamp(fact.get('timestamp'))}, {actor} apresentou "
+        f"{kind}: “{quote}” (fontes de áudio: {segments}; status: "
+        f"{_text(fact.get('status'))})."
+    )
+
+
+def _hypothesis_label(hypothesis: dict) -> str:
+    label = _text(hypothesis.get("label"))
+    code = hypothesis.get("nature_code")
+    return f"{code} — {label}" if code else label
+
+
+def _report_model(data: dict) -> dict:
+    """Build a review-ready narrative model using only operational records.
+
+    This deliberately preserves attribution and uncertainty.  It is a draft for
+    police review, not a finding of criminal responsibility.
+    """
+    labels = _speaker_labels(data.get("speakers") or [])
+    facts = sorted(
+        data.get("facts") or [],
+        key=lambda item: (
+            item.get("timestamp") is None,
+            item.get("timestamp") if item.get("timestamp") is not None else 0.0,
+            item.get("fact_id", ""),
+        ),
+    )
+    declarations = [fact for fact in facts if not fact.get("negation")]
+    denials = [fact for fact in facts if fact.get("negation")]
+    confirmed = [
+        item
+        for item in data.get("hypotheses") or []
+        if item.get("status") == "OFFICER_CONFIRMED"
+        and item.get("evidence_status") == "OFFICER_CONFIRMED"
+    ]
+    provisional = [
+        item
+        for item in data.get("hypotheses") or []
+        if item not in confirmed
+    ]
+    actions = data.get("guidance_actions") or []
+    guidance = data.get("guidance") or []
+    limitations: list[str] = []
+    if data.get("contradictions"):
+        limitations.append(
+            "Há versões divergentes registradas; a minuta não atribui falsidade "
+            "ou responsabilidade a qualquer interlocutor."
+        )
+    if data.get("information_gaps"):
+        limitations.append("Persistem lacunas de informação indicadas pelo processamento.")
+    if data.get("error_status"):
+        limitations.append("Há indisponibilidades ou pendências técnicas registradas no histórico.")
+    excluded = int(data.get("excluded_nonoperational_fact_count") or 0)
+    if excluded:
+        limitations.append(
+            f"{excluded} registro(s) sem status operacional permitido foram excluídos desta minuta."
+        )
+    if not limitations:
+        limitations.append(
+            "A minuta permanece sujeita à conferência policial, inclusive quanto a "
+            "qualificação, local, data e demais campos administrativos do REDS."
+        )
+    return {
+        "speaker_labels": labels,
+        "facts": facts,
+        "declarations": declarations,
+        "denials": denials,
+        "confirmed_hypotheses": confirmed,
+        "provisional_hypotheses": provisional,
+        "guidance": guidance,
+        "guidance_actions": actions,
+        "limitations": limitations,
+    }
+
+
 def _load_json_files(paths: Iterable[Path]) -> list[dict]:
     result = []
     for path in sorted(paths):
@@ -83,20 +222,9 @@ def _history_errors(pending: list[dict], guidance: list[dict]) -> list[dict]:
 
 def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Path]:
     occurrence = data["occurrence"]
-    facts = sorted(
-        data["facts"],
-        key=lambda item: (
-            item.get("timestamp") is None,
-            item.get("timestamp") or 0.0,
-            item.get("fact_id", ""),
-        ),
-    )
-    confirmed_hypotheses = [
-        item
-        for item in data["hypotheses"]
-        if item.get("status") == "OFFICER_CONFIRMED"
-        and item.get("evidence_status") == "OFFICER_CONFIRMED"
-    ]
+    model = _report_model(data)
+    facts = model["facts"]
+    confirmed_hypotheses = model["confirmed_hypotheses"]
 
     md_lines = [
         "# BO — RELATO POLICIAL PRELIMINAR PRONTO PARA REVISÃO",
@@ -104,13 +232,13 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
         "> Minuta não oficial. O conteúdo abaixo usa exclusivamente fatos CAPTURED, "
         "SUPPORTED ou OFFICER_CONFIRMED e permanece sujeito à revisão policial.",
         "",
-        "## Ocorrência",
+        "## Identificação para conferência",
         "",
         f"- ID: `{occurrence['occurrence_id']}`",
         f"- Início: {occurrence['started_at']}",
         f"- Término: {occurrence.get('ended_at', 'não informado')}",
         "",
-        "## Relato cronológico sustentado",
+        "## Relato preliminar para revisão e inserção no REDS",
         "",
     ]
     txt_lines = [
@@ -123,45 +251,106 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
         f"Inicio: {occurrence['started_at']}",
         f"Termino: {occurrence.get('ended_at', 'nao informado')}",
         "",
-        "RELATO CRONOLOGICO SUSTENTADO",
+        "RELATO PRELIMINAR PARA REVISAO E INSERCAO NO REDS",
     ]
     if facts:
+        opening = (
+            "Conforme os registros de áudio e eventos disponíveis nesta ocorrência, "
+            "foram consolidadas as declarações abaixo, em ordem cronológica e com "
+            "atribuição à respectiva fonte."
+        )
+        md_lines.extend([opening, ""])
+        txt_lines.extend([opening, ""])
         for fact in facts:
-            timestamp = (
-                f"{float(fact['timestamp']):.2f} s"
-                if fact.get("timestamp") is not None
-                else "tempo não informado"
-            )
-            speakers = ", ".join(
-                fact.get("source_speakers") or ["interlocutor não identificado"]
-            )
-            segments = ", ".join(fact.get("source_segments") or [])
-            quote = fact.get("evidence_quote") or fact.get("statement") or ""
-            status = fact.get("status", "")
-            md_lines.append(
-                f"- {timestamp} — `{speakers}`: “{quote}” "
-                f"[`{status}`; fontes: {segments}]"
-            )
-            txt_lines.append(
-                f"- {timestamp} - {speakers}: \"{quote}\" "
-                f"[{status}; fontes: {segments}]"
-            )
+            sentence = _fact_sentence(fact, model["speaker_labels"])
+            md_lines.append(f"- {sentence}")
+            txt_lines.append(f"- {sentence}")
     else:
         md_lines.append("- Nenhum fato com suporte operacional foi consolidado.")
         txt_lines.append("- Nenhum fato com suporte operacional foi consolidado.")
 
-    md_lines.extend(["", "## Hipótese confirmada", ""])
-    txt_lines.extend(["", "HIPOTESE CONFIRMADA"])
+    md_lines.extend(["", "## Pessoas e papéis registrados", ""])
+    txt_lines.extend(["", "PESSOAS E PAPEIS REGISTRADOS"])
+    if model["speaker_labels"]:
+        for speaker_id in sorted(model["speaker_labels"]):
+            md_lines.append(f"- {model['speaker_labels'][speaker_id]}")
+            txt_lines.append(f"- {model['speaker_labels'][speaker_id]}")
+    else:
+        md_lines.append("- Nenhum interlocutor registrado.")
+        txt_lines.append("- Nenhum interlocutor registrado.")
+
+    md_lines.extend(["", "## Negações e versões divergentes", ""])
+    txt_lines.extend(["", "NEGACOES E VERSOES DIVERGENTES"])
+    if model["denials"]:
+        for fact in model["denials"]:
+            sentence = _fact_sentence(fact, model["speaker_labels"])
+            md_lines.append(f"- {sentence}")
+            txt_lines.append(f"- {sentence}")
+    else:
+        md_lines.append("- Nenhuma negação estruturada foi registrada nos fatos consolidados.")
+        txt_lines.append("- Nenhuma negacao estruturada foi registrada nos fatos consolidados.")
+    for contradiction in data.get("contradictions") or []:
+        identifier = _text(contradiction.get("contradiction_id"), "divergência sem identificador")
+        sources = ", ".join(contradiction.get("segment_ids") or []) or "fontes não informadas"
+        rendered = (
+            f"Divergência registrada ({identifier}; fontes: {sources}). "
+            "Não há atribuição de falsidade nesta minuta."
+        )
+        md_lines.append(f"- {rendered}")
+        txt_lines.append(f"- {rendered}")
+
+    md_lines.extend(["", "## Hipótese operacional", ""])
+    txt_lines.extend(["", "HIPOTESE OPERACIONAL"])
     if confirmed_hypotheses:
         for hypothesis in confirmed_hypotheses:
-            code = hypothesis.get("nature_code")
-            label = hypothesis.get("label") or "não informada"
-            rendered = f"{code} — {label}" if code else label
-            md_lines.append(f"- `{hypothesis['hypothesis_id']}`: {rendered}")
-            txt_lines.append(f"- {hypothesis['hypothesis_id']}: {rendered}")
+            rendered = _hypothesis_label(hypothesis)
+            source_segments = ", ".join(hypothesis.get("source_segments") or [])
+            line = (
+                f"Hipótese confirmada pelo policial: {rendered} "
+                f"(ID: {hypothesis['hypothesis_id']}; fontes: {source_segments})."
+            )
+            md_lines.append(f"- {line}")
+            txt_lines.append(f"- {line}")
     else:
-        md_lines.append("- Nenhuma hipótese operacional confirmada.")
-        txt_lines.append("- Nenhuma hipotese operacional confirmada.")
+        md_lines.append("- Nenhuma hipótese operacional foi confirmada pelo policial.")
+        txt_lines.append("- Nenhuma hipotese operacional foi confirmada pelo policial.")
+    for hypothesis in model["provisional_hypotheses"]:
+        line = (
+            f"Hipótese ainda não confirmada: {_hypothesis_label(hypothesis)} "
+            f"(ID: {_text(hypothesis.get('hypothesis_id'))}; status: "
+            f"{_text(hypothesis.get('status'))})."
+        )
+        md_lines.append(f"- {line}")
+        txt_lines.append(f"- {line}")
+
+    md_lines.extend(["", "## Orientações e providências efetivamente registradas", ""])
+    txt_lines.extend(["", "ORIENTACOES E PROVIDENCIAS EFETIVAMENTE REGISTRADAS"])
+    if model["guidance"]:
+        for result in model["guidance"]:
+            for item in result.get("items") or []:
+                # Guidance is a consulted source, never evidence that an action occurred.
+                md_lines.append(f"- Orientação disponibilizada: {_text(item.get('text'))}")
+                txt_lines.append(f"- Orientacao disponibilizada: {_text(item.get('text'))}")
+    else:
+        md_lines.append("- Nenhuma orientação foi disponibilizada no registro.")
+        txt_lines.append("- Nenhuma orientacao foi disponibilizada no registro.")
+    if model["guidance_actions"]:
+        for action in model["guidance_actions"]:
+            line = (
+                f"Providência registrada no wearable: ação {_text(action.get('action_id'))}, "
+                f"status {_text(action.get('status'))}, em {_text(action.get('timestamp'))}."
+            )
+            md_lines.append(f"- {line}")
+            txt_lines.append(f"- {line}")
+    else:
+        md_lines.append("- Nenhuma providência foi marcada como executada no wearable.")
+        txt_lines.append("- Nenhuma providencia foi marcada como executada no wearable.")
+
+    md_lines.extend(["", "## Limitações para revisão policial", ""])
+    txt_lines.extend(["", "LIMITACOES PARA REVISAO POLICIAL"])
+    for limitation in model["limitations"]:
+        md_lines.append(f"- {limitation}")
+        txt_lines.append(f"- {limitation}")
 
     md_lines.extend(
         [
@@ -279,6 +468,10 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
         # Narrative includes only facts with an operationally permitted status.
         "preliminary_narrative": " ".join(fact.get("statement", "") for fact in facts),
     }
+    # Keep the rendering inputs alongside the immutable source records.  This
+    # lets a reviewer audit why a sentence was included without promoting an
+    # allegation or a rejected candidate to an operational fact.
+    data["police_report_model"] = _report_model(data)
     json_path = session_root / "reports" / "HISTORICO_PRELIMINAR.json"
     atomic_json(json_path, data)
 

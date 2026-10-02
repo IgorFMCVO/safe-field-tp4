@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import binascii
 from dataclasses import dataclass
 import struct
 
@@ -16,12 +17,15 @@ BAUD_RATE = 1_500_000
 
 
 def crc16_ccitt_false(data: bytes) -> int:
-    crc = 0xFFFF
-    for value in data:
-        crc ^= value << 8
-        for _ in range(8):
-            crc = ((crc << 1) ^ 0x1021) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF
-    return crc
+    """CRC-16/CCITT-FALSE, using CPython's C implementation.
+
+    ``crc_hqx`` with initial value ``0xFFFF`` is bit-for-bit equivalent to the
+    FPGA polynomial/initialisation.  Keeping this hot path outside Python is
+    important on the Raspberry Pi: the receiver validates about 1,318 packets
+    per second while it must also drain the mini-UART without flow control.
+    """
+
+    return binascii.crc_hqx(data, 0xFFFF)
 
 
 @dataclass(frozen=True)

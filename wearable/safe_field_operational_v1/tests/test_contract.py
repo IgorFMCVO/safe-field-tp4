@@ -21,6 +21,31 @@ BUILD_SOURCE = (ROOT / "BUILD.ps1").read_text(encoding="utf-8")
 
 
 class FirmwareSurfaceTests(unittest.TestCase):
+    def test_increment_one_capture_contract_is_explicit(self):
+        for route in (
+            "/api/v1/occurrences/captures/start",
+            "/api/v1/occurrences/captures/stop",
+            "/api/v1/occurrences/conclude",
+        ):
+            self.assertIn(f'"{route}"', SOURCE)
+        for label in ("PARAR CAPTURA", "NOVA CAPTURA", "CONCLUIR"):
+            self.assertIn(label, SOURCE)
+        self.assertIn("UiMode::OCCURRENCE_OPEN", SOURCE)
+        self.assertIn('serverState == "OCCURRENCE_OPEN"', SOURCE)
+
+    def test_control_https_runs_off_the_touch_render_loop(self):
+        self.assertIn("xTaskCreatePinnedToCore", SOURCE)
+        self.assertIn("xQueueCreate", SOURCE)
+        self.assertIn("controlRequestQueued", SOURCE)
+        self.assertIn("serviceControlResponses", SOURCE)
+
+    def test_commands_and_state_snapshots_are_recoverable(self):
+        self.assertIn('\\"command_id\\":\\"', SOURCE)
+        self.assertIn("stateRevision", SOURCE)
+        self.assertIn("coreBootId", SOURCE)
+        self.assertIn("POLL_STALE", SOURCE)
+        self.assertIn("CORE_BOOT_CHANGED", SOURCE)
+
     def test_exact_versioned_routes_are_compiled(self):
         for method, route in ROUTES.values():
             self.assertIn(f'"{route}"', SOURCE)
@@ -30,22 +55,30 @@ class FirmwareSurfaceTests(unittest.TestCase):
     def test_required_operational_labels_are_present(self):
         for label in (
             "STANDBY",
-            "INICIAR OCORRENCIA",
+            "EM ATENDIMENTO",
             "OCORRENCIA ATIVA",
             "CAPTURA CONTINUA",
+            "CAPTURA ATIVA - ESCUTA CONTINUA",
             "HIPOTESE PROPOSTA",
             "CONFIRMAR",
-            "DESCARTAR",
+            "RECUSAR",
             "MAIS DADOS",
-            "PRIORIDADES",
+            "PROCEDIMENTOS",
             "REALIZADO",
             "PENDENTE",
             "NAO APLICAVEL",
             "REAVALIACAO NECESSARIA",
-            "FINALIZAR OCORRENCIA",
+            "ENCERRAR ATENDIMENTO",
             "FINALIZANDO",
+            "INICIANDO CAPTURA",
+            "INICIANDO",
+            "FALE AGORA",
+            "PROCESSANDO...",
+            "TOQUE ACEITO",
+            "VALIDANDO TOQUE",
+            "VALIDANDO COM O CORE",
             "CAPTURA ENCERRADA",
-            "TENTAR FINALIZAR",
+            "TENTAR ENCERRAR",
             "FALHA NA CAPTURA",
             "INTEGRIDADE PCM",
             "HISTORICO NAO GERADO",
@@ -56,10 +89,67 @@ class FirmwareSurfaceTests(unittest.TestCase):
         self.assertIn("FPGA VAD IS TELEMETRY ONLY", SOURCE)
         self.assertNotRegex(SOURCE, r'wearableState\s*==\s*"AUDIO_(QUIET|ACTIVE)"')
 
+    def test_touch_coordinate_mapping_is_explicit_and_traceable(self):
+        self.assertIn("const int32_t y = rawY", SOURCE)
+        self.assertIn("TOUCH_DOWN raw_x=%ld raw_y=%ld ui_x=%ld ui_y=%ld", SOURCE)
+        self.assertIn("y <= 480", SOURCE)
+
+    def test_touch_initialization_is_bounded_retry_not_single_early_probe(self):
+        self.assertIn("attempt <= 10 && !touchReady", SOURCE)
+        self.assertIn("FT3168 retry %u/10", SOURCE)
+
+    def test_touch_stays_active_and_has_hardware_edge_fallback(self):
+        self.assertIn("TOUCH_POWER_ACTIVE", SOURCE)
+        self.assertIn("attachInterrupt(digitalPinToInterrupt(TP_INT)", SOURCE)
+        self.assertIn("const bool directFallingEdge", SOURCE)
+
+    def test_touch_recovers_without_watch_reboot(self):
+        self.assertIn("bool initializeTouchController(bool recovery)", SOURCE)
+        self.assertIn("FT3168 RECOVERY PROBE FAILED", SOURCE)
+        self.assertIn("PASS FT3168 RECOVERED", SOURCE)
+
+    def test_standby_after_stop_releases_processing_screen(self):
+        self.assertIn('if (serverState == "STANDBY") {', SOURCE)
+        self.assertIn('if (stopAwaitingCore) {', SOURCE)
+        self.assertIn('CAPTURE_LATENCY stop_to_standby', SOURCE)
+
+    def test_request_error_is_reconciled_by_authoritative_poll(self):
+        self.assertIn("START_ERROR_RECONCILE_CORE", SOURCE)
+        self.assertIn("STOP_ERROR_RECONCILE_CORE", SOURCE)
+        self.assertIn("CORE_RECONCILED_STANDBY", SOURCE)
+        self.assertIn("CORE_RECONCILED_CAPTURE_ACTIVE", SOURCE)
+        self.assertIn("reconcilePending", SOURCE)
+
+    def test_touch_audit_events_cover_one_post_per_action(self):
+        for event in ("TOUCH_DOWN", "TOUCH_START", "START_SENT", "START_ACK",
+                      "TOUCH_STOP", "STOP_SENT", "STOP_ACK"):
+            self.assertIn(event, SOURCE)
+
+    def test_saved_result_is_read_only_and_does_not_block_standby(self):
+        api_source = Path("mvp/operational_intelligence/http_api.py").read_text(encoding="utf-8")
+        self.assertIn('"last_result"', api_source)
+        self.assertIn("UiMode::SAVED_RESULT", SOURCE)
+        self.assertIn("RESULTADO PRONTO", SOURCE)
+        self.assertIn("TOUCH_SUGGESTION", SOURCE)
+
+    def test_touch_feedback_is_flushed_before_http(self):
+        self.assertIn("startHttpNotBeforeMs = now + 80", SOURCE)
+        self.assertIn("stopHttpNotBeforeMs = tStopTap + 80", SOURCE)
+        self.assertIn("void serviceDeferredRequests()", SOURCE)
+        self.assertIn("Flush touch acknowledgement before any potentially slow HTTPS", SOURCE)
+
     def test_guidance_preserves_source_metadata(self):
         for field in ("source_document", "source_version", "section", "page", "item", "chunk_id"):
             self.assertIn(f'"{field}"', SOURCE)
         self.assertIn('hypothesisStatus == "OFFICER_CONFIRMED"', SOURCE)
+
+    def test_guidance_is_unbounded_and_touch_scrollable(self):
+        self.assertIn("std::vector<GuidanceItem> guidance", SOURCE)
+        self.assertNotIn("kMaxGuidanceItems", SOURCE)
+        self.assertIn("while (cursor < static_cast<int>(items.length()))", SOURCE)
+        self.assertIn("void scrollGuidance(int8_t direction)", SOURCE)
+        self.assertIn("guidanceScrollOffset", SOURCE)
+        self.assertIn("PROCEDIMENTOS", SOURCE)
 
     def test_no_camera_or_hardcoded_network_secret(self):
         self.assertNotIn("CAMERA_", SOURCE)
@@ -105,6 +195,21 @@ class FirmwareSurfaceTests(unittest.TestCase):
         self.assertIn("Arduino_FT3x68", SOURCE)
         self.assertIn("FT3168_DEVICE_ADDRESS", SOURCE)
         self.assertIn("TP_INT", SOURCE)
+        # The official BSP is retained; the operational firmware intentionally
+        # keeps the controller scanning in ACTIVE mode for reliable dispatch.
+        self.assertIn("TOUCH_POWER_ACTIVE", SOURCE)
+        self.assertIn("PASS FT3168 ACTIVE MODE", SOURCE)
+
+    def test_touch_uses_interrupt_first_with_finger_count_fallback(self):
+        self.assertIn("touch->IIC_Interrupt_Flag", SOURCE)
+        self.assertIn("const bool interruptSignalled", SOURCE)
+        self.assertIn("TOUCH_FINGER_NUMBER", SOURCE)
+        self.assertIn("if (fingers <= 0)", SOURCE)
+        self.assertIn("touch->IIC_Interrupt_Flag = false", SOURCE)
+        self.assertIn("touchArmNotBeforeMs = millis() + 1500", SOURCE)
+        self.assertIn("if (!elapsed(millis(), touchArmNotBeforeMs))", SOURCE)
+        self.assertIn("if (!interruptSignalled)", SOURCE)
+        self.assertIn("!interruptSignalled return above", SOURCE)
 
     def test_stopping_preserves_explicit_capture_false(self):
         self.assertIn('const bool captureFlagPresent = jsonHasKey(payload, "capture_active")', SOURCE)
@@ -162,6 +267,73 @@ class ContractBehaviorTests(unittest.TestCase):
         self.assertTrue(model.capture_active)
         model.apply({"state": "STANDBY", "capture_active": False})
         self.assertFalse(model.capture_active)
+
+    def test_capture_readiness_labels_do_not_claim_audio_before_raw24(self):
+        self.assertIn('"TOQUE ACEITO"', SOURCE)
+        self.assertIn('"VALIDANDO TOQUE"', SOURCE)
+        self.assertIn('"AGUARDANDO AUDIO REAL"', SOURCE)
+        self.assertIn('"FALE AGORA"', SOURCE)
+        self.assertIn('"VALIDANDO COM O CORE"', SOURCE)
+        self.assertIn('void renderProgress(uint16_t color)', SOURCE)
+
+    def test_identical_poll_does_not_force_full_screen_redraw(self):
+        self.assertIn("uint32_t visualStateFingerprint()", SOURCE)
+        self.assertIn("const uint32_t previousVisualState = visualStateFingerprint();", SOURCE)
+        self.assertIn(
+            "if (visualStateFingerprint() != previousVisualState) uiDirty = true;",
+            SOURCE,
+        )
+        self.assertIn("kPollPeriodMs = 700", SOURCE)
+
+    def test_progress_and_battery_are_partial_updates(self):
+        self.assertIn("kProgressUpdatePeriodMs = 1000", SOURCE)
+        self.assertIn("void updateProgressIndicator()", SOURCE)
+        self.assertIn("updateProgressIndicator();", SOURCE)
+        self.assertIn("void renderBatteryField()", SOURCE)
+        self.assertIn("else if (batteryDirty)", SOURCE)
+
+    def test_active_capture_counts_are_separate_and_legible(self):
+        self.assertIn('"CAPTURA ATUAL: "', SOURCE)
+        self.assertIn('"CAPTURAS SALVAS: "', SOURCE)
+
+    def test_rejected_start_resets_visual_state_to_standby(self):
+        # A failed local POST is not proof either way. The next Core poll
+        # resolves it without emitting another command.
+        self.assertIn("START_ERROR_RECONCILE_CORE", SOURCE)
+        self.assertIn('statusMessage = "CONFIRMANDO CORE"', SOURCE)
+        self.assertIn("reconcileWasStart = true", SOURCE)
+
+    def test_ready_to_speak_requires_start_ack_and_verified_raw24_frame(self):
+        model = WearableModel()
+        model.start_acked = True
+        model.apply({"state": "OCCURRENCE_ACTIVE", "occurrence_id": "OCC_2",
+                     "capture_active": True, "pcm_source": {"valid_frames": 0}})
+        self.assertEqual(model.visible_mode(), "STARTING_CAPTURE")
+        self.assertFalse(model.ready_to_speak)
+        model.apply({"state": "OCCURRENCE_ACTIVE", "capture_active": True,
+                     "pcm_source": {"valid_frames": 1}})
+        self.assertTrue(model.ready_to_speak)
+        self.assertEqual(model.visible_mode(), "OCCURRENCE_ACTIVE")
+
+    def test_core_standby_releases_pending_start_without_audio(self):
+        model = WearableModel(start_acked=True, first_valid_audio_frame=False,
+                              state="OCCURRENCE_ACTIVE", capture_active=True)
+        self.assertEqual(model.visible_mode(), "STARTING_CAPTURE")
+        model.apply({"state": "STANDBY", "capture_active": False,
+                     "occurrence_id": None})
+        self.assertEqual(model.visible_mode(), "STANDBY")
+        self.assertFalse(model.capture_active)
+
+    def test_stop_waits_for_core_closed_and_source_quiescent(self):
+        model = WearableModel(capture_active=True, source_quiescent=False,
+                              occurrence_id="OCC_3", stop_acked=True)
+        model.apply({"state": "STOPPING", "capture_active": True,
+                     "source_quiescent": False, "finalization_pending": True})
+        self.assertTrue(model.capture_active)
+        model.apply({"state": "PROCESSING_PENDING", "capture_active": False,
+                     "source_quiescent": True, "finalization_pending": True})
+        self.assertFalse(model.capture_active)
+        self.assertTrue(model.finalization_pending)
 
     def test_guidance_is_hidden_until_officer_confirmation(self):
         model = WearableModel(capture_active=True)
