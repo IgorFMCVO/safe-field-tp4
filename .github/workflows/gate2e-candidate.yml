@@ -31,6 +31,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          python -m pip install numpy==2.3.5
           python -m compileall -q mvp/operational_intelligence scripts/open_safe_field_review.py
           python -m unittest -v \
             mvp.tests.test_gate2e_candidate \
