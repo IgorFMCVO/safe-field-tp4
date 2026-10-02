@@ -1,0 +1,45 @@
+name: Gate2E Candidate Validation
+on:
+  push:
+    branches: [gate2e-live-p0-responsive]
+    paths:
+      - '.github/workflows/gate2e-candidate.yml'
+      - 'scripts/build_gate2e_candidate.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: live
+      - uses: actions/checkout@v4
+        with:
+          ref: 0d14b19ffdbcff3b189390174100f17d7820d1f0
+          path: identity
+      - name: Package tracked source only
+        run: |
+          python - <<'PY'
+          import pathlib, subprocess, zipfile
+          out = pathlib.Path('candidate_sources'); out.mkdir()
+          roots = ('mvp/', 'wearable/', 'raspberry/', 'raspberry_mvp/', 'scripts/', '.github/')
+          suffixes = {'.py', '.ino', '.h', '.hpp', '.cpp', '.md', '.ps1', '.sh', '.yml', '.yaml', '.txt', '.toml'}
+          for folder in ('live', 'identity'):
+              base = pathlib.Path(folder)
+              names = subprocess.check_output(['git','-C',folder,'ls-files','-z']).decode().split('\0')
+              with zipfile.ZipFile(out / (folder + '.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
+                  for name in names:
+                      p = base / name
+                      if p.is_file() and (name.startswith(roots) or name in ('AGENTS.md', 'requirements.txt', 'pyproject.toml')) and p.suffix in suffixes:
+                          if any(part in {'sessions','evidence','.env','runtime','private'} for part in pathlib.PurePosixPath(name).parts):
+                              continue
+                          z.write(p, name)
+                  z.writestr('SOURCE_COMMIT.txt', subprocess.check_output(['git','-C',folder,'rev-parse','HEAD']).decode())
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate2e-candidate-sources
+          path: candidate_sources/*.zip
+          retention-days: 2
