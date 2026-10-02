@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 from .storage import atomic_json
+from .identity_review import build_identity_review
 
 
 OPERATIONAL_FACT_STATUSES = frozenset(
@@ -100,6 +101,12 @@ def _report_model(data: dict) -> dict:
     police review, not a finding of criminal responsibility.
     """
     labels = _speaker_labels(data.get("speakers") or [])
+    review = data.get("identity_review") or {}
+    for speaker_id, identity in review.get("confirmed_identity_by_speaker", {}).items():
+        labels[speaker_id] = f"{identity} [identidade conferida pelo policial; {speaker_id}]"
+    for sid, decision in review.get("decisions_by_speaker", {}).items():
+        if decision.get("role"):
+            labels[sid] = labels.get(sid, sid) + f" (papel conferido: {decision['role']})"
     facts = sorted(
         data.get("facts") or [],
         key=lambda item: (
@@ -231,6 +238,11 @@ def _build_police_report_draft(session_root: Path, data: dict) -> tuple[Path, Pa
         "",
         "> Minuta não oficial. O conteúdo abaixo usa exclusivamente fatos CAPTURED, "
         "SUPPORTED ou OFFICER_CONFIRMED e permanece sujeito à revisão policial.",
+        "",
+        "## Validação de participantes",
+        "",
+        f"- Estado: {data.get('identity_review', {}).get('status', 'REQUIRES_IDENTITY_VALIDATION')}",
+        "- Esta é uma minuta; encaminhamento exige revisão explícita no desktop.",
         "",
         "## Identificação para conferência",
         "",
@@ -430,6 +442,7 @@ def build_preliminary_history(session_root: Path) -> tuple[Path, Path]:
 
     data = {
         "document_type": "HISTORICO_PRELIMINAR",
+        "identity_review": build_identity_review(session_root),
         "history_status": history_status,
         "disclaimer": "Conteúdo preliminar, rastreável às fontes capturadas e sujeito à revisão policial.",
         "occurrence": occurrence,

@@ -9,6 +9,8 @@
 #include <Wire.h>
 #include <memory>
 #include <vector>
+#include <new>
+#include "response_order.h"
 
 #include "pin_config.h"
 #include <XPowersLib.h>
@@ -46,6 +48,7 @@ constexpr char kRejectPath[] = "/api/v1/hypotheses/reject";
 constexpr char kDeferPath[] = "/api/v1/hypotheses/defer";
 constexpr char kActionPath[] = "/api/v1/guidance/action";
 constexpr char kFinishPath[] = "/api/v1/occurrences/conclude";
+constexpr char kAnalyzePath[] = "/api/v1/occurrences/analyze";
 
 constexpr uint16_t kBlack = 0x0000;
 constexpr uint16_t kWhite = 0xFFFF;
@@ -79,6 +82,10 @@ enum class ControlCommand : uint8_t {
   START_CAPTURE,
   STOP_CAPTURE,
   CONCLUDE_OCCURRENCE,
+  POLL_STATE,
+  ANALYZE_OCCURRENCE,
+  HYPOTHESIS_DECISION,
+  GUIDANCE_ACTION,
 };
 
 enum class PostResult : uint8_t {
@@ -88,16 +95,19 @@ enum class PostResult : uint8_t {
   CAPTURE_FAILED,
 };
 
+// Queues transfer ownership of pointers, never copy Arduino String storage.
+// The UI constructs an immutable request; only the network task uses its client.
 struct ControlRequest {
   ControlCommand command;
-  char path[80];
-  char body[512];
-  uint32_t timeoutMs;
+  String url, body, token, ca;
+  uint32_t timeoutMs, epoch, requestId, queuedAt;
 };
-
 struct ControlResponse {
   ControlCommand command;
-  PostResult result;
+  PostResult result = PostResult::ERROR;
+  int httpStatus = 0;
+  uint32_t epoch, requestId;
+  String payload;
 };
 
 struct GuidanceItem {
@@ -208,6 +218,23 @@ uint32_t lastUiAnimationMs = 0;
 uint32_t touchArmNotBeforeMs = 0;
 QueueHandle_t controlRequestQueue = nullptr;
 QueueHandle_t controlResponseQueue = nullptr;
+ResponseOrder responseOrder;
+bool pollQueued = false;
+bool networkWarningShown = false;
+uint32_t networkQueuedAt = 0;
+uint32_t lastCoreResponseMs = 0;
+uint32_t latestCommandRequest = 0;
+uint32_t networkRequestSequence = 0;
+String analysisStatus;
+String analysisMessage;
+bool showAnalysis = false;
+bool showGuidance = false;
+
+
+
+bool enqueueControlRequest(ControlCommand command, const String &path, const String &body, uint32_t timeoutMs);
+void serviceNetworkWatchdog();
+void analyzeOccurrence();
 
 void touchInterrupt() { touch->IIC_Interrupt_Flag = true; }
 
@@ -468,18 +495,13 @@ bool secureTransportReady() {
 }
 
 bool beginSecureHttp(HTTPClient &http, WiFiClientSecure &tlsClient,
-                     const String &url, uint32_t timeoutMs) {
-  if (!secureTransportReady()) return false;
-  tlsClient.setCACert(coreCaPem.c_str());
+                     const String &url, uint32_t timeoutMs, const String &ca) {
+  tlsClient.setCACert(ca.c_str());
   tlsClient.setHandshakeTimeout(max<uint32_t>(1, (timeoutMs + 999) / 1000));
   http.setConnectTimeout(timeoutMs);
   http.setTimeout(timeoutMs);
   http.setFollowRedirects(HTTPC_DISABLE_FOLLOW_REDIRECTS);
-  if (!http.begin(tlsClient, url)) {
-    failTransportSecurity("TLS_BEGIN_FAILED");
-    return false;
-  }
-  return true;
+  return http.begin(tlsClient, url);
 }
 
 void clearOperationalDetails() {
@@ -630,6 +652,7 @@ void parseGuidance(const String &payload) {
 
 void applyStatePayload(const String &payload) {
   const uint32_t previousVisualState = visualStateFingerprint();
+  const String priorAnalysisStatus = analysisStatus;
   const String nextBootId = jsonStringValue(payload, "boot_id");
   const uint32_t nextRevision = jsonUnsignedValue(payload, "state_revision", 0);
   if (nextBootId.length()) {
@@ -670,7 +693,13 @@ void applyStatePayload(const String &payload) {
   if (nextState == "AUDIO_QUIET" || nextState == "AUDIO_ACTIVE") {
     nextState = captureActive ? "OCCURRENCE_ACTIVE" : "STANDBY";
   }
+  if (nextState == "OPEN") nextState = "OCCURRENCE_OPEN";
+  if (nextState == "ACTIVE") nextState = "OCCURRENCE_ACTIVE";
   if (nextState.length()) serverState = nextState;
+  if (jsonHasKey(payload, "analysis_status")) {
+    analysisStatus = jsonStringValue(payload, "analysis_status");
+    analysisMessage = jsonStringValue(payload, "analysis_message");
+  }
 
   String nextOccurrence = jsonStringValue(payload, "occurrence_id");
   if (!nextOccurrence.length()) {
@@ -732,6 +761,7 @@ void applyStatePayload(const String &payload) {
     captureActive = false;
     sourceQuiescent = true;
     clearOperationalDetails();
+    showAnalysis = false; showGuidance = false; analysisStatus = "";
     if (reconcilePending) {
       reconcilePending = false;
       reconcileWasStart = false;
@@ -744,6 +774,7 @@ void applyStatePayload(const String &payload) {
     if (sourceQuiescentPresent && sourceQuiescent) captureActive = false;
     finalizationPending = false;
   } else if (serverState == "OCCURRENCE_OPEN") {
+    reconcilePending = false; reconcileWasStart = false;
     if (stopAwaitingCore) {
       tLastAudioFrame = millis();
       captureTimestamp("t_last_audio_frame", tLastAudioFrame);
@@ -844,6 +875,7 @@ void applyStatePayload(const String &payload) {
     guidanceScrollOffset = 0;
   }
   if (visualStateFingerprint() != previousVisualState) uiDirty = true;
+  if (analysisStatus != priorAnalysisStatus) uiDirty = true;
 }
 
 UiMode currentMode() {
@@ -856,7 +888,13 @@ UiMode currentMode() {
   if (finalizationPending) return UiMode::PROCESSING_PENDING;
   // A stopped recorder keeps the occurrence operationally open even when an
   // asynchronous result arrives.  Capture controls must remain reachable.
-  if (serverState == "OCCURRENCE_OPEN") return UiMode::OCCURRENCE_OPEN;
+  if (serverState == "OCCURRENCE_OPEN") {
+    if (showAnalysis && (analysisStatus == "QUEUED" || analysisStatus == "PROCESSING" || analysisStatus == "FAILED")) return UiMode::PROCESSING_PENDING;
+    if (showGuidance && hypothesisStatus == "OFFICER_CONFIRMED") return guidance.empty() ? UiMode::GUIDANCE_NOT_AVAILABLE : UiMode::GUIDANCE;
+    if (showAnalysis && hypothesisStatus == "PROPOSED") return UiMode::HYPOTHESIS_PROPOSED;
+    if (showAnalysis && (analysisStatus == "COMPLETE" || analysisStatus == "PARTIAL")) return UiMode::PROCESSING_PENDING;
+    return UiMode::OCCURRENCE_OPEN;
+  }
   if (serverState == "REASSESSMENT_REQUIRED") {
     return UiMode::REASSESSMENT_REQUIRED;
   }
@@ -1037,6 +1075,7 @@ void renderOccurrenceOpen() {
   centeredText("MICROFONE PARADO", 150, 2, kMuted);
   centeredText(String("CAPTURAS SALVAS: ") + captureCount, 192, 2, kWhite);
   button(42, 250, LCD_WIDTH - 84, 75, kGreen, "NOVA CAPTURA", 2);
+  button(42, 331, LCD_WIDTH - 84, 29, kBlue, "ANALISAR CAPTURAS", 1);
   button(42, 365, LCD_WIDTH - 84, 75, kDarkRed, "CONCLUIR", 2);
 }
 
@@ -1115,6 +1154,17 @@ void renderReassessment() {
 }
 
 void renderPending(bool unavailable) {
+  if (!captureActive && serverState == "OCCURRENCE_OPEN") {
+    renderHeader(analysisStatus == "FAILED" ? "ANALISE INCOMPLETA" :
+        (analysisStatus == "COMPLETE" ? "ANALISE CONCLUIDA" :
+         (analysisStatus == "PARTIAL" ? "ANALISE PARCIAL" : "ANALISANDO")), kAmber);
+    centeredText("CAPTURAS PRESERVADAS", 158, 2, kWhite);
+    centeredText(clipped(analysisMessage, 40), 202, 1, kMuted);
+    button(42, 250, LCD_WIDTH - 84, 60, kGreen, "NOVA CAPTURA", 2);
+    button(42, 322, LCD_WIDTH - 84, 55, kBlue, "ATUALIZAR / ANALISAR", 1);
+    button(42, 391, LCD_WIDTH - 84, 60, kDarkRed, "CONCLUIR", 2);
+    return;
+  }
   const bool stopping = stopAwaitingCore || finalizationPending || !captureActive;
   renderHeader(stopping ? "FINALIZANDO" : "OCORRENCIA ATIVA",
                stopping ? kAmber : kGreen);
@@ -1168,22 +1218,14 @@ void renderUi() {
     case UiMode::CAPTURE_FAILED: renderCaptureFailed(); break;
     case UiMode::SAVED_RESULT: renderSavedResult(); break;
   }
+  if (!coreOnline && statusMessage.length()) {
+    gfx->fillRect(0, LCD_HEIGHT - 32, LCD_WIDTH, 18, kDarkRed);
+    centeredText(clipped(statusMessage, 52), LCD_HEIGHT - 29, 1, kWhite);
+  }
   if (requestPending) {
     gfx->fillRect(0, LCD_HEIGHT - 14, LCD_WIDTH, 14, kAmber);
     centeredText("ENVIANDO...", LCD_HEIGHT - 12, 1, kBlack);
   }
-}
-
-bool addAuthorization(HTTPClient &http) {
-  if (!apiToken.length()) {
-    authFailed = true;
-    coreOnline = false;
-    statusMessage = "TOKEN NAO CONFIGURADO";
-    uiDirty = true;
-    return false;
-  }
-  http.addHeader("Authorization", String("Bearer ") + apiToken);
-  return true;
 }
 
 void handleUnauthorized(const char *operation) {
@@ -1192,78 +1234,6 @@ void handleUnauthorized(const char *operation) {
   statusMessage = "AUTORIZACAO NEGADA";
   uiDirty = true;
   USBSerial.printf("%s status=401 auth=FAILED token=REDACTED\n", operation);
-}
-
-PostResult postJson(const char *path, const String &body,
-                    uint32_t timeoutMs = kHttpTimeoutMs) {
-  if (WiFi.status() != WL_CONNECTED || !coreBaseUrl.length() ||
-      !apiToken.length() || requestPending) {
-    if (!apiToken.length()) {
-      authFailed = true;
-      statusMessage = "TOKEN NAO CONFIGURADO";
-    }
-    USBSerial.printf("ERR HTTP_POST path=%s core_offline_busy_or_unauthorized\n", path);
-    uiDirty = true;
-    return PostResult::ERROR;
-  }
-  requestPending = true;
-  uiDirty = true;
-  WiFiClientSecure tlsClient;
-  HTTPClient http;
-  const String url = coreBaseUrl + path;
-  if (!beginSecureHttp(http, tlsClient, url, timeoutMs)) {
-    requestPending = false;
-    return PostResult::ERROR;
-  }
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("Accept", "application/json");
-  http.addHeader("X-Safe-Field-Client", "wearable-operational-v1");
-  if (!addAuthorization(http)) {
-    http.end();
-    requestPending = false;
-    return PostResult::ERROR;
-  }
-  const int status = http.POST(body);
-  const String payload = status > 0 ? http.getString() : "";
-  const bool accepted = status >= 200 && status < 300 && jsonOk(payload);
-  const String responseState = jsonStringValue(payload, "state");
-  const bool captureFailed = responseState == "CAPTURE_FAILED" &&
-      !jsonBoolValue(payload, "retryable", true);
-  const bool pending = status >= 200 && status < 300 && !jsonOk(payload) &&
-      (responseState == "STOPPING" || responseState == "PROCESSING_PENDING" ||
-       responseState == "FINALIZATION_PENDING" ||
-       jsonBoolValue(payload, "finalization_pending", false) ||
-       jsonBoolValue(payload, "retryable", false));
-  if (status == 401) {
-    handleUnauthorized("HTTP_POST");
-  } else if (captureFailed) {
-    authFailed = false;
-    transportSecurityFailed = false;
-    coreOnline = true;
-    applyStatePayload(payload);
-  } else if (accepted || pending) {
-    authFailed = false;
-    transportSecurityFailed = false;
-    coreOnline = true;
-    statusMessage = "";
-    applyStatePayload(payload);
-  } else {
-    coreOnline = status > 0;
-  }
-  requestPending = false;
-  uiDirty = true;
-  if (status != 401) {
-    USBSerial.printf("HTTP_POST status=%d path=%s result=%s\n", status, path,
-                     accepted ? "ACCEPTED" :
-                     (pending ? "PROCESSING_PENDING" :
-                      (captureFailed ? "CAPTURE_FAILED" : "ERROR")));
-  }
-  http.end();
-  lastPollMs = 0;
-  if (accepted) return PostResult::ACCEPTED;
-  if (pending) return PostResult::PROCESSING_PENDING;
-  if (captureFailed) return PostResult::CAPTURE_FAILED;
-  return PostResult::ERROR;
 }
 
 String nextCommandId() {
@@ -1276,6 +1246,8 @@ String nextCommandId() {
 }
 
 void beginCaptureCommand(bool newOccurrence) {
+  if (requestPending || controlRequestQueued || startRequestInFlight || stopRequestInFlight || concludeRequestInFlight || reconcilePending) return;
+  responseOrder.invalidate(); // invalidate an old poll at tap, not 80 ms later
   const uint32_t now = millis();
   tStartTap = now;
   tStartHttpSent = 0;
@@ -1299,34 +1271,44 @@ void beginCaptureCommand(bool newOccurrence) {
 
 void startOccurrence() { beginCaptureCommand(true); }
 
-void startNextCapture() { beginCaptureCommand(false); }
+void startNextCapture() { showAnalysis = false; showGuidance = false; beginCaptureCommand(false); }
+
+void analyzeOccurrence() {
+  if (captureActive || !occurrenceId.length() || requestPending) return;
+  const String body = String("{\"occurrence_id\":\"") + jsonEscape(occurrenceId) +
+      "\",\"command_id\":\"" + nextCommandId() + "\"}";
+  if (enqueueControlRequest(ControlCommand::ANALYZE_OCCURRENCE, kAnalyzePath, body, kHttpTimeoutMs)) {
+    analysisStatus = "QUEUED"; showAnalysis = true; showGuidance = false;
+    analysisMessage = "ANALISE SOLICITADA"; uiDirty = true;
+  }
+}
+
+void serviceNetworkWatchdog() {
+  if (requestPending && !networkWarningShown && millis() - networkQueuedAt > 10000) {
+    networkWarningShown = true; coreOnline = false;
+    statusMessage = "COMANDO SEM CONFIRMACAO"; uiDirty = true;
+    USBSerial.println("NETWORK_WAIT_VISIBLE NO_AUTOMATIC_REPLAY");
+  }
+  // No fake STOP/START: keep the last capture flag, show connection uncertainty.
+  if (coreOnline && lastCoreResponseMs && millis() - lastCoreResponseMs > 10000) {
+    coreOnline = false; statusMessage = "ESTADO DO CORE DESATUALIZADO"; uiDirty = true;
+  }
+}
+
 
 void decideHypothesis(const char *path, const char *decision) {
-  if (!hypothesisId.length()) {
-    USBSerial.println("ERR DECISION hypothesis_id_missing");
-    return;
-  }
-  if (postJson(path, String("{\"hypothesis_id\":\"") + jsonEscape(hypothesisId) +
-                         "\",\"decision\":\"" + decision + "\"}") ==
-      PostResult::ACCEPTED) {
-    if (strcmp(decision, "CONFIRM") == 0) {
-      hypothesisStatus = "OFFICER_CONFIRMED";
-      serverState = "PROCESSING_PENDING";
-    } else {
-      hypothesisId = "";
-      hypothesisLabel = "";
-      hypothesisStatus = "";
-      guidance.clear();
-      selectedGuidance = 0;
-      guidanceScrollOffset = 0;
-      statusMessage = "HIPOTESE RECUSADA: RELATE POR VOZ";
-      serverState = "OCCURRENCE_ACTIVE";
-    }
+  if (!hypothesisId.length() || requestPending) return;
+  const String body = String("{\"hypothesis_id\":\"") + jsonEscape(hypothesisId) +
+      "\",\"decision\":\"" + decision + "\",\"command_id\":\"" + nextCommandId() + "\"}";
+  if (enqueueControlRequest(ControlCommand::HYPOTHESIS_DECISION, path, body, kHttpTimeoutMs)) {
+    if (strcmp(decision, "CONFIRM") == 0) showGuidance = true;
     uiDirty = true;
   }
 }
 
 void stopCapture() {
+  if (requestPending || controlRequestQueued || startRequestInFlight || stopRequestInFlight || concludeRequestInFlight || reconcilePending) return;
+  responseOrder.invalidate();
   tStopTap = millis();
   tStopAck = 0;
   tLastAudioFrame = 0;
@@ -1344,6 +1326,8 @@ void stopCapture() {
 }
 
 void concludeOccurrence() {
+  if (requestPending || controlRequestQueued || startRequestInFlight || stopRequestInFlight || concludeRequestInFlight || reconcilePending) return;
+  responseOrder.invalidate();
   concludeAwaitingCore = true;
   concludeRequestInFlight = true;
   concludeHttpNotBeforeMs = millis() + 80;
@@ -1356,77 +1340,144 @@ void concludeOccurrence() {
 
 bool enqueueControlRequest(ControlCommand command, const String &path,
                            const String &body, uint32_t timeoutMs) {
-  if (controlRequestQueue == nullptr) return false;
-  ControlRequest request{};
-  request.command = command;
-  request.timeoutMs = timeoutMs;
-  path.toCharArray(request.path, sizeof(request.path));
-  body.toCharArray(request.body, sizeof(request.body));
-  return xQueueSend(controlRequestQueue, &request, 0) == pdTRUE;
+  if (!controlRequestQueue || WiFi.status() != WL_CONNECTED ||
+      !apiToken.length() || !secureTransportReady()) return false;
+  const bool isPoll = command == ControlCommand::POLL_STATE;
+  if (isPoll ? (pollQueued || requestPending) : requestPending) return false;
+  auto *request = new (std::nothrow) ControlRequest;
+  if (!request) return false;
+  request->command = command;
+  request->url = coreBaseUrl + path;
+  request->body = body;
+  request->token = apiToken;
+  request->ca = coreCaPem;
+  request->timeoutMs = timeoutMs;
+  request->epoch = responseOrder.epoch();
+  request->requestId = ++networkRequestSequence;
+  request->queuedAt = millis();
+  if (!isPoll) request->epoch = responseOrder.beginCommand(request->requestId);
+  const uint32_t requestId = request->requestId;
+  if (xQueueSend(controlRequestQueue, &request, 0) != pdTRUE) {
+    delete request;
+    return false;
+  }
+  if (isPoll) pollQueued = true;
+  else {
+    requestPending = true;
+    latestCommandRequest = requestId;
+    networkQueuedAt = millis();
+    networkWarningShown = false;
+    uiDirty = true;
+  }
+  return true;
 }
 
 void controlNetworkTask(void *) {
-  ControlRequest request{};
+  ControlRequest *raw = nullptr;
   for (;;) {
-    if (xQueueReceive(controlRequestQueue, &request, portMAX_DELAY) != pdTRUE) continue;
-    const PostResult result = postJson(request.path, String(request.body), request.timeoutMs);
-    const ControlResponse response{request.command, result};
-    xQueueSend(controlResponseQueue, &response, portMAX_DELAY);
+    if (xQueueReceive(controlRequestQueue, &raw, portMAX_DELAY) != pdTRUE) continue;
+    std::unique_ptr<ControlRequest> request(raw);
+    auto *reply = new (std::nothrow) ControlResponse;
+    // Keep the request until a result can be delivered; allocation failure
+    // must never silently execute a command and lose its outcome.
+    while (!reply) { vTaskDelay(pdMS_TO_TICKS(50)); reply = new (std::nothrow) ControlResponse; }
+    reply->command = request->command;
+    reply->epoch = request->epoch;
+    reply->requestId = request->requestId;
+    const bool isPoll = request->command == ControlCommand::POLL_STATE;
+    if (static_cast<uint32_t>(millis() - request->queuedAt) > 10000) {
+      reply->httpStatus = -1001; // expired before sending; never replay it
+    } else {
+      WiFiClientSecure tlsClient;
+      HTTPClient http;
+      if (beginSecureHttp(http, tlsClient, request->url, request->timeoutMs, request->ca)) {
+        http.addHeader("Authorization", String("Bearer ") + request->token);
+        http.addHeader("Accept", "application/json");
+        http.addHeader("Content-Type", "application/json");
+        http.addHeader("X-Safe-Field-Client", "wearable-operational-v1");
+        reply->httpStatus = isPoll ? http.GET() : http.POST(request->body);
+        // Core sends Content-Length. Bound response allocation before reading.
+        if (reply->httpStatus > 0 && http.getSize() >= 0 && http.getSize() <= 32768) {
+          reply->payload = http.getString();
+          if (reply->payload.length() != static_cast<size_t>(http.getSize())) reply->httpStatus = -1002;
+        } else if (reply->httpStatus > 0) reply->httpStatus = -1003;
+        if (reply->httpStatus >= 200 && reply->httpStatus < 300 && jsonOk(reply->payload))
+          reply->result = PostResult::ACCEPTED;
+        else if (jsonStringValue(reply->payload, "state") == "CAPTURE_FAILED" &&
+                 !jsonBoolValue(reply->payload, "retryable", true))
+          reply->result = PostResult::CAPTURE_FAILED;
+        else if (reply->httpStatus >= 200 && reply->httpStatus < 300 &&
+                 (jsonBoolValue(reply->payload, "retryable", false) ||
+                  jsonBoolValue(reply->payload, "finalization_pending", false)))
+          reply->result = PostResult::PROCESSING_PENDING;
+      }
+      http.end();
+    }
+    // No drawing, state mutation, NVS access or applyStatePayload in this task.
+    xQueueSend(controlResponseQueue, &reply, portMAX_DELAY);
   }
 }
 
 void serviceControlResponses() {
-  if (controlResponseQueue == nullptr) return;
-  ControlResponse response{};
-  while (xQueueReceive(controlResponseQueue, &response, 0) == pdTRUE) {
-    controlRequestQueued = false;
-    const bool accepted = response.result == PostResult::ACCEPTED ||
-                          response.result == PostResult::PROCESSING_PENDING;
-    if (response.command == ControlCommand::START_OCCURRENCE ||
-        response.command == ControlCommand::START_CAPTURE) {
+  if (!controlResponseQueue) return;
+  ControlResponse *raw = nullptr;
+  while (xQueueReceive(controlResponseQueue, &raw, 0) == pdTRUE) {
+    std::unique_ptr<ControlResponse> response(raw);
+    const bool isPoll = response->command == ControlCommand::POLL_STATE;
+    if (isPoll) pollQueued = false;
+    const bool relevant = responseOrder.accept(response->epoch, response->requestId, isPoll);
+    if (!relevant) { USBSerial.println("NETWORK_STALE_RESPONSE_IGNORED"); continue; }
+    const bool accepted = response->result == PostResult::ACCEPTED ||
+                          response->result == PostResult::PROCESSING_PENDING;
+    if (!isPoll) { requestPending = false; controlRequestQueued = false; }
+    if (response->httpStatus == 401) handleUnauthorized(isPoll ? "HTTP_GET" : "HTTP_POST");
+    else if (accepted || response->result == PostResult::CAPTURE_FAILED) {
+      const bool wasOffline = !coreOnline || authFailed || transportSecurityFailed;
+      authFailed = false; transportSecurityFailed = false; coreOnline = true;
+      lastCoreResponseMs = millis();
+      if (wasOffline) uiDirty = true;
+    } else {
+      if (coreOnline) uiDirty = true;
+      coreOnline = false;
+      statusMessage = "SEM CONFIRMACAO DO CORE";
+    }
+    if (isPoll) {
+      if (accepted || response->result == PostResult::CAPTURE_FAILED) {
+        applyStatePayload(response->payload);
+        USBSerial.printf("HTTP_GET status=%d state=%s occurrence=%s\n",
+                         response->httpStatus, serverState.c_str(), occurrenceId.c_str());
+      }
+      continue;
+    }
+    if (response->command == ControlCommand::START_OCCURRENCE ||
+        response->command == ControlCommand::START_CAPTURE) {
       startRequestInFlight = false;
-      if (accepted) {
-        tStartAck = millis();
-        captureTimestamp("t_start_ack", tStartAck);
-        serverState = "STARTING_CAPTURE";
-        USBSerial.println("START_ACK");
-      } else {
-        reconcilePending = true;
-        reconcileWasStart = true;
-        serverState = "STARTING_CAPTURE";
-        statusMessage = "CONFIRMANDO CORE";
-        lastPollMs = 0;
-        USBSerial.println("START_ERROR_RECONCILE_CORE");
-      }
-    } else if (response.command == ControlCommand::STOP_CAPTURE) {
+      if (accepted) { tStartAck = millis(); captureTimestamp("t_start_ack", tStartAck); USBSerial.println("START_ACK"); }
+      else { reconcilePending = true; reconcileWasStart = true; statusMessage = "CONFIRMANDO CORE"; USBSerial.println("START_ERROR_RECONCILE_CORE"); }
+    } else if (response->command == ControlCommand::STOP_CAPTURE) {
       stopRequestInFlight = false;
-      if (accepted) {
-        tStopAck = millis();
-        captureTimestamp("t_stop_ack", tStopAck);
-        USBSerial.println("STOP_ACK");
-      } else if (response.result == PostResult::CAPTURE_FAILED) {
-        stopAwaitingCore = false;
-        serverState = "CAPTURE_FAILED";
-      } else {
-        reconcilePending = true;
-        reconcileWasStart = false;
-        serverState = "FINALIZING_CAPTURE";
-        statusMessage = "CONFIRMANDO CORE";
-        lastPollMs = 0;
-        USBSerial.println("STOP_ERROR_RECONCILE_CORE");
-      }
-    } else if (response.command == ControlCommand::CONCLUDE_OCCURRENCE) {
+      if (accepted) { tStopAck = millis(); captureTimestamp("t_stop_ack", tStopAck); USBSerial.println("STOP_ACK"); }
+      else { reconcilePending = true; reconcileWasStart = false; USBSerial.println("STOP_ERROR_RECONCILE_CORE"); }
+    } else if (response->command == ControlCommand::CONCLUDE_OCCURRENCE) {
       concludeRequestInFlight = false;
+      if (accepted) USBSerial.println("CONCLUDE_ACK");
+      else { reconcilePending = true; statusMessage = "PARADA NAO CONFIRMADA"; }
+    } else if (response->command == ControlCommand::ANALYZE_OCCURRENCE) {
+      analysisStatus = accepted ? "QUEUED" : "FAILED";
+      analysisMessage = accepted ? "ANALISE EM SEGUNDO PLANO" : "FALHA: PODE TENTAR NOVAMENTE";
+      showAnalysis = true;
+    } else if (response->command == ControlCommand::HYPOTHESIS_DECISION) {
+      // Server confirmation, not the tap, is authoritative.
       if (accepted) {
-        USBSerial.println("CONCLUDE_ACK");
-      } else {
-        statusMessage = "CONFIRMANDO FECHAMENTO";
-        lastPollMs = 0;
-        USBSerial.println("CONCLUDE_ERROR_RECONCILE_CORE");
+        const String confirmed = jsonStringValue(response->payload, "decision");
+        if (confirmed == "CONFIRM") showGuidance = true;
       }
     }
+    if (accepted || response->result == PostResult::CAPTURE_FAILED)
+      applyStatePayload(response->payload);
     pendingControlCommand = ControlCommand::NONE;
     uiDirty = true;
+    lastPollMs = 0; // reconcile from a fresh snapshot after every command
   }
 }
 
@@ -1484,19 +1535,12 @@ void serviceDeferredRequests() {
 }
 
 void markAction(uint16_t index, const char *status) {
-  if (hypothesisStatus != "OFFICER_CONFIRMED" || index >= guidance.size()) {
-    USBSerial.println("ERR ACTION guidance_not_confirmed_or_index_invalid");
-    return;
-  }
+  if (hypothesisStatus != "OFFICER_CONFIRMED" || index >= guidance.size() || requestPending) return;
   const GuidanceItem &entry = guidance[index];
-  if (postJson(kActionPath,
-               String("{\"hypothesis_id\":\"") + jsonEscape(hypothesisId) +
-                   "\",\"action_id\":\"" + jsonEscape(entry.actionId) +
-                   "\",\"status\":\"" + status + "\"}") ==
-      PostResult::ACCEPTED) {
-    guidance[index].status = status;
-    uiDirty = true;
-  }
+  const String body = String("{\"hypothesis_id\":\"") + jsonEscape(hypothesisId) +
+      "\",\"action_id\":\"" + jsonEscape(entry.actionId) + "\",\"status\":\"" + status +
+      "\",\"command_id\":\"" + nextCommandId() + "\"}";
+  enqueueControlRequest(ControlCommand::GUIDANCE_ACTION, kActionPath, body, kHttpTimeoutMs);
 }
 
 void scrollGuidance(int8_t direction) {
@@ -1509,58 +1553,13 @@ void scrollGuidance(int8_t direction) {
 }
 
 void pollCore() {
-  if (WiFi.status() != WL_CONNECTED || !coreBaseUrl.length() ||
-      !apiToken.length() || requestPending || startRequestInFlight ||
-      stopRequestInFlight || concludeRequestInFlight) {
-    if (!apiToken.length()) {
-      authFailed = true;
-      coreOnline = false;
-      statusMessage = "TOKEN NAO CONFIGURADO";
-      uiDirty = true;
-    }
-    return;
-  }
-  WiFiClientSecure tlsClient;
-  HTTPClient http;
-  if (!beginSecureHttp(http, tlsClient, coreBaseUrl + kStatePath,
-                       kHttpTimeoutMs)) return;
-  http.addHeader("Accept", "application/json");
-  http.addHeader("X-Safe-Field-Client", "wearable-operational-v1");
-  if (!addAuthorization(http)) {
-    http.end();
-    return;
-  }
-  const bool wasCoreOnline = coreOnline;
-  const bool wasAuthFailed = authFailed;
-  const bool wasTransportSecurityFailed = transportSecurityFailed;
-  const int status = http.GET();
-  if (status == HTTP_CODE_OK) {
-    const String payload = http.getString();
-    const bool captureFailed = jsonStringValue(payload, "state") ==
-        "CAPTURE_FAILED" && !jsonBoolValue(payload, "retryable", true);
-    if (jsonOk(payload) || captureFailed) applyStatePayload(payload);
-    authFailed = false;
-    transportSecurityFailed = false;
-    coreOnline = true;
-    statusMessage = "";
-    if (coreOnline != wasCoreOnline || authFailed != wasAuthFailed ||
-        transportSecurityFailed != wasTransportSecurityFailed) {
-      uiDirty = true;
-    }
-    USBSerial.printf("HTTP_GET status=%d state=%s occurrence=%s\n", status,
-                     serverState.c_str(), occurrenceId.c_str());
-  } else if (status == 401) {
-    handleUnauthorized("HTTP_GET");
-  } else {
-    coreOnline = false;
-    uiDirty = true;
-    USBSerial.printf("HTTP_GET status=%d core=OFFLINE\n", status);
-  }
-  http.end();
+  if (startRequestInFlight || stopRequestInFlight || concludeRequestInFlight) return;
+  enqueueControlRequest(ControlCommand::POLL_STATE, kStatePath, "", kHttpTimeoutMs);
 }
 
 void handleTouch(int32_t x, int32_t y) {
   const UiMode mode = currentMode();
+  if (requestPending || controlRequestQueued || startRequestInFlight || stopRequestInFlight || concludeRequestInFlight) return;
   USBSerial.printf("TOUCH x=%ld y=%ld mode=%u\n", static_cast<long>(x),
                    static_cast<long>(y), static_cast<unsigned>(mode));
   // The physical FT3168 coordinate origin has varied slightly across boots.
@@ -1583,6 +1582,7 @@ void handleTouch(int32_t x, int32_t y) {
     return;
   }
   if (mode == UiMode::OCCURRENCE_OPEN) {
+    if (y >= 329 && y <= 361) { showAnalysis = true; analyzeOccurrence(); return; }
     if (y >= 230 && y <= 340) startNextCapture();
     else if (y >= 345) concludeOccurrence();
     return;
@@ -1613,6 +1613,13 @@ void handleTouch(int32_t x, int32_t y) {
       else markAction(selectedGuidance, "NOT_APPLICABLE");
       return;
     }
+  }
+  if ((mode == UiMode::PROCESSING_PENDING || mode == UiMode::GUIDANCE_NOT_AVAILABLE) &&
+      !captureActive && serverState == "OCCURRENCE_OPEN") {
+    if (y >= 250 && y <= 310) startNextCapture();
+    else if (y >= 322 && y <= 377) analyzeOccurrence();
+    else if (y >= 391 && y <= 451) concludeOccurrence();
+    return;
   }
   if (mode == UiMode::REASSESSMENT_REQUIRED && y >= 325 && y <= 415) {
     lastPollMs = 0;
@@ -1706,10 +1713,16 @@ void loadConfiguration() {
 void handleSerialLine(const String &raw) {
   String command = raw;
   command.trim();
+  if ((command.startsWith("SET_") || command.startsWith("CLEAR_")) &&
+      (requestPending || pollQueued || reconcilePending)) {
+    USBSerial.println("ERR CONFIG_BUSY WAIT_FOR_RECONCILIATION"); return;
+  }
   if (command == "START") {
     startOccurrence();
   } else if (command == "NEW_CAPTURE") {
     startNextCapture();
+  } else if (command == "ANALYZE") {
+    analyzeOccurrence();
   } else if (command == "CONFIRM") {
     decideHypothesis(kConfirmPath, "CONFIRM");
   } else if (command == "REJECT") {
@@ -1883,12 +1896,12 @@ void updateBattery() {
 void setup() {
   USBSerial.begin(kSerialBaud);
   delay(250);
-  USBSerial.println("SAFE_FIELD_OPERATIONAL_V1_BOOT protocol=1");
+  USBSerial.println("SAFE_FIELD_OPERATIONAL_V1_BOOT protocol=1 build=gate2e-p0-20261002");
   commandBootNonce = esp_random();
-  controlRequestQueue = xQueueCreate(1, sizeof(ControlRequest));
-  controlResponseQueue = xQueueCreate(1, sizeof(ControlResponse));
+  controlRequestQueue = xQueueCreate(2, sizeof(ControlRequest *));
+  controlResponseQueue = xQueueCreate(2, sizeof(ControlResponse *));
   if (controlRequestQueue != nullptr && controlResponseQueue != nullptr) {
-    xTaskCreatePinnedToCore(controlNetworkTask, "safe-field-net", 8192, nullptr,
+    xTaskCreatePinnedToCore(controlNetworkTask, "safe-field-net", 12288, nullptr,
                             1, nullptr, 0);
   } else {
     USBSerial.println("FAIL CONTROL NETWORK QUEUE");
@@ -1926,6 +1939,7 @@ void setup() {
   loadConfiguration();
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
+  WiFi.setSleep(false); // demo runtime: do not add radio power-save latency
   updateBattery();
   connectWifi();
   renderUi();
@@ -1948,6 +1962,7 @@ void loop() {
   }
   serviceTouch();
   serviceControlResponses();
+  serviceNetworkWatchdog();
 
   // Flush touch acknowledgement before any potentially slow HTTPS operation.
   if (uiDirty) renderUi();

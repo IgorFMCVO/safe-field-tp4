@@ -13,6 +13,7 @@ import time
 from typing import Any
 
 from .fact_graph import FactGraph
+from .identity_review import persist_identity_cues
 from .models import (
     EvidenceStatus,
     Fact,
@@ -125,7 +126,9 @@ class AsyncSegmentPipeline:
             self._consolidation_queued = True
             self._pending += 1
             generation = self._segment_generation
-        job={"kind":"consolidation","generation":generation,"force":bool(force)}
+        expected_segments = [p.stem for p in sorted((self.session_root / "jobs").glob("segment_*.json"))]
+        job={"kind":"consolidation","generation":generation,"force":bool(force),
+             "expected_segments": expected_segments}
         atomic_json(self.session_root/"jobs"/"consolidation.json",{**job,"status":ProcessingStatus.QUEUED.value})
         self._queue.put(job);self.timeline.append("GLOBAL_CONSOLIDATION_QUEUED",generation=generation)
         return True
@@ -197,6 +200,14 @@ class AsyncSegmentPipeline:
         result=await self.providers.reasoning.finalize_occurrence(
             self.session_root,transcripts,[record.to_dict() for record in self.speaker_registry.records])
         transcript_by_id={t.segment_id:t for t in transcripts}
+        missing_segments = sorted(set(job.get("expected_segments", [])) - set(transcript_by_id))
+        if missing_segments:
+            atomic_json(self.session_root / "facts" / "analysis_global_coverage.json", {
+                "contradictions": [], "information_gaps": [{
+                    "kind": "MISSING_CAPTURE_TRANSCRIPT", "source_segments": missing_segments,
+                    "message": "Capturas preservadas sem transcrição elegível nesta revisão.",
+                }],
+            })
         for speaker_id,role in result.provisional_roles.items():
             if speaker_id in {record.speaker_id for record in self.speaker_registry.records}:
                 self.speaker_registry.set_provisional_role(speaker_id,role)
@@ -224,7 +235,14 @@ class AsyncSegmentPipeline:
                     old["status"]=HypothesisStatus.SUPERSEDED.value;atomic_json(old_path,old)
             path=self.session_root/"hypotheses"/f"{hypothesis.hypothesis_id}.json"
             if not path.exists():atomic_json(path,hypothesis.to_dict())
-        atomic_json(job_path,{**job,"status":ProcessingStatus.COMPLETE.value,
+        pending_path = self.session_root / "jobs" / "pending_consolidation.json"
+        if pending_path.is_file():
+            recovered = json.loads(pending_path.read_text(encoding="utf-8"))
+            archive = self.session_root / "jobs" / "history" / f"consolidation_{time.time_ns()}.json"
+            atomic_json(archive, {**recovered, "recovered_by_generation": job["generation"]})
+            pending_path.unlink()
+        atomic_json(job_path,{**job,"status":"PARTIAL" if missing_segments else ProcessingStatus.COMPLETE.value,
+                    "covered_segments": sorted(transcript_by_id), "missing_segments": missing_segments,
                     "facts":len(result.facts),"hypotheses":len(result.hypotheses)})
         self.timeline.append("GLOBAL_CONSOLIDATION_COMPLETE",generation=job["generation"],
                              facts=len(result.facts),hypotheses=len(result.hypotheses))
@@ -290,7 +308,7 @@ class AsyncSegmentPipeline:
                     # unverified; it is not a registered or re-identified person.
                     if str(exc) != "SPEAKER_OBSERVATION_LOW_QUALITY":
                         raise
-                    unverified_id = f"UNVERIFIED_SPEAKER_{len(speaker_ids) + 1:02d}"
+                    unverified_id = f"UNVERIFIED_{segment_id}_{len(speaker_ids) + 1:02d}"
                     atomic_json(
                         self.session_root / "speakers" / f"{segment_id}_{unverified_id}.json",
                         {
@@ -336,6 +354,7 @@ class AsyncSegmentPipeline:
 
         transcript.speaker_ids = speaker_ids
         atomic_json(transcript_path, transcript.to_dict())
+        persist_identity_cues(self.session_root, transcript)
         reasoning = await self.providers.reasoning.analyze(transcript)
 
         for speaker_id, role in reasoning.provisional_roles.items():
@@ -493,6 +512,10 @@ class AsyncSegmentPipeline:
         if job["kind"] == "segment":
             sidecar = Path(job["audio_path"]).with_suffix(".json")
             atomic_json(sidecar, {**job["metadata"], "status": ProcessingStatus.PROCESSING_PENDING.value})
+        elif job.get("kind") == "consolidation":
+            atomic_json(self.session_root / "jobs" / "consolidation.json", {
+                **failure, "status": "FAILED", "retryable": True,
+            })
         elif str(exc) == "GUIDANCE_NOT_AVAILABLE":
             atomic_json(
                 self.session_root / "guidance" / f"{identifier}.json",

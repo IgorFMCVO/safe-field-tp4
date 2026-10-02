@@ -279,7 +279,7 @@ class OperationalApiTests(unittest.TestCase):
             "occurrence", "speakers", "segments", "transcripts", "facts",
             "contradictions", "information_gaps", "hypotheses", "diao_sources", "watch_events",
             "final_history", "processing", "original_audio",
-            "listening_preview",
+            "listening_preview", "identity_review",
         }
         self.assertEqual(set(snapshot), expected)
         self.assertEqual(snapshot["speakers"][0]["speaker_id"], "SPEAKER_01")

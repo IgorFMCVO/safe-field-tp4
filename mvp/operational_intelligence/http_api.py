@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import hmac
+from http.cookies import SimpleCookie
 import html
 import json
 from pathlib import Path
@@ -21,6 +22,9 @@ from urllib.parse import parse_qs, quote, unquote, urlparse
 from .core import OperationalIntelligenceCore
 from .models import LifecycleState, OfficerAssessment, utc_now
 from .storage import CommandJournal, OCCURRENCE_ID_RE
+from .identity_review import build_identity_review
+from .review_service import DesktopSessions, snapshot as review_snapshot, decide_identity, finalize_report
+from .review_ui import review_html
 
 
 API_VERSION = "1.0"
@@ -65,8 +69,13 @@ class OperationalApiService:
         self._lock = threading.RLock()
         self._watch_events: list[dict[str, Any]] = []
         self._commands = CommandJournal(self.core.sessions_root)
+        self.desktop_sessions = DesktopSessions()
 
     def _run_command(self, action: str, payload: dict, operation) -> dict:
+        with self._lock:
+            return self._run_command_locked(action, payload, operation)
+
+    def _run_command_locked(self, action: str, payload: dict, operation) -> dict:
         command_id = payload.get("command_id")
         if command_id is None:
             # Compatibility for existing non-wearable callers.  The deployed
@@ -236,6 +245,14 @@ class OperationalApiService:
         self._record_watch(decision, hypothesis_id=hypothesis_id)
         return {**result, "decision": decision, "version": API_VERSION}
 
+    def request_analysis(self, payload: dict) -> dict:
+        def operation(arguments):
+            try:
+                return {**self.core.request_analysis(arguments.get("occurrence_id")), "version": API_VERSION}
+            except (RuntimeError, ValueError) as exc:
+                raise ApiError(409, "ANALYSIS_REJECTED", str(exc)) from exc
+        return self._run_command("ANALYZE_OCCURRENCE", payload, operation)
+
     def consolidate_occurrence(self, payload: dict) -> dict:
         timeout = payload.get("processing_timeout", 30.0)
         force = payload.get("force", False)
@@ -369,6 +386,8 @@ class OperationalApiService:
                     "action_id": f"ACTION_{index:03d}",
                     "text": item.get("text", ""),
                     "status": action_states.get(f"ACTION_{index:03d}", "PENDING"),
+                    "source_document": source.get("source_document"),
+                    "source_version": source.get("source_version"),
                     "section": source.get("section"),
                     "page": source.get("page"),
                     "item": source.get("item"),
@@ -456,6 +475,14 @@ class OperationalApiService:
             # in the payload/audit, while the operator-facing state continues
             # to reflect the healthy PCM source that is still recording.
             state = "OCCURRENCE_ACTIVE"
+        analysis_job = None
+        if root and (root / "jobs" / "consolidation.json").is_file():
+            analysis_job = _read_json(root / "jobs" / "consolidation.json")
+        analysis_status = (analysis_job or {}).get("status", "NOT_REQUESTED")
+        if root and (root / "jobs" / "pending_consolidation.json").is_file() and analysis_status != "COMPLETE":
+            analysis_status = "FAILED"
+        if analysis_status not in {"NOT_REQUESTED", "QUEUED", "PROCESSING", "COMPLETE", "PARTIAL"}:
+            analysis_status = "FAILED"
         latest_command = self._commands.latest_applied()
         command_summary = None
         if latest_command is not None:
@@ -491,6 +518,8 @@ class OperationalApiService:
             "hypothesis": hypothesis,
             "guidance": guidance,
             "last_result": last_result,
+            "analysis_status": analysis_status,
+            "analysis_message": "ANALISE INCOMPLETA: DADOS PRESERVADOS" if analysis_status == "FAILED" else analysis_status,
         }
 
     def dashboard_snapshot(self) -> dict:
@@ -602,6 +631,7 @@ class OperationalApiService:
         return {
             "occurrence": state,
             "speakers": dashboard_speakers,
+            "identity_review": build_identity_review(root),
             "segments": segments,
             "transcripts": transcripts,
             "facts": facts,
@@ -670,7 +700,7 @@ const view=__SAFE_FIELD_DEMO_VIEW__, id=view.occurrence_id||null;
 const content=document.querySelector('#content'), notice=document.querySelector('#notice');
 const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 const localTime=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?(v||'Indisponível'):d.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'medium'})};
-function field(label,value){return `<div><div class="label">${esc(label)}</div><div class="value">${esc(value||'Indisponível')}</div></div>`}
+function field(label,value){return `<div><div class="label">${esc(label)}</div><div class="value">${esc(value??'Indisponível')}</div></div>`}
 function jobs(items){if(!items.length)return 'Indisponível';return items.map(x=>`${esc(x.segment_id||x.hypothesis_id||x.kind||'job')}: ${esc(x.status||'PENDING')}`).join('\\n')}
 function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcripts||[], facts=s.facts||[], hyps=s.hypotheses||[], history=s.final_history||{};
  const transcript=ts.map(x=>`[${(x.speaker_ids||['SEM_IDENTIFICAÇÃO']).join(', ')} · ${x.segment_id}]\\n${x.raw_transcript||x.transcript||'Transcrição indisponível'}`).join('\\n\\n');
@@ -683,6 +713,7 @@ function render(s){const o=s.occurrence||{}, pcm=o.pcm_source||{}, ts=s.transcri
  <section class="card"><h2>4. TRANSCRIÇÃO POR FALANTE <span class="pill">INFERRED</span></h2><pre>${esc(transcript||'Transcrição indisponível')}</pre></section>
  <section class="card"><h2>5. ANÁLISE E PROVENIÊNCIA</h2><pre>${esc(JSON.stringify(structured,null,2))}</pre></section>
  <section class="card"><h2>6. HISTÓRICO PRELIMINAR</h2><pre>${esc(structured.preliminary_history)}</pre></section>
+ <section class="card"><h2>VALIDAÇÃO DE PARTICIPANTES</h2><pre>${esc(JSON.stringify(s.identity_review||{},null,2))}</pre></section>
  <section class="card"><h2>7. PROCESSAMENTO</h2><pre>${esc(jobs(s.processing||[]))}</pre></section>`;
  loadAudio(); }
 function loadAudio(){const a=document.querySelector('#audio');if(!view.audio_url){document.querySelector('#duration').textContent='Indisponível';return}a.src=view.audio_url;a.onloadedmetadata=()=>document.querySelector('#duration').textContent=a.duration.toFixed(2)+' s';a.onerror=()=>document.querySelector('#duration').textContent='Indisponível';if(view.listening_preview_url){document.querySelector('#previewBlock').style.display='block';document.querySelector('#previewAudio').src=view.listening_preview_url;}}
@@ -756,9 +787,70 @@ def make_handler(
                 raise ApiError(400, "JSON_OBJECT_REQUIRED")
             return value
 
+        def _review_session(self, write=False):
+            cookies = SimpleCookie()
+            try:
+                cookies.load(self.headers.get("Cookie", ""))
+                key = cookies["sf_review"].value if "sf_review" in cookies else ""
+                csrf = self.headers.get("X-Review-CSRF", "") if write else None
+                return service.desktop_sessions.get(key, csrf)
+            except (ValueError, KeyError) as exc:
+                raise ApiError(401, "REVIEW_SESSION_REQUIRED", str(exc)) from exc
+
+        def _review_get(self, parsed):
+            path = parsed.path
+            try:
+                if path == "/review/bootstrap":
+                    ticket = parse_qs(parsed.query).get("ticket", [""])[0]
+                    key, session = service.desktop_sessions.exchange(ticket)
+                    self._send(303, b"", extra_headers={
+                        "Location": "/review/", "Referrer-Policy": "no-referrer",
+                        "Set-Cookie": f"sf_review={key}; Path=/review; HttpOnly; Secure; SameSite=Strict; Max-Age=1800"})
+                    return
+                session = self._review_session()
+                root = service._saved_root(session["occurrence_id"])
+                if path in {"/review", "/review/"}:
+                    self._send(200, review_html(root.name, session["csrf"]), "text/html", {"Referrer-Policy": "no-referrer"})
+                elif path == "/review/state":
+                    with service._lock:
+                        self._send(200, review_snapshot(root))
+                elif path.startswith("/review/document/"):
+                    doc = path[len("/review/document/"):]
+                    if not doc.startswith("BO_REVISADO_") or not OCCURRENCE_ID_RE.fullmatch(doc):
+                        raise ApiError(404, "NOT_FOUND")
+                    f = root / "reports" / (doc + ".txt")
+                    if not f.is_file(): raise ApiError(404, "NOT_FOUND")
+                    self._send(200, f.read_bytes(), "text/plain", {"Content-Disposition": f'attachment; filename="{doc}.txt"'})
+                else: self._send(404, {"ok": False, "error": "NOT_FOUND"})
+            except ApiError as exc:
+                self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
+            except (ValueError, OSError) as exc:
+                self._send(409, {"ok": False, "error": "REVIEW_BLOCKED", "detail": str(exc)})
+
+        def _review_post(self, path):
+            try:
+                session = self._review_session(write=True)
+                root = service._saved_root(session["occurrence_id"])
+                payload = self._body()
+                # The session supplies the ID. Request bodies cannot redirect review.
+                if payload.get("occurrence_id", root.name) != root.name:
+                    raise ApiError(403, "REVIEW_SCOPE_MISMATCH")
+                with service._lock:
+                    if path == "/review/identity": result = decide_identity(root, payload)
+                    elif path == "/review/finalize": result = finalize_report(root, payload)
+                    else: raise ApiError(404, "NOT_FOUND")
+                self._send(200, result)
+            except ApiError as exc:
+                self._send(exc.status, {"ok": False, "error": exc.code, "detail": exc.detail})
+            except (ValueError, OSError) as exc:
+                self._send(409, {"ok": False, "error": "REVIEW_BLOCKED", "detail": str(exc)})
+
         def do_GET(self):
             parsed = urlparse(self.path)
             path = parsed.path
+            if path == "/review" or path.startswith("/review/"):
+                self._review_get(parsed)
+                return
             # Local academic demonstration surface: durable artifacts only.
             # It deliberately exposes no state-changing endpoint.
             if path == "/demo":
@@ -839,12 +931,24 @@ def make_handler(
                 self._send(404, {"ok": False, "error": "NOT_FOUND"})
 
         def do_POST(self):
+            path = urlparse(self.path).path
+            if path.startswith("/review/"):
+                self._review_post(path)
+                return
             if not self._require_authorization():
                 return
             path = urlparse(self.path).path
             try:
                 payload = self._body()
-                if path == "/api/v1/occurrences/start":
+                if path == "/api/v1/review/ticket":
+                    occurrence_id = payload.get("occurrence_id")
+                    if not isinstance(occurrence_id, str): raise ApiError(400, "OCCURRENCE_ID_REQUIRED")
+                    service._saved_root(occurrence_id)
+                    ticket = service.desktop_sessions.issue(occurrence_id)
+                    result = {"ok": True, "path": "/review/bootstrap?ticket=" + ticket, "expires_in": 60}
+                elif path == "/api/v1/occurrences/analyze":
+                    result = service.request_analysis(payload)
+                elif path == "/api/v1/occurrences/start":
                     result = service.start(payload)
                 elif path == "/api/v1/occurrences/captures/start":
                     result = service.start_capture(payload)

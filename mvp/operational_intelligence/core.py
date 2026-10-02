@@ -552,6 +552,22 @@ class OperationalIntelligenceCore:
             pipeline = self._pipeline
         return pipeline.drain(timeout)
 
+    def request_analysis(self, occurrence_id: str) -> dict[str, Any]:
+        """Enqueue on the existing FIFO; do not hold capture locks during IA."""
+        with self._lock:
+            if self.state is not LifecycleState.OPEN or not self._pipeline or not self._session:
+                raise RuntimeError("Stop capture before requesting analysis")
+            if occurrence_id != self._session.occurrence_id:
+                raise ValueError("OCCURRENCE_MISMATCH")
+            prior_path = self._session.root / "jobs" / "consolidation.json"
+            prior = json.loads(prior_path.read_text(encoding="utf-8")) if prior_path.is_file() else {}
+            queued = self._pipeline.submit_consolidation(force=prior.get("status") in {"PARTIAL", "FAILED"})
+            self._advance_revision()
+            return {"ok": True, "queued": queued, "occurrence_id": occurrence_id,
+                    "state": "OCCURRENCE_OPEN", "capture_active": False,
+                    "analysis_status": "QUEUED" if queued else "UNCHANGED",
+                    "state_revision": self.state_revision, "boot_id": self.boot_id}
+
     def consolidate_occurrence(
         self, processing_timeout: float | None = 30.0, *, force: bool = False
     ) -> dict[str, Any]:

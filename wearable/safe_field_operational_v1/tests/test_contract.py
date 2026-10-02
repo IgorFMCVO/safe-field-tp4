@@ -161,8 +161,9 @@ class FirmwareSurfaceTests(unittest.TestCase):
     def test_bearer_token_is_nvs_only_redacted_and_used_for_get_and_post(self):
         self.assertIn('preferences.getString("api_token", "")', SOURCE)
         self.assertIn('preferences.putString("api_token", apiToken)', SOURCE)
-        self.assertIn('http.addHeader("Authorization", String("Bearer ") + apiToken)', SOURCE)
-        self.assertGreaterEqual(SOURCE.count("addAuthorization(http)"), 2)
+        self.assertIn('http.addHeader("Authorization", String("Bearer ") + request->token)', SOURCE)
+        self.assertIn("request->token = apiToken", SOURCE)
+        self.assertIn("isPoll ? http.GET() : http.POST(request->body)", SOURCE)
         self.assertIn("token=REDACTED", SOURCE)
         self.assertNotRegex(SOURCE, r'apiToken\s*=\s*"[^\"]+"')
 
@@ -170,8 +171,9 @@ class FirmwareSurfaceTests(unittest.TestCase):
         self.assertIn("#include <WiFiClientSecure.h>", SOURCE)
         self.assertIn('preferences.getString("core_ca", "")', SOURCE)
         self.assertIn('preferences.putString("core_ca", candidate)', SOURCE)
-        self.assertIn("tlsClient.setCACert(coreCaPem.c_str())", SOURCE)
-        self.assertGreaterEqual(SOURCE.count("beginSecureHttp(http, tlsClient"), 2)
+        self.assertIn("tlsClient.setCACert(ca.c_str())", SOURCE)
+        self.assertEqual(SOURCE.count("beginSecureHttp(http, tlsClient"), 1)
+        self.assertIn("request->ca = coreCaPem", SOURCE)
         self.assertIn("HTTPC_DISABLE_FOLLOW_REDIRECTS", SOURCE)
         self.assertIn("HTTPS_CORE_REQUIRED", SOURCE)
         self.assertIn("CA_CERT_REQUIRED", SOURCE)
@@ -187,7 +189,7 @@ class FirmwareSurfaceTests(unittest.TestCase):
         self.assertIn("ca=SET_REDACTED", SOURCE)
 
     def test_unauthorized_response_fails_closed(self):
-        self.assertGreaterEqual(SOURCE.count("status == 401"), 2)
+        self.assertIn("response->httpStatus == 401", SOURCE)
         self.assertIn("AUTORIZACAO NEGADA", SOURCE)
         self.assertIn("AUTH NECESSARIA", SOURCE)
 
@@ -221,7 +223,7 @@ class FirmwareSurfaceTests(unittest.TestCase):
         self.assertIn("kFinishProcessingTimeoutSeconds = 1.0f", SOURCE)
         self.assertIn("kFinishHttpTimeoutMs = 3500", SOURCE)
         self.assertIn("PostResult::PROCESSING_PENDING", SOURCE)
-        self.assertIn('jsonBoolValue(payload, "retryable", false)', SOURCE)
+        self.assertIn('jsonBoolValue(reply->payload, "retryable", false)', SOURCE)
 
     def test_pcm_integrity_failure_has_terminal_explicit_ui(self):
         self.assertIn("PostResult::CAPTURE_FAILED", SOURCE)
