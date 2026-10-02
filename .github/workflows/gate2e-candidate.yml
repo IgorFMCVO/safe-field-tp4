@@ -5,41 +5,111 @@ on:
     paths:
       - '.github/workflows/gate2e-candidate.yml'
       - 'scripts/build_gate2e_candidate.py'
+      - 'scripts/gate2e_candidate_payload.*.b64'
   workflow_dispatch:
+concurrency:
+  group: gate2e-candidate
+  cancel-in-progress: false
 permissions:
-  contents: read
+  contents: write
 jobs:
-  sources:
+  validate:
+    if: github.ref == 'refs/heads/gate2e-live-p0-responsive'
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          path: live
+          ref: gate2e-live-p0-responsive
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify and apply pinned candidate
+        run: python scripts/build_gate2e_candidate.py
+      - name: Python integration and storage regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m compileall -q mvp/operational_intelligence scripts/open_safe_field_review.py
+          python -m unittest -v \
+            mvp.tests.test_gate2e_candidate \
+            mvp.tests.test_identity_review \
+            mvp.tests.test_operational_intelligence \
+            mvp.tests.test_operational_http_api \
+            mvp.tests.test_occurrence_consolidation_api \
+            mvp.tests.test_history_closeout \
+            mvp.tests.test_pcm_source_integration \
+            mvp.tests.test_diarization_engines \
+            mvp.tests.test_razer_worker_transport 2>&1 | tee .build/validation/python-tests.log
+      - name: Wearable regressions and compiled response ordering
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -v -s wearable/safe_field_operational_v1/tests -p 'test_*.py' 2>&1 | tee .build/validation/wearable-tests.log
+          g++ -std=c++17 -Wall -Wextra -pedantic -Werror wearable/safe_field_operational_v1/tests/test_response_order.cpp -o .build/response-order
+          .build/response-order
+          echo 'Native C++ response-order tests PASS; not a physical-device test.' > .build/validation/response-order.log
       - uses: actions/checkout@v4
         with:
-          ref: 0d14b19ffdbcff3b189390174100f17d7820d1f0
-          path: identity
-      - name: Package tracked source only
+          repository: waveshareteam/ESP32-S3-Touch-AMOLED-2.06
+          ref: b099739ad0e33b34e5fbaae77f02bd84805d79a3
+          path: .build/waveshare-sdk
+          persist-credentials: false
+      - uses: arduino/setup-arduino-cli@v2
+        with:
+          version: '1.5.1'
+      - name: Install pinned ESP32 core
+        shell: bash
+        run: |
+          set -o pipefail
+          arduino-cli config init --overwrite
+          arduino-cli config add board_manager.additional_urls https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@3.3.11 2>&1 | tee .build/validation/toolchain.log
+          arduino-cli version >> .build/validation/toolchain.log
+      - name: Compile production wearable for ESP32-S3
+        shell: bash
+        run: |
+          set -o pipefail
+          arduino-cli compile \
+            --fqbn 'esp32:esp32:esp32s3:USBMode=hwcdc,CDCOnBoot=cdc,PSRAM=opi,FlashSize=16M,PartitionScheme=app3M_fat9M_16MB' \
+            --libraries .build/waveshare-sdk/examples/arduino/libraries \
+            --build-path .build/arduino-work \
+            --output-dir .build/firmware \
+            wearable/safe_field_operational_v1 2>&1 | tee .build/validation/firmware-compile.log
+          sha256sum .build/firmware/*.bin > .build/validation/firmware-sha256.txt
+      - name: Commit only validated candidate source on isolated branch
+        shell: bash
         run: |
           python - <<'PY'
-          import pathlib, subprocess, zipfile
-          out = pathlib.Path('candidate_sources'); out.mkdir()
-          roots = ('mvp/', 'wearable/', 'raspberry/', 'raspberry_mvp/', 'scripts/', '.github/')
-          suffixes = {'.py', '.ino', '.h', '.hpp', '.cpp', '.md', '.ps1', '.sh', '.yml', '.yaml', '.txt', '.toml'}
-          for folder in ('live', 'identity'):
-              base = pathlib.Path(folder)
-              names = subprocess.check_output(['git','-C',folder,'ls-files','-z']).decode().split('\0')
-              with zipfile.ZipFile(out / (folder + '.zip'), 'w', zipfile.ZIP_DEFLATED) as z:
-                  for name in names:
-                      p = base / name
-                      if p.is_file() and (name.startswith(roots) or name in ('AGENTS.md', 'requirements.txt', 'pyproject.toml')) and p.suffix in suffixes:
-                          if any(part in {'sessions','evidence','.env','runtime','private'} for part in pathlib.PurePosixPath(name).parts):
-                              continue
-                          z.write(p, name)
-                  z.writestr('SOURCE_COMMIT.txt', subprocess.check_output(['git','-C',folder,'rev-parse','HEAD']).decode())
+          import json, subprocess
+          from pathlib import Path
+          paths = json.loads(Path('.build/validation/source_files.json').read_text())
+          subprocess.run(['git', 'add', '--', *paths], check=True)
+          if subprocess.run(['git','diff','--cached','--quiet']).returncode:
+              subprocess.run(['git','-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit','-m','fix: integrate responsive wearable and versioned identity review candidate'],check=True)
+              subprocess.run(['git','push','origin','HEAD:refs/heads/gate2e-live-p0-responsive'],check=True)
+          Path('.build/validation/SOURCE_COMMIT.txt').write_text(subprocess.check_output(['git','rev-parse','HEAD']).decode())
+          PY
+      - name: Package source and evidence
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, zipfile
+          from pathlib import Path
+          path = Path('.build/validation/source_files.json')
+          if path.is_file():
+              with zipfile.ZipFile('.build/validation/modified_sources.zip','w',zipfile.ZIP_DEFLATED) as z:
+                  for name in json.loads(path.read_text()):
+                      if Path(name).is_file(): z.write(name,name)
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: gate2e-candidate-sources
-          path: candidate_sources/*.zip
-          retention-days: 2
+          name: gate2e-validated-candidate
+          path: |
+            .build/validation/*
+            .build/firmware/*.bin
+          if-no-files-found: warn
+          retention-days: 7
